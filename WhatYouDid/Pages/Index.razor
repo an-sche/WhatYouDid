@@ -1,23 +1,9 @@
 ﻿@page "/"
-@inject IConfiguration Config
 
 <PageTitle>Index</PageTitle>
 
 <h1>Hello, world!</h1>
 
-<p class="h4">
-	Default Connection String: @defaultConnection
-</p>
+Welcome to your new app.
 
-<p>
-	This is our sample site that we deployed using GitHub Actions.
-</p>
-
-@code {
-	private string defaultConnection = "";
-
-	protected override void OnInitialized()
-	{
-		defaultConnection = Config.GetConnectionString("Default") ?? "Unknown";
-	}
-}
+<SurveyPrompt Title="How is Blazor working for you?" />
