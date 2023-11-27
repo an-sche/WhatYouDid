@@ -2,6 +2,26 @@
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<p>Insert Logo Here</p>
 
-Welcome to your new app.
+<AuthorizeView>
+	<Authorized>
+		<p>
+			Hi @context.User.Identity?.Name!
+		</p>
+		<p>
+			<button class="btn btn-primary">Start Workout</button>
+		</p>
+		<p>
+			<button class="btn btn-secondary">View Account</button>
+		</p>
+	</Authorized>
+	<NotAuthorized>
+		<p>
+			<button class="btn btn-primary">Log In</button>
+		</p>
+		<p>
+			<button class="btn btn-secondary">Create Account</button>
+		</p>
+	</NotAuthorized>
+</AuthorizeView>

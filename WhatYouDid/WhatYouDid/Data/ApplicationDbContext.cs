@@ -4,5 +4,5 @@ using Microsoft.EntityFrameworkCore;
 namespace WhatYouDid.Data;
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<ApplicationUser>(options)
 {
-
+    public DbSet<Workout> Workouts { get; set; }
 }
