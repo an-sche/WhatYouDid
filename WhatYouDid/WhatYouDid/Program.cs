@@ -5,6 +5,7 @@ using WhatYouDid.Client.Pages;
 using WhatYouDid.Components;
 using WhatYouDid.Components.Account;
 using WhatYouDid.Data;
+using WhatYouDid.Routines;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,8 +37,7 @@ else
 }
 
 builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString)
-    );
+    options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter(); 
 builder.Services.AddQuickGridEntityFrameworkAdapter();
 
@@ -47,6 +47,9 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+
+builder.Services.AddTransient<IRoutineService, RoutineService>();
+
 
 var app = builder.Build();
 

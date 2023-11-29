@@ -1,15 +1,36 @@
 ﻿@page "/routines"
-@using Microsoft.AspNetCore.Components.QuickGrid;
-@using WhatYouDid.Data;
-@inject ApplicationDbContext db
+@using WhatYouDid.Routines
+@using Microsoft.AspNetCore.Components.QuickGrid
+@inject IRoutineService RoutineService
+@attribute [StreamRendering]
 
-<QuickGrid Items="@db.Routines" >
-	<PropertyColumn Property="@(c => c.RoutineId)" Sortable="true" />
-	<PropertyColumn Property="@(c => c.Name)" Sortable="true" />
+<PageTitle>Routines</PageTitle>
 
-</QuickGrid>
+@if (routines is null)
+{
+	<span>Loading...</span>
+}
+else if (routines.Count == 0)
+{
+	<span>No Routines Found.</span>
+}
+else
+{
+	<ul>
+		@foreach (var routine in routines)
+		{
+			<li>@routine.Name</li>
+		}
+	</ul>
+}
 
 
 @code {
 
+	List<Routine>? routines = null;
+
+	protected override async Task OnInitializedAsync()
+	{
+		routines = await RoutineService.GetRoutinesAsync();
+	}
 }

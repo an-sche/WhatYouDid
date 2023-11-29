@@ -1,0 +1,46 @@
+﻿using Microsoft.EntityFrameworkCore;
+using WhatYouDid.Data;
+
+namespace WhatYouDid.Routines;
+
+public class RoutineService : IRoutineService
+{
+    private readonly ApplicationDbContext _db;
+    public RoutineService(ApplicationDbContext db)
+    {
+        _db = db;
+    }
+
+    public async Task<Routine> AddRoutineAsync(Routine routine)
+    {
+        var result = await _db.Routines.AddAsync(routine);
+        await _db.SaveChangesAsync();
+        return result.Entity;
+    }
+
+    public async void DeleteRoutineAsync(int routineId)
+    {
+        var result = await _db.Routines.FirstOrDefaultAsync(x => x.RoutineId == routineId);
+        if (result is null)
+            return;
+
+        _db.Routines.Remove(result);
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task<Routine?> GetRoutineAsync(int routineId)
+    {
+        var result = await _db.Routines.FirstOrDefaultAsync(x => x.RoutineId == routineId);
+        return result;
+    }
+
+    public async Task<List<Routine>> GetRoutinesAsync()
+    {
+        return await _db.Routines.ToListAsync();
+    }
+
+    public Task<Routine> UpdateRoutineAsync(Routine routine)
+    {
+        throw new NotImplementedException();
+    }
+}
