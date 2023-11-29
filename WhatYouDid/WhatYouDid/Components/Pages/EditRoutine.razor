@@ -1,0 +1,95 @@
+﻿@page "/edit-routine"
+@page "/edit-routine/{id:int}"
+@attribute [StreamRendering]
+
+<h3>Edit Routine</h3>
+
+<EditForm Model="routine" OnSubmit="HandleSubmit">
+	<p>
+		<label>Name</label>
+		<InputText @bind-Value="routine.Name">@routine.Name</InputText>
+	</p>
+	@foreach (var e in routine.Exercises)
+	{
+		<p>
+		<div>
+			<label>Exercise @e.Sequence</label>
+		</div>
+		<div>
+			<label>Name</label>
+			<InputText @bind-Value="e.Name">@e.Name</InputText>
+		</div>
+		<div>
+			<label>Sets</label>
+			<InputNumber @bind-Value="e.Sets">@e.Sets</InputNumber>
+		</div>
+		<div>
+			<lable>Reps?</lable>
+			<InputCheckbox @bind-Value="e.HasReps">@e.HasReps</InputCheckbox>
+		</div>
+		<div>
+			<lable>Weight?</lable>
+			<InputCheckbox @bind-Value="e.HasWeight">@e.HasWeight</InputCheckbox>
+		</div>
+		<div>
+			<lable>Duration?</lable>
+			<InputCheckbox @bind-Value="e.HasDuration">@e.HasDuration</InputCheckbox>
+		</div>
+		</p>
+	}
+
+</EditForm>
+
+<button @onclick="AddExercise" class="btn btn-primary">Add Exercise</button>
+<button @onclick="RemoveExercise" class="btn btn-secondary">Remove Exercise</button>
+
+
+@code {
+
+	[Parameter]
+	public int? Id { get; set; }
+
+	Routine routine = new() {
+		Name = string.Empty,
+		Exercises = new List<Exercise>()
+		{
+			new Exercise()
+			{
+				Sequence = 1,
+				Name = string.Empty,
+				Sets = 1,
+
+				HasReps = true,
+				HasWeight = true
+			}
+		},
+	};
+
+	async Task HandleSubmit()
+	{
+		// Submit the changes / additions
+	}
+
+	void AddExercise()
+	{
+		routine.Exercises.Add(
+			new Exercise()
+			{
+				Sequence = routine.Exercises.Count + 1,
+				Name = string.Empty,
+				Sets = 1,
+
+				HasReps = true,
+				HasWeight = true
+			}
+		);
+	}
+
+	void RemoveExercise()
+	{
+		if (routine.Exercises.Count > 0)
+		{
+			routine.Exercises.RemoveAt(routine.Exercises.Count - 1);
+		}
+	}
+}

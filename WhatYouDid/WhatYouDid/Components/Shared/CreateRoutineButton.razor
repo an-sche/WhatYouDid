@@ -1,0 +1,10 @@
+﻿@inject NavigationManager NavigationManager
+
+<button @onclick="CreateRoute" class="btn btn-primary">Create Routine</button>
+
+@code {
+	void CreateRoute()
+	{
+		NavigationManager.NavigateTo("/edit-routine");
+	}
+}
