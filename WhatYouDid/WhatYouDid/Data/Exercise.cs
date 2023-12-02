@@ -29,4 +29,7 @@ public class Exercise
     public bool HasReps { get; set; } = false;
     public bool HasWeight { get; set; } = false;
     public bool HasDuration { get; set; } = false;
+
+    [Required]
+    public Routine? Routine { get; set; } = null;
 }
