@@ -2,28 +2,40 @@
 @page "/edit-routine/{id:int}"
 @rendermode RenderMode.InteractiveServer
 
+<PageTitle>Edit Routine</PageTitle>
 <h3>Edit Routine</h3>
 
 <EditForm Model=@routine OnSubmit=@HandleSubmit FormName="editroutine">
 	<p>
-		<label>Name</label>
+		<label>Name: </label>
 		<InputText @bind-Value="routine.Name">@routine.Name</InputText>
+		<hr />
 	</p>
 	@foreach (var e in routine.Exercises)
 	{
 		<div>
-			<label>Exercise</label>
+			<h5>Exercise: @e.Sequence</h5>
 		</div>
 		<div>
-			<label>Name</label>
+			<label>Name: </label>
 			<InputText @bind-Value=e.Name>@e.Name</InputText>
-			<label>Sets</label>
+			<label>Sets: </label>
 			<InputNumber @bind-Value=e.Sets>@e.Sets</InputNumber>
-			<button @onclick=RemoveExercise class="btn btn-secondary">-</button>
+			<button @onclick="() => RemoveExercise(e)" class="btn btn-close"></button>
 		</div>
+		<div>
+			<InputCheckbox @bind-Value=e.HasReps>@e.HasReps</InputCheckbox>
+			<label>Reps? | </label>
+			<InputCheckbox @bind-Value=e.HasWeight>@e.HasWeight</InputCheckbox>
+			<label>Weight? | </label>
+			<InputCheckbox @bind-Value=e.HasDuration>@e.HasDuration</InputCheckbox>
+			<label>Duration?</label>
+		</div>
+		<hr />
 	}
 
 	<button @onclick=AddExercise class="btn btn-primary">+</button>
+
 </EditForm>
 
 
@@ -59,7 +71,7 @@
 		routine.Exercises.Add(
 			new Exercise()
 			{
-				Sequence = 1,
+				Sequence = routine.Exercises.Count + 1,
 				Name = string.Empty,
 				Sets = 1,
 
@@ -70,11 +82,14 @@
 		StateHasChanged();
 	}
 
-	void RemoveExercise()
+	void RemoveExercise(Exercise e)
 	{
-		if (routine.Exercises.Count > 1)
+		if (routine.Exercises.Remove(e))
 		{
-			routine.Exercises.RemoveAt(routine.Exercises.Count - 1);
+			for (int i = 0; i < routine.Exercises.Count; i++)
+			{
+				routine.Exercises[i].Sequence = i + 1;
+			}
 		}
 	}
 }
