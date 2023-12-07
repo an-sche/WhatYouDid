@@ -8,12 +8,12 @@ public class Exercise
     public int ExerciseId { get; set; }
 
     [Required,
-        MaxLength(50, ErrorMessage="Length must be less than 50 characters"),
+        MaxLength(50, ErrorMessage="Length must be less than 50 characters."),
         MinLength(3, ErrorMessage="Length must be at least 3 characters.")]
     public required string Name { get; set; }
 
-    [MaxLength(1000)]
-    public string? Description { get; set; }
+    [MaxLength(1000, ErrorMessage = "Length must be 1000 characters or less.")]
+    public string? Description { get; set; } = null;
 
     /// <summary>
     /// The Order in the Main Routine

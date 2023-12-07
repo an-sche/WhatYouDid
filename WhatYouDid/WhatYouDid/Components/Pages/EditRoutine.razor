@@ -1,42 +1,62 @@
 ﻿@page "/edit-routine"
 @page "/edit-routine/{id:int}"
+
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
 @rendermode RenderMode.InteractiveServer
 
 <PageTitle>Edit Routine</PageTitle>
-<h3>Edit Routine</h3>
+<h2>Edit Routine</h2>
 
-<EditForm Model=@routine OnSubmit=@HandleSubmit FormName="editroutine">
-	<p>
-		<label>Name: </label>
-		<InputText @bind-Value="routine.Name">@routine.Name</InputText>
+<AuthorizeView>
+	<div class="col-md-4">
 		<hr />
-	</p>
-	@foreach (var e in routine.Exercises)
-	{
-		<div>
-			<h5>Exercise: @e.Sequence</h5>
-		</div>
-		<div>
-			<label>Name: </label>
-			<InputText @bind-Value=e.Name>@e.Name</InputText>
-			<label>Sets: </label>
-			<InputNumber @bind-Value=e.Sets>@e.Sets</InputNumber>
-			<button @onclick="() => RemoveExercise(e)" class="btn-close"></button>
-		</div>
-		<div>
-			<InputCheckbox @bind-Value=e.HasReps>@e.HasReps</InputCheckbox>
-			<label>Reps? | </label>
-			<InputCheckbox @bind-Value=e.HasWeight>@e.HasWeight</InputCheckbox>
-			<label>Weight? | </label>
-			<InputCheckbox @bind-Value=e.HasDuration>@e.HasDuration</InputCheckbox>
-			<label>Duration?</label>
-		</div>
-		<hr />
-	}
+		<EditForm Model=@routine OnSubmit=@HandleSubmit FormName="EditRoutine" Context="EditRoutine">
 
-	<button @onclick=AddExercise class="btn btn-primary">+</button>
+			<DataAnnotationsValidator />
+			<ValidationSummary />
 
-</EditForm>
+			<div class="form-floating mb-3">
+				<InputText @bind-Value="routine.Name" class="form-control" aria-required="true" placeholder="Routine Name" />
+				<label for="routineName" class="form-label">Routine Name</label>
+				<ValidationMessage For="() => routine.Name" class="text-danger" />
+			</div>
+			<hr />
+
+			@foreach (var e in routine.Exercises)
+			{
+				<div>
+					<label class="h5">Exercise: @e.Sequence</label>
+					<button @onclick="() => RemoveExercise(e)" class="btn btn-close"></button>
+				</div>
+				<div>
+					<label for="Name @e.Sequence">Name: </label>
+					<InputText @bind-Value=e.Name>@e.Name</InputText>
+					<ValidationMessage For="() => e.Name" />
+					<label for="Name @e.Sequence">Sets: </label>
+					<InputNumber @bind-Value=e.Sets>@e.Sets</InputNumber>
+					<ValidationMessage For="() => e.Sets" />
+				</div>
+				<div>
+					<InputCheckbox @bind-Value=e.HasReps>@e.HasReps</InputCheckbox>
+					<label>Reps? | </label>
+					<InputCheckbox @bind-Value=e.HasWeight>@e.HasWeight</InputCheckbox>
+					<label>Weight? | </label>
+					<InputCheckbox @bind-Value=e.HasDuration>@e.HasDuration</InputCheckbox>
+					<label>Duration?</label>
+				</div>
+				<hr />
+			}
+			<div>
+				<button @onclick=AddExercise class="btn btn-primary">+ Add Exercise</button>
+			</div>
+			<br />
+			<div>
+				<button type="submit" class="btn btn-success">Submit</button>
+			</div>
+		</EditForm>
+	</div>
+</AuthorizeView>
 
 
 
@@ -64,6 +84,10 @@
 	async Task HandleSubmit()
 	{
 		// Submit the changes / additions
+		var x = "Starting Submit";
+
+		// Validate all fields:
+
 	}
 
 	void AddExercise()
