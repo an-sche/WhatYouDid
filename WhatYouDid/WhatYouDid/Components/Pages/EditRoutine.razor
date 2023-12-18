@@ -2,8 +2,15 @@
 @page "/edit-routine/{id:int}"
 
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@using System.Text
+@using System.Security.Claims
 @attribute [Authorize]
 @rendermode RenderMode.InteractiveServer
+@inject IRoutineService RoutineService
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider Authentication
+@inject UserManager<ApplicationUser> UserManager
 
 <PageTitle>Edit Routine</PageTitle>
 <h2>Edit Routine</h2>
@@ -11,7 +18,7 @@
 <AuthorizeView>
 	<div class="col-md-4">
 		<hr />
-		<EditForm Model=@routine OnSubmit=@HandleSubmit FormName="EditRoutine" Context="EditRoutine">
+		<EditForm Model=@routine OnValidSubmit="OnValidSubmit" OnInvalidSubmit="OnInvalidSubmit" FormName="EditRoutine" Context="EditRoutine">
 
 			<DataAnnotationsValidator />
 			<ValidationSummary />
@@ -48,7 +55,7 @@
 				<hr />
 			}
 			<div>
-				<button @onclick=AddExercise class="btn btn-primary">+ Add Exercise</button>
+				<button type="button" @onclick=AddExercise class="btn btn-primary">+ Add Exercise</button>
 			</div>
 			<br />
 			<div>
@@ -81,13 +88,33 @@
 		},
 	};
 
-	async Task HandleSubmit()
+	async Task OnInvalidSubmit()
+	{
+
+	}
+
+	async Task OnValidSubmit()
 	{
 		// Submit the changes / additions
-		var x = "Starting Submit";
 
-		// Validate all fields:
+		// Assume the form was valid:
 
+		var authState = await Authentication.GetAuthenticationStateAsync();
+		var userId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
+		var currentUser = await UserManager.FindByIdAsync(userId);
+
+		routine.CreateUser = currentUser;
+
+		var createdRoutine = await RoutineService.AddRoutineAsync(routine);
+
+		// Navigate to the "View Routine" Page:
+		if (createdRoutine is null)
+		{
+			// Error Creating Routine??
+			return;
+		}
+
+		Navigation.NavigateTo("routines");
 	}
 
 	void AddExercise()
