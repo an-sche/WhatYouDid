@@ -1,8 +1,16 @@
 ﻿@page "/routines"
 @using WhatYouDid.Routines
 @using Microsoft.AspNetCore.Components.QuickGrid
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@using System.Text
+@using System.Security.Claims
 @inject IRoutineService RoutineService
+@attribute [Authorize]
 @attribute [StreamRendering]
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider Authentication
+@inject UserManager<ApplicationUser> UserManager
 
 <PageTitle>Routines</PageTitle>
 <h1>Routines</h1>
@@ -11,27 +19,25 @@
 {
 	<span>Loading...</span>
 }
-else if (routines.Count == 0)
-{
-	<span>No Routines Found.</span>
-}
 else
 {
-	<ul>
-		@foreach (var routine in routines)
-		{
-			<li>@routine.Name</li>
-		}
-	</ul>
+	<QuickGrid Items=@routines>
+		<PropertyColumn Property="@(p => p.Name)" />
+	</QuickGrid>
 }
-
 
 @code {
 
-	List<Routine>? routines = null;
+	IQueryable<Routine>? routines = null;
 
 	protected override async Task OnInitializedAsync()
 	{
-		routines = await RoutineService.GetRoutinesAsync();
+		var authState = await Authentication.GetAuthenticationStateAsync();
+		var userId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
+		var user = await UserManager.FindByIdAsync(userId);
+		routines = RoutineService.GetUserRoutinesQueryable(user);
+
+		StateHasChanged();
+		//routines = await RoutineService.GetRoutinesAsync();
 	}
 }
