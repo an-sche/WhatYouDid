@@ -39,7 +39,12 @@ public class RoutineService : IRoutineService
         return await _db.Routines.ToListAsync();
     }
 
-    public Task<Routine> UpdateRoutineAsync(Routine routine)
+	public IQueryable<Routine> GetRoutinesByUserAsync(ApplicationUser user)
+	{
+        return _db.Routines.Where(x => x.CreateUser == user);
+	}
+
+	public Task<Routine> UpdateRoutineAsync(Routine routine)
     {
         throw new NotImplementedException();
     }
