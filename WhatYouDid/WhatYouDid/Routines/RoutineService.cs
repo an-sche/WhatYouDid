@@ -39,6 +39,11 @@ public class RoutineService : IRoutineService
         return await _db.Routines.ToListAsync();
     }
 
+	public IQueryable<Routine> GetRoutinesByUserAsync(ApplicationUser user)
+	{
+		return _db.Routines.OrderBy(x => x.Name).Where(x => x.CreateUser == user);
+	}
+
 	public IQueryable<Routine> GetUserRoutinesQueryable(ApplicationUser user)
 	{
         return _db.Routines.OrderBy(x => x.Name).Where(x => x.CreateUser == user);

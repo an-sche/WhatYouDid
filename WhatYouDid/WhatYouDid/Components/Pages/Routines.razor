@@ -18,19 +18,16 @@
 <PageTitle>Routines</PageTitle>
 <h1>Routines</h1>
 
-@if (routines is null)
+@if (routinesQueryable is null)
 {
 	<span>Loading...</span>
 }
 else
 {
-	<QuickGrid Items=@routines>
+	<QuickGrid Items=@routinesQueryable>
 		<PropertyColumn Property="@(p => p.Name)" />
 	</QuickGrid>
 }
-
-	</QuickGrid>
-</AuthorizeView>
 
 @code {
 
