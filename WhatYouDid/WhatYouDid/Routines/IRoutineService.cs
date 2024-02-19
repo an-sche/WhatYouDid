@@ -11,4 +11,5 @@ public interface IRoutineService
     Task<Routine> AddRoutineAsync(Routine routine);
     Task<Routine> UpdateRoutineAsync(Routine routine);
     void DeleteRoutineAsync(int routineId);
+	Task<IQueryable<Exercise>> GetExercises(int routineId);
 }

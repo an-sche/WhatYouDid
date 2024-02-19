@@ -11,9 +11,6 @@
 @inject UserManager<ApplicationUser> UserManager
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider Authentication
-@inject NavigationManager Navigation
-@inject AuthenticationStateProvider Authentication
-@inject UserManager<ApplicationUser> UserManager
 
 <PageTitle>Routines</PageTitle>
 <h1>Routines</h1>
@@ -29,10 +26,23 @@ else
 	</QuickGrid>
 }
 
+@if (exercises is not null)
+{
+	<h1>Exercises</h1>
+	<QuickGrid Items=@exercises.OrderBy(x => x.Sequence).AsQueryable()>
+		<PropertyColumn Property="@(p => p.Sequence)" />
+		<PropertyColumn Property="@(p => p.Name)" />
+		<PropertyColumn Property="@(p => p.HasReps)" />
+		<PropertyColumn Property="@(p => p.HasWeight)" />
+		<PropertyColumn Property="@(p => p.HasDuration)" />
+	</QuickGrid>
+}
+
 @code {
 
-	IQueryable<Routine> routinesQueryable;
-	ApplicationUser user;
+	IQueryable<Exercise>? exercises;
+	IQueryable<Routine>? routinesQueryable;
+	ApplicationUser? user;
 
 	protected override async Task OnInitializedAsync()
 	{

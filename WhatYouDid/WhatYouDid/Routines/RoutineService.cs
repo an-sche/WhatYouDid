@@ -28,7 +28,18 @@ public class RoutineService : IRoutineService
         await _db.SaveChangesAsync();
     }
 
-    public async Task<Routine?> GetRoutineAsync(int routineId)
+	public async Task<IQueryable<Exercise>?> GetExercises(int routineId)
+	{
+        // First get the routine:
+        var routine = await _db.Routines.FirstOrDefaultAsync(x => x.RoutineId == routineId);
+		if (routine is null) return null;
+
+        // Next get the exercises list, but return as queryable
+        var exercies = routine.Exercises.AsQueryable();
+		return exercies;
+	}
+
+	public async Task<Routine?> GetRoutineAsync(int routineId)
     {
         var result = await _db.Routines.FirstOrDefaultAsync(x => x.RoutineId == routineId);
         return result;
