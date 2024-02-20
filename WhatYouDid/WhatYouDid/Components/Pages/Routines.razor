@@ -1,6 +1,5 @@
 ﻿@page "/routines"
 @using WhatYouDid.Routines
-@using Microsoft.AspNetCore.Components.QuickGrid
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Identity
 @using System.Text
@@ -21,21 +20,23 @@
 }
 else
 {
-	<QuickGrid Items=@routinesQueryable>
-		<PropertyColumn Property="@(p => p.Name)" />
-	</QuickGrid>
+	<RadzenDataGrid Data="@routinesQueryable" TItem="Routine">
+		<Columns>
+			<RadzenDataGridColumn TItem="Routine" Property="Name" />
+		</Columns>
+	</RadzenDataGrid>
 }
 
 @if (exercises is not null)
 {
-	<h1>Exercises</h1>
-	<QuickGrid Items=@exercises.OrderBy(x => x.Sequence).AsQueryable()>
-		<PropertyColumn Property="@(p => p.Sequence)" />
-		<PropertyColumn Property="@(p => p.Name)" />
-		<PropertyColumn Property="@(p => p.HasReps)" />
-		<PropertyColumn Property="@(p => p.HasWeight)" />
-		<PropertyColumn Property="@(p => p.HasDuration)" />
-	</QuickGrid>
+	// <h1>Exercises</h1>
+	// <QuickGrid Items=@exercises.OrderBy(x => x.Sequence).AsQueryable()>
+	// 	<PropertyColumn Property="@(p => p.Sequence)" />
+	// 	<PropertyColumn Property="@(p => p.Name)" />
+	// 	<PropertyColumn Property="@(p => p.HasReps)" />
+	// 	<PropertyColumn Property="@(p => p.HasWeight)" />
+	// 	<PropertyColumn Property="@(p => p.HasDuration)" />
+	// </QuickGrid>
 }
 
 @code {

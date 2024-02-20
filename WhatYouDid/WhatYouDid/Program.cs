@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Radzen;
 using WhatYouDid.Client.Pages;
 using WhatYouDid.Components;
 using WhatYouDid.Components.Account;
@@ -9,12 +10,13 @@ using WhatYouDid.Routines;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddRadzenComponents();
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
 
-builder.Services.AddQuickGridEntityFrameworkAdapter();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
@@ -40,7 +42,6 @@ else
 builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter(); 
-builder.Services.AddQuickGridEntityFrameworkAdapter();
 
 builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>()
