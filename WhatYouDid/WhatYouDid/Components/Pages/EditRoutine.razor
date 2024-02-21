@@ -12,11 +12,9 @@
 @inject AuthenticationStateProvider Authentication
 @inject UserManager<ApplicationUser> UserManager
 
-<PageTitle>Edit Routine</PageTitle>
 
-<div class="rz-p-12">
-	<RadzenText TextStyle="TextStyle.H3">Edit Routine</RadzenText>
-</div>
+<PageTitle>Edit Routine</PageTitle>
+<RadzenText TextStyle="TextStyle.H3">Edit Routine</RadzenText>
 
 <AuthorizeView>
 	<div class="col-md-4">
@@ -26,44 +24,50 @@
 			<DataAnnotationsValidator />
 			<ValidationSummary />
 
-			<div class="form-floating mb-3">
-				<InputText @bind-Value="routine.Name" class="form-control" aria-required="true" placeholder="Routine Name" />
-				<label for="routineName" class="form-label">Routine Name</label>
-				<ValidationMessage For="() => routine.Name" class="text-danger" />
-			</div>
+
+			<RadzenFormField AllowFloatingLabel="false" Text="Routine Name">
+				<ChildContent>
+					<RadzenTextBox Name="RoutineName" @bind-Value=routine.Name />
+				</ChildContent>
+			</RadzenFormField>
+			<ValidationMessage For="() => routine.Name" />
 			<hr />
 
 			@foreach (var e in routine.Exercises)
 			{
 				<div>
-					<label class="h5">Exercise: @e.Sequence</label>
-					<button @onclick="() => RemoveExercise(e)" class="btn btn-close"></button>
+					<RadzenText TextStyle="TextStyle.H5">Exercise: @e.Sequence</RadzenText>
+					<RadzenButton Click=@(x => RemoveExercise(e)) Icon="ui-icon-trash"></RadzenButton>
 				</div>
 				<div>
-					<label for="Name @e.Sequence">Name: </label>
-					<InputText @bind-Value=e.Name>@e.Name</InputText>
-					<ValidationMessage For="() => e.Name" />
-					<label for="Name @e.Sequence">Sets: </label>
-					<InputNumber @bind-Value=e.Sets>@e.Sets</InputNumber>
+					<RadzenFormField AllowFloatingLabel="false" Text="Exercise Name">
+						<ChildContent>
+							<RadzenTextBox Name="ExerciseName" @bind-Value=e.Name />
+						</ChildContent>
+                    </RadzenFormField>
+                    <ValidationMessage For="() => e.Name" />
+
+					<RadzenFormField AllowFloatingLabel="false" Text="Sets">
+						<ChildContent>
+							<RadzenNumeric Name="Sets" @bind-Value=e.Sets />
+						</ChildContent>
+					</RadzenFormField>
 					<ValidationMessage For="() => e.Sets" />
 				</div>
 				<div>
-					<InputCheckbox @bind-Value=e.HasReps>@e.HasReps</InputCheckbox>
-					<label>Reps? | </label>
-					<InputCheckbox @bind-Value=e.HasWeight>@e.HasWeight</InputCheckbox>
-					<label>Weight? | </label>
-					<InputCheckbox @bind-Value=e.HasDuration>@e.HasDuration</InputCheckbox>
-					<label>Duration?</label>
+					<RadzenCheckBox @bind-Value=e.HasReps />
+					<RadzenLabel Text="Reps?" />
+					<RadzenCheckBox @bind-Value=e.HasWeight />
+					<RadzenLabel Text="Weight?" />
+					<RadzenCheckBox @bind-Value=e.HasDuration />
+					<RadzenLabel Text="Duration?" />
 				</div>
 				<hr />
-			}
-			<div>
-				<button type="button" @onclick=AddExercise class="btn btn-primary">+ Add Exercise</button>
-			</div>
-			<br />
-			<div>
-				<button type="submit" class="btn btn-success">Submit</button>
-			</div>
+			}	
+			
+			<RadzenButton Click="@AddExercise" Text="Add Exercise" Icon="add_circle_outline" ButtonStyle="ButtonStyle.Primary" />
+			<RadzenButton ButtonType="ButtonType.Submit" Text="Create Routine" Icon="save" ButtonStyle="ButtonStyle.Secondary" />
+
 		</EditForm>
 	</div>
 </AuthorizeView>
