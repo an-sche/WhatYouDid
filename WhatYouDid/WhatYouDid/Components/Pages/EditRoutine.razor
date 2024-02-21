@@ -25,7 +25,7 @@
 			<ValidationSummary />
 
 
-			<RadzenFormField AllowFloatingLabel="false" Text="Routine Name">
+			<RadzenFormField AllowFloatingLabel="false" Text="Routine Name" Style="width: 100%" >
 				<ChildContent>
 					<RadzenTextBox Name="RoutineName" @bind-Value=routine.Name />
 				</ChildContent>
@@ -35,33 +35,35 @@
 
 			@foreach (var e in routine.Exercises)
 			{
-				<div>
-					<RadzenText TextStyle="TextStyle.H5">Exercise: @e.Sequence</RadzenText>
-					<RadzenButton Click=@(x => RemoveExercise(e)) Icon="ui-icon-trash"></RadzenButton>
-				</div>
-				<div>
-					<RadzenFormField AllowFloatingLabel="false" Text="Exercise Name">
-						<ChildContent>
-							<RadzenTextBox Name="ExerciseName" @bind-Value=e.Name />
-						</ChildContent>
-                    </RadzenFormField>
-                    <ValidationMessage For="() => e.Name" />
+				<RadzenCard Variant="Variant.Outlined">
+					<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" >
+						<RadzenText TextStyle="TextStyle.H5" TextAlign="TextAlign.Left" Style="left">Exercise: @e.Sequence</RadzenText>
+						<RadzenButton Click=@(x => RemoveExercise(e)) Icon="delete" Variant="Variant.Text"></RadzenButton>
+					</RadzenStack>
+					<div>
+						<RadzenFormField AllowFloatingLabel="false" Text="Exercise Name">
+							<ChildContent>
+								<RadzenTextBox Name="ExerciseName" @bind-Value=e.Name />
+							</ChildContent>
+						</RadzenFormField>
+						<ValidationMessage For="() => e.Name" />
 
-					<RadzenFormField AllowFloatingLabel="false" Text="Sets">
-						<ChildContent>
-							<RadzenNumeric Name="Sets" @bind-Value=e.Sets />
-						</ChildContent>
-					</RadzenFormField>
-					<ValidationMessage For="() => e.Sets" />
-				</div>
-				<div>
-					<RadzenCheckBox @bind-Value=e.HasReps />
-					<RadzenLabel Text="Reps?" />
-					<RadzenCheckBox @bind-Value=e.HasWeight />
-					<RadzenLabel Text="Weight?" />
-					<RadzenCheckBox @bind-Value=e.HasDuration />
-					<RadzenLabel Text="Duration?" />
-				</div>
+						<RadzenFormField AllowFloatingLabel="false" Text="Sets">
+							<ChildContent>
+								<RadzenNumeric Name="Sets" @bind-Value=e.Sets />
+							</ChildContent>
+						</RadzenFormField>
+						<ValidationMessage For="() => e.Sets" />
+					</div>
+					<div>
+						<RadzenCheckBox @bind-Value=e.HasReps />
+						<RadzenLabel Text="Reps?" />
+						<RadzenCheckBox @bind-Value=e.HasWeight />
+						<RadzenLabel Text="Weight?" />
+						<RadzenCheckBox @bind-Value=e.HasDuration />
+						<RadzenLabel Text="Duration?" />
+					</div>
+				</RadzenCard>
 				<hr />
 			}	
 			
