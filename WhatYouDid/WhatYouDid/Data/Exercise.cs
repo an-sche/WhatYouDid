@@ -32,4 +32,7 @@ public class Exercise
 
     [Required]
     public Routine? Routine { get; set; } = null;
+
+    [Required]
+	public int? RoutineId { get; set; } = null;
 }

@@ -259,7 +259,7 @@ namespace WhatYouDid.Migrations
 
                     b.HasIndex("RoutineId");
 
-                    b.ToTable("Exercises");
+                    b.ToTable("Exercises", (string)null);
                 });
 
             modelBuilder.Entity("WhatYouDid.Data.Routine", b =>
@@ -282,7 +282,7 @@ namespace WhatYouDid.Migrations
 
                     b.HasIndex("CreateUserId");
 
-                    b.ToTable("Routines");
+                    b.ToTable("Routines", (string)null);
                 });
 
             modelBuilder.Entity("WhatYouDid.Data.Workout", b =>
@@ -311,7 +311,7 @@ namespace WhatYouDid.Migrations
 
                     b.HasIndex("ApplicationUserId");
 
-                    b.ToTable("Workouts");
+                    b.ToTable("Workouts", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

@@ -67,8 +67,10 @@
 				<hr />
 			}	
 			
-			<RadzenButton Click="@AddExercise" Text="Add Exercise" Icon="add_circle_outline" ButtonStyle="ButtonStyle.Primary" />
-			<RadzenButton ButtonType="ButtonType.Submit" Text="Create Routine" Icon="save" ButtonStyle="ButtonStyle.Secondary" />
+			<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" >
+				<RadzenButton Click="@AddExercise" Text="Add Exercise" Icon="add_circle_outline" ButtonStyle="ButtonStyle.Primary" />
+				<RadzenButton ButtonType="ButtonType.Submit" Text="Create Routine" Icon="save" ButtonStyle="ButtonStyle.Secondary" />
+			</RadzenStack>
 
 		</EditForm>
 	</div>

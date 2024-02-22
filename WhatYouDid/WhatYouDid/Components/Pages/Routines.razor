@@ -22,21 +22,40 @@ else
 {
 	<RadzenDataGrid Data="@routinesQueryable" TItem="Routine">
 		<Columns>
-			<RadzenDataGridColumn TItem="Routine" Property="Name" Title="Name" />
+			<RadzenDataGridColumn TItem="Routine" Property="Name" Title="Name" Frozen="true" />
+			<RadzenDataGridColumn TItem="Routine" Title="View">
+				<Template Context="routine" >
+					<RadzenButton Click="@(() => OpenExercises(routine))">View</RadzenButton>
+				</Template>
+			</RadzenDataGridColumn>
 		</Columns>
 	</RadzenDataGrid>
 }
 
 @if (exercises is not null)
 {
-	// <h1>Exercises</h1>
-	// <QuickGrid Items=@exercises.OrderBy(x => x.Sequence).AsQueryable()>
-	// 	<PropertyColumn Property="@(p => p.Sequence)" />
-	// 	<PropertyColumn Property="@(p => p.Name)" />
-	// 	<PropertyColumn Property="@(p => p.HasReps)" />
-	// 	<PropertyColumn Property="@(p => p.HasWeight)" />
-	// 	<PropertyColumn Property="@(p => p.HasDuration)" />
-	// </QuickGrid>
+	<RadzenDataList Data="exercises" TItem="Exercise">
+		<Template Context="exercise">
+			<RadzenColumn>
+				<RadzenText>@exercise.Sequence</RadzenText>
+			</RadzenColumn>
+			<RadzenColumn>
+				<RadzenText>@exercise.Name</RadzenText>
+			</RadzenColumn>
+			<RadzenColumn>
+				<RadzenText>@exercise.Sets</RadzenText>
+			</RadzenColumn>
+			<RadzenColumn>
+				<RadzenText>@exercise.HasReps</RadzenText>
+			</RadzenColumn>
+			<RadzenColumn>
+				<RadzenText>@exercise.HasWeight</RadzenText>
+			</RadzenColumn>
+			<RadzenColumn>
+				<RadzenText>@exercise.HasDuration</RadzenText>
+			</RadzenColumn>
+		</Template>
+	</RadzenDataList>
 }
 
 @code {
@@ -44,6 +63,11 @@ else
 	IQueryable<Exercise>? exercises;
 	IQueryable<Routine>? routinesQueryable;
 	ApplicationUser? user;
+
+	void OpenExercises(Routine routine)
+	{
+		exercises = RoutineService.GetExercises(routine.RoutineId);
+	}
 
 	protected override async Task OnInitializedAsync()
 	{

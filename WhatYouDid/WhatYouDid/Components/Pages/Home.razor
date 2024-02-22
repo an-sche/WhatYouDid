@@ -10,18 +10,18 @@
 			Hi @context.User.Identity?.Name!
 		</p>
 		<p>
-			<RadzenButton class="btn btn-primary">Start Workout</RadzenButton>
+			<RadzenButton ButtonStyle="ButtonStyle.Primary">Start Workout</RadzenButton>
 		</p>
 		<p>
-			<RadzenButton class="btn btn-secondary">View Account</RadzenButton>
+			<RadzenButton ButtonStyle="ButtonStyle.Secondary">View Account</RadzenButton>
 		</p>
 	</Authorized>
 	<NotAuthorized>
 		<p>
-			<button class="btn btn-primary">Log In</button>
+			<RadzenButton ButtonStyle="ButtonStyle.Primary">Log In</RadzenButton>
 		</p>
 		<p>
-			<button class="btn btn-secondary">Create Account</button>
+			<RadzenButton ButtonStyle="ButtonStyle.Secondary">Create Account</RadzenButton>
 		</p>
 	</NotAuthorized>
 </AuthorizeView>
