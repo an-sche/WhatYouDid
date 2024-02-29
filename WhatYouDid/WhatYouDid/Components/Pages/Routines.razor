@@ -12,7 +12,7 @@
 @inject AuthenticationStateProvider Authentication
 
 <PageTitle>Routines</PageTitle>
-<h1>Routines</h1>
+<RadzenText TextStyle="TextStyle.H3">Routines</RadzenText>
 
 @if (routinesQueryable is null)
 {
@@ -34,39 +34,31 @@ else
 
 @if (exercises is not null)
 {
-	<RadzenDataList Data="exercises" TItem="Exercise">
-		<Template Context="exercise">
-			<RadzenColumn>
-				<RadzenText>@exercise.Sequence</RadzenText>
-			</RadzenColumn>
-			<RadzenColumn>
-				<RadzenText>@exercise.Name</RadzenText>
-			</RadzenColumn>
-			<RadzenColumn>
-				<RadzenText>@exercise.Sets</RadzenText>
-			</RadzenColumn>
-			<RadzenColumn>
-				<RadzenText>@exercise.HasReps</RadzenText>
-			</RadzenColumn>
-			<RadzenColumn>
-				<RadzenText>@exercise.HasWeight</RadzenText>
-			</RadzenColumn>
-			<RadzenColumn>
-				<RadzenText>@exercise.HasDuration</RadzenText>
-			</RadzenColumn>
-		</Template>
-	</RadzenDataList>
+	<RadzenText TextStyle="TextStyle.H4">@routine</RadzenText>
+
+	<RadzenDataGrid Data="exercises" TItem="Exercise">
+		<Columns>
+			<RadzenDataGridColumn TItem="Exercise" Property="Sequence" Title="Sequence" />
+			<RadzenDataGridColumn TItem="Exercise" Property="Name" Title="Name" />
+			<RadzenDataGridColumn TItem="Exercise" Property="Sets" Title="Sets" />
+			<RadzenDataGridColumn TItem="Exercise" Property="HasReps" Title="Reps?" />
+			<RadzenDataGridColumn TItem="Exercise" Property="HasWeight" Title="Weight?" />
+            <RadzenDataGridColumn TItem="Exercise" Property="HasDuration" Title="Duration?" />
+        </Columns>
+	</RadzenDataGrid>
 }
 
 @code {
 
-	IQueryable<Exercise>? exercises;
+	string? routine;
+	List<Exercise>? exercises;
 	IQueryable<Routine>? routinesQueryable;
 	ApplicationUser? user;
 
 	void OpenExercises(Routine routine)
 	{
-		exercises = RoutineService.GetExercises(routine.RoutineId);
+		this.routine = routine.Name;
+		exercises = RoutineService.GetExercises(routine.RoutineId).ToList();
 	}
 
 	protected override async Task OnInitializedAsync()
