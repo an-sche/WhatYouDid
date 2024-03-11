@@ -1,0 +1,33 @@
+﻿@page "/workout/{RoutineId:int}"
+
+@using WhatYouDid.Routines
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@using System.Text
+@using System.Security.Claims
+@attribute [Authorize]
+@rendermode RenderMode.InteractiveServer
+@inject IRoutineService RoutineService
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider Authentication
+
+<RadzenText TextStyle="TextStyle.H4">Workout: @RoutineId</RadzenText>
+
+@code {
+
+    [Parameter]
+    public int RoutineId { get; set; }
+
+    public string RoutineName { get; set;  }
+
+	protected override async Task OnInitializedAsync()
+	{
+		// Get the user:
+		var authState = await Authentication.GetAuthenticationStateAsync();
+		var userId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
+		var user = await UserManager.FindByIdAsync(userId);
+	}
+
+
+}

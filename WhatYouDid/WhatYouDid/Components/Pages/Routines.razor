@@ -9,10 +9,9 @@
 @inject IRoutineService RoutineService
 @inject UserManager<ApplicationUser> UserManager
 @inject NavigationManager Navigation
-@inject AuthenticationStateProvider Authentication
 
 <PageTitle>Routines</PageTitle>
-<RadzenText TextStyle="TextStyle.H3">Routines</RadzenText>
+<RadzenText TextStyle="TextStyle.H4">Routines</RadzenText>
 
 @if (routinesQueryable is null)
 {
@@ -20,7 +19,7 @@
 }
 else
 {
-	<RadzenDataGrid Data="@routinesQueryable" TItem="Routine">
+    <RadzenDataGrid Data="@routinesQueryable" TItem="Routine" AllowVirtualization="true" AllowPaging="true" PageSize="5">
 		<Columns>
 			<RadzenDataGridColumn TItem="Routine" Property="Name" Title="Name" Frozen="true" />
 			<RadzenDataGridColumn TItem="Routine" Title="View">
@@ -34,7 +33,8 @@ else
 
 @if (exercises is not null)
 {
-	<RadzenText TextStyle="TextStyle.H4">@routine</RadzenText>
+	<RadzenText TextStyle="TextStyle.H5">@selectedRoutineName</RadzenText>
+	<RadzenButton Click="@(() => StartRoutine())">Start Exercise</RadzenButton>
 
 	<RadzenDataGrid Data="exercises" TItem="Exercise">
 		<Columns>
@@ -50,25 +50,39 @@ else
 
 @code {
 
-	string? routine;
+	[CascadingParameter]
+	private Task<AuthenticationState>? authenticationState { get; set; }
+
+	string? selectedRoutineName;
+	int? selectedRoutineId;
 	List<Exercise>? exercises;
 	IQueryable<Routine>? routinesQueryable;
 	ApplicationUser? user;
 
 	void OpenExercises(Routine routine)
 	{
-		this.routine = routine.Name;
-		exercises = RoutineService.GetExercises(routine.RoutineId).ToList();
+		this.exercises = RoutineService.GetExercises(routine.RoutineId).ToList();
+		this.selectedRoutineId = routine.RoutineId;
+		this.selectedRoutineName = routine.Name;
+	}
+
+	void StartRoutine()
+	{
+		if (selectedRoutineId is null)
+			return;
+
+		Navigation.NavigateTo($"workout/{selectedRoutineId}");
 	}
 
 	protected override async Task OnInitializedAsync()
 	{
-		// Get the user:
-		var authState = await Authentication.GetAuthenticationStateAsync();
-		var userId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
+		if (authenticationState is null)
+			return;
+
+		var authState = await authenticationState;
+		var userId = authState?.User.FindFirstValue(ClaimTypes.NameIdentifier);
 		user = await UserManager.FindByIdAsync(userId);
 
-		var routines = await RoutineService.GetRoutinesAsync();
-		routinesQueryable = routines.AsQueryable();
+		routinesQueryable = RoutineService.GetUserRoutinesQueryable(user);
 	}
 }

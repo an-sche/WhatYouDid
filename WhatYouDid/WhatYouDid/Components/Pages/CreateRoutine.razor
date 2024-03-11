@@ -1,5 +1,4 @@
-﻿@page "/edit-routine"
-@page "/edit-routine/{id:int}"
+﻿@page "/createroutine"
 
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Identity
@@ -13,8 +12,8 @@
 @inject UserManager<ApplicationUser> UserManager
 
 
-<PageTitle>Edit Routine</PageTitle>
-<RadzenText TextStyle="TextStyle.H3">Edit Routine</RadzenText>
+<PageTitle>Create Routine</PageTitle>
+<RadzenText TextStyle="TextStyle.H4">Create Routine</RadzenText>
 
 <AuthorizeView>
 	<div class="col-md-4">
