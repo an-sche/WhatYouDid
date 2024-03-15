@@ -35,7 +35,9 @@ public class RoutineService : IRoutineService
 
 	public async Task<Routine?> GetRoutineAsync(int routineId)
     {
-        var result = await _db.Routines.FirstOrDefaultAsync(x => x.RoutineId == routineId);
+        var result = await _db.Routines
+            .Include(x => x.Exercises)
+            .FirstOrDefaultAsync(x => x.RoutineId == routineId);
         return result;
     }
 

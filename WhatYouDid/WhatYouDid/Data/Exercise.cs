@@ -23,6 +23,8 @@ public class Exercise
     /// <summary>
     /// The number of sets to do (IE on strip set = 3)
     /// </summary>
+    [Range(1, 10, 
+        ErrorMessage = "Must be between 1 and 10")]
     public required int Sets { get; set; } = 1;
 
 

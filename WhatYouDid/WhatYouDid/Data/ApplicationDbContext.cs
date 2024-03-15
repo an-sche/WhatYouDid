@@ -9,4 +9,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Routine> Routines { get; set; }
 
     public DbSet<Exercise> Exercises { get; set; }
+
+    public DbSet<WorkoutExercise> WorkoutExercises { get; set; }
 }

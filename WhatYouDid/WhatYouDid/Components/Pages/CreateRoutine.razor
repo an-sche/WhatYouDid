@@ -84,6 +84,9 @@
 	[Parameter]
 	public int? Id { get; set; }
 
+	[CascadingParameter]
+	private Task<AuthenticationState>? authenticationState { get; set; }
+
 	Routine routine = new() {
 		Name = string.Empty,
 		Exercises = new List<Exercise>()
@@ -115,10 +118,13 @@
 		// Assume the form was valid:
 		try
 		{
-			var authState = await Authentication.GetAuthenticationStateAsync();
-			var userId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
-			var currentUser = await UserManager.FindByIdAsync(userId);
-			routine.CreateUser = currentUser;
+			if (authenticationState is null)
+				return;
+
+			var authState = await authenticationState;
+			var userId = authState?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+			var user = await UserManager.FindByIdAsync(userId);
+			routine.CreateUser = user;
 		}
 		catch 
 		{
