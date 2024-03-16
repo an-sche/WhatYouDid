@@ -51,22 +51,32 @@ public class RoutineService : IRoutineService
         return _db.Routines.OrderBy(x => x.Name).Where(x => x.CreateUser == user);
 	}
 
-	public async Task<WorkoutDto?> GetWorkoutRoutineDtoAsync(string user, int routineId)
+	public async Task<WorkoutDto?> GetWorkoutRoutineDtoAsync(string applicationUserId, int routineId)
 	{
         return await _db.Routines
             .Include(x => x.Exercises)
-            .Where(x => x.CreateUserId == user && x.RoutineId == routineId)
-			.Select(x => new WorkoutDto()
+            .Where(x => x.CreateUserId == applicationUserId && x.RoutineId == routineId)
+            .Select(x => new WorkoutDto()
             {
                 RoutineId = routineId,
                 RoutineName = x.Name,
-                ApplicationUserId = user,
-                // TODO: Other fields here.
+                ApplicationUserId = applicationUserId,
                 WorkoutExercises = x.Exercises.Select(e => new WorkoutExerciseDto()
                 {
                     Sequence = e.Sequence,
                     ExerciseName = e.Name,
-                    Sets = e.Sets
+                    Sets = e.Sets,
+
+                    HasReps = e.HasReps,
+                    HasWeights = e.HasReps,
+                    HasDurations = e.HasDuration,
+
+					// TODO: Get the "Last" workouts. (for the user to reference) (what you did!)
+
+                    // For the user to fill in
+					Reps = new int?[e.Sets],
+                    Weights = new int?[e.Sets],
+                    Durations = new int?[e.Sets],
                 }).ToList()
             })
             .FirstOrDefaultAsync();

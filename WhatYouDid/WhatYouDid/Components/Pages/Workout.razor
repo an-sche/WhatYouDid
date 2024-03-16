@@ -10,7 +10,6 @@
 @inject IRoutineService RoutineService
 @inject UserManager<ApplicationUser> UserManager
 @inject NavigationManager Navigation
-@inject AuthenticationStateProvider Authentication
 
 @if (WorkoutDto is null) {
 	if (Loaded)
@@ -28,13 +27,64 @@ else {
 	@if (WorkoutExerciseIndex < @WorkoutDto?.WorkoutExercises?.Count)
 	{
 		<RadzenText TextStyle="TextStyle.H5">@WorkoutDto?.WorkoutExercises?[WorkoutExerciseIndex].ExerciseName</RadzenText>
+
+		// This is where i put the information for them to fill out!
+		var workoutExercise = WorkoutDto.WorkoutExercises[WorkoutExerciseIndex];
+		<RadzenStack Orientation="Orientation.Vertical" JustifyContent="JustifyContent.Normal">
+			@for (int i = 0; i < workoutExercise.Sets; i++)
+			{
+				var index = i; // capture the loop variable
+				<RadzenCard Variant="Variant.Outlined">
+					<RadzenText TextStyle="TextStyle.Caption">Set: @(index + 1)</RadzenText>
+					@if (workoutExercise.HasReps)
+					{
+						<RadzenFormField AllowFloatingLabel="false" Text="Reps" Style="width: 100%">
+							<ChildContent>
+								<RadzenNumeric Name="Reps" @bind-Value=workoutExercise.Reps[index]></RadzenNumeric>
+							</ChildContent>
+						</RadzenFormField>
+					}
+
+					@if (workoutExercise.HasWeights)
+					{
+						<RadzenFormField AllowFloatingLabel="false" Text="Weight" Style="width: 100%">
+							<ChildContent>
+								<RadzenNumeric Name="Weight" @bind-Value=workoutExercise.Weights[index]></RadzenNumeric>
+							</ChildContent>
+						</RadzenFormField>
+					}
+					@if (workoutExercise.HasDurations)
+					{
+						<RadzenFormField AllowFloatingLabel="false" Text="Duration" Style="width: 100%">
+							<ChildContent>
+								<RadzenNumeric Name="Duration" @bind-Value=workoutExercise.Durations[index]></RadzenNumeric>
+							</ChildContent>
+						</RadzenFormField>
+					}
+				</RadzenCard>
+			}
+		</RadzenStack>
+
 		<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" >
-			<RadzenButton Click=@(args => OnClick("Back")) Text="Back" ButtonStyle="ButtonStyle.Secondary" />
-			<RadzenButton Click=@(args => OnClick("Next")) Text="Next" ButtonStyle="ButtonStyle.Primary" />
+			<RadzenButton Click=@(args => OnBackClick()) Text="Back" ButtonStyle="ButtonStyle.Secondary" />
+			<RadzenButton Click=@(args => OnNextClick()) Text="Next" ButtonStyle="ButtonStyle.Primary" />
 		</RadzenStack>
 	}
 	else {
-			<RadzenButton Click=@(args => OnClick("Back")) Text="Back" ButtonStyle="ButtonStyle.Secondary" />
+
+		<RadzenText TextStyle="TextStyle.H5">Review</RadzenText>
+		<RadzenDataGrid Data="@WorkoutDto?.WorkoutExercises" TItem="WorkoutExerciseDto"> 
+			<Columns>
+				<RadzenDataGridColumn TItem="WorkoutExerciseDto" Property="Sequence" Title="Sequence" /> 
+				<RadzenDataGridColumn TItem="WorkoutExerciseDto" Property="ExerciseName" Title="Exercise" />
+				<RadzenDataGridColumn TItem="WorkoutExerciseDto" Property="Review" Title="Review" />
+			</Columns>
+		</RadzenDataGrid>
+
+		<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" >
+			<RadzenButton Click=@(args => OnBackClick()) Text="Back" ButtonStyle="ButtonStyle.Secondary" />
+			<RadzenButton Text="Submit" ButtonStyle="ButtonStyle.Primary" />
+		</RadzenStack>
 	}	
 }
 
@@ -57,7 +107,7 @@ else {
 			return;
 
 		// Get the user:
-		var authState = await Authentication.GetAuthenticationStateAsync();
+		var authState = await authenticationState;
 		var userId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
 		var user = await UserManager.FindByIdAsync(userId);
 
@@ -66,19 +116,21 @@ else {
 		//Routine = await RoutineService.GetRoutineAsync(RoutineId);
 	}
 
-	private void OnClick(string text) {
+	private void OnBackClick() {
+		if (WorkoutDto is null) return;
+	
+		if (WorkoutExerciseIndex > 0)
+			WorkoutExerciseIndex--;
+	}
 
-		if (WorkoutDto is null)
-			return;
+	private void OnNextClick() {
+		if (WorkoutDto is null) return;
 
-		if (text == "Back") {
-			if (WorkoutExerciseIndex > 0) 
-				WorkoutExerciseIndex--;
-		}
-		else if (text == "Next") {
-			if (WorkoutExerciseIndex < WorkoutDto.WorkoutExercises?.Count)
-				WorkoutExerciseIndex++;
-		}
-		// Refresh the screen??	
+		if (WorkoutExerciseIndex < WorkoutDto.WorkoutExercises?.Count)
+			WorkoutExerciseIndex++;
+	}
+
+	private void OnSubmitClick() {
+		// TODO:
 	}
 }

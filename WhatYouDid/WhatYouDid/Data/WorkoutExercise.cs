@@ -21,7 +21,7 @@ public class WorkoutExercise
     public required string ExerciseName { get; set; }
 
 
-    public ICollection<int>? Reps { get; set; }
-    public ICollection<int>? Weights { get; set; } 
-    public ICollection<int>? Durations { get; set; }
+    public ICollection<int?>? Reps { get; set; }
+    public ICollection<int?>? Weights { get; set; } 
+    public ICollection<int?>? Durations { get; set; }
 }
