@@ -18,5 +18,6 @@ public class Routine
 	public required List<Exercise> Exercises { get; set; }
 
 	public ApplicationUser? CreateUser { get; set; } = null;
+	public string? CreateUserId { get; set; } = null;
 }
 

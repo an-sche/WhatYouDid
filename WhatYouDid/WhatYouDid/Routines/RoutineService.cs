@@ -51,6 +51,27 @@ public class RoutineService : IRoutineService
         return _db.Routines.OrderBy(x => x.Name).Where(x => x.CreateUser == user);
 	}
 
+	public async Task<WorkoutDto?> GetWorkoutRoutineDtoAsync(string user, int routineId)
+	{
+        return await _db.Routines
+            .Include(x => x.Exercises)
+            .Where(x => x.CreateUserId == user && x.RoutineId == routineId)
+			.Select(x => new WorkoutDto()
+            {
+                RoutineId = routineId,
+                RoutineName = x.Name,
+                ApplicationUserId = user,
+                // TODO: Other fields here.
+                WorkoutExercises = x.Exercises.Select(e => new WorkoutExerciseDto()
+                {
+                    Sequence = e.Sequence,
+                    ExerciseName = e.Name,
+                    Sets = e.Sets
+                }).ToList()
+            })
+            .FirstOrDefaultAsync();
+	}
+
 	public Task<Routine> UpdateRoutineAsync(Routine routine)
     {
         throw new NotImplementedException();
