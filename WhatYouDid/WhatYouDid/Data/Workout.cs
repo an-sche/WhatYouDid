@@ -11,7 +11,7 @@ public class Workout
 	public int WorkoutId { get; set; }
 
     public required string? ApplicationUserId { get; set; }
-    public required ApplicationUser? ApplicationUser { get; set; }
+    public ApplicationUser? ApplicationUser { get; set; }
     public ICollection<WorkoutExercise>? WorkoutExercise { get; set; }
     public int? RoutineId { get; set; }
     public Routine? Routine { get; set; }

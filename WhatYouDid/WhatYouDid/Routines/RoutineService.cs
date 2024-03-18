@@ -51,7 +51,12 @@ public class RoutineService : IRoutineService
         return _db.Routines.OrderBy(x => x.Name).Where(x => x.CreateUser == user);
 	}
 
-	public async Task<WorkoutDto?> GetWorkoutRoutineDtoAsync(string applicationUserId, int routineId)
+    public IQueryable<Workout> GetUserWorkoutsQueryable(ApplicationUser user)
+    {
+        return _db.Workouts.OrderByDescending(x => x.StartTime).Where(x => x.ApplicationUser == user);
+    }
+
+    public async Task<WorkoutDto?> GetStartWorkoutDtoAsync(string applicationUserId, int routineId)
 	{
         return await _db.Routines
             .Include(x => x.Exercises)
@@ -64,6 +69,7 @@ public class RoutineService : IRoutineService
                 WorkoutExercises = x.Exercises.Select(e => new WorkoutExerciseDto()
                 {
                     Sequence = e.Sequence,
+                    ExerciseId = e.ExerciseId,
                     ExerciseName = e.Name,
                     Sets = e.Sets,
 
@@ -82,8 +88,77 @@ public class RoutineService : IRoutineService
             .FirstOrDefaultAsync();
 	}
 
+    public async Task<bool> SaveWorkoutAsync(WorkoutDto workoutDto) {
+
+        // convert that to my db object,
+        var workout = new Workout() {
+            ApplicationUserId = workoutDto.ApplicationUserId,
+            RoutineId = workoutDto.RoutineId,
+            RoutineName = workoutDto.RoutineName,
+            StartTime = workoutDto.StartTime,
+            EndTime = DateTime.Now,
+        };
+        var exercises = new List<WorkoutExercise>();
+
+        if (workoutDto.WorkoutExercises is not null) {
+            foreach (var exerciseDto in workoutDto.WorkoutExercises) {
+                var exercise = new WorkoutExercise() {
+                    Workout = workout,
+                    ExerciseId = exerciseDto.ExerciseId,
+                    ExerciseName = exerciseDto.ExerciseName,
+                };            
+                if (exerciseDto.HasReps) {
+                    exercise.Reps = exerciseDto.Reps.ToList();
+                } 
+                if (exerciseDto.HasWeights) {
+                    exercise.Weights = exerciseDto.Weights.ToList();
+                }
+                if (exerciseDto.HasDurations) {
+                    exercise.Durations = exerciseDto.Durations.ToList();
+                }
+                exercises.Add(exercise);
+            }
+        }
+        workout.WorkoutExercise = exercises;
+        
+        await _db.Workouts.AddAsync(workout);
+        await _db.SaveChangesAsync();
+
+        // add that to my db table (s) 
+        return true;
+    }
+
 	public Task<Routine> UpdateRoutineAsync(Routine routine)
     {
         throw new NotImplementedException();
     }
+
+	public async Task<WorkoutDto?> GetCompletedWorkoutDtoAsync(string user, int workoutId)
+	{
+        return await _db.Workouts
+            .Where(x => x.ApplicationUserId == user && x.WorkoutId == workoutId)
+            .Select(x => new WorkoutDto() 
+            {
+                RoutineName = x.RoutineName,
+                RoutineId = x.RoutineId ?? 0,
+                ApplicationUserId = user,
+			    WorkoutExercises = x.WorkoutExercise.Select(e => new WorkoutExerciseDto()
+			    {
+				    Sequence = e.Exercise.Sequence,
+				    ExerciseId = e.ExerciseId ?? 0,
+				    ExerciseName = e.ExerciseName,
+				    Sets = e.Exercise.Sets,
+
+				    HasReps = e.Exercise.HasReps,
+				    HasWeights = e.Exercise.HasReps,
+				    HasDurations = e.Exercise.HasDuration,
+
+				    // For the user to fill in
+				    Reps = e.Reps.ToArray(),
+				    Weights = e.Weights.ToArray(),
+				    Durations = e.Durations.ToArray(),
+			    }).ToList()
+		    })
+            .FirstOrDefaultAsync();
+	}
 }

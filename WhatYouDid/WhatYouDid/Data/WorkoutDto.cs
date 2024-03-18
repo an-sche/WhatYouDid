@@ -45,6 +45,7 @@ public class WorkoutExerciseDto
     }
     
     public required int Sequence { get; init; }
+    public required int ExerciseId { get; init; }
     public required string ExerciseName { get; init; }
     public string? Descriptions { get; init; }
     public required int Sets { get; init; }

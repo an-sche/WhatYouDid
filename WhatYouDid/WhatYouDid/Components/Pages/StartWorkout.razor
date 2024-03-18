@@ -66,8 +66,8 @@ else {
 		</RadzenStack>
 
 		<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" >
-			<RadzenButton Click=@(args => OnBackClick()) Text="Back" ButtonStyle="ButtonStyle.Secondary" />
-			<RadzenButton Click=@(args => OnNextClick()) Text="Next" ButtonStyle="ButtonStyle.Primary" />
+			<RadzenButton Click=@OnBackClick Text="Back" ButtonStyle="ButtonStyle.Secondary" />
+			<RadzenButton Click=@OnNextClick Text="Next" ButtonStyle="ButtonStyle.Primary" />
 		</RadzenStack>
 	}
 	else {
@@ -82,8 +82,8 @@ else {
 		</RadzenDataGrid>
 
 		<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" >
-			<RadzenButton Click=@(args => OnBackClick()) Text="Back" ButtonStyle="ButtonStyle.Secondary" />
-			<RadzenButton Text="Submit" ButtonStyle="ButtonStyle.Primary" />
+			<RadzenButton Click=@OnBackClick Text="Back" ButtonStyle="ButtonStyle.Secondary" />
+			<RadzenButton Click=@OnSubmitClick Text="Submit" ButtonStyle="ButtonStyle.Primary" />
 		</RadzenStack>
 	}	
 }
@@ -99,7 +99,7 @@ else {
 	public int WorkoutExerciseIndex = 0;
 	public WorkoutDto? WorkoutDto { get; set; }
 	public bool Loaded = false;
-
+	public bool Saving = false;
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -111,14 +111,14 @@ else {
 		var userId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
 		var user = await UserManager.FindByIdAsync(userId);
 
-		WorkoutDto = await RoutineService.GetWorkoutRoutineDtoAsync(userId, RoutineId);
+		WorkoutDto = await RoutineService.GetStartWorkoutDtoAsync(userId, RoutineId);
 		Loaded = true;
 		//Routine = await RoutineService.GetRoutineAsync(RoutineId);
 	}
 
 	private void OnBackClick() {
 		if (WorkoutDto is null) return;
-	
+
 		if (WorkoutExerciseIndex > 0)
 			WorkoutExerciseIndex--;
 	}
@@ -130,7 +130,19 @@ else {
 			WorkoutExerciseIndex++;
 	}
 
-	private void OnSubmitClick() {
+	private async Task OnSubmitClick() {
 		// TODO:
+		// Save the workout they created to the database
+		if (WorkoutDto is null) return;	
+		if (Saving) return;
+		Saving = true;
+
+		var saveResult = await RoutineService.SaveWorkoutAsync(WorkoutDto);
+
+		// Send the user to the Workouts page...
+		if (saveResult)
+			Navigation.NavigateTo("/workouts");
+
+		Saving = false;
 	}
 }
