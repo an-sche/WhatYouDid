@@ -13,35 +13,36 @@
 <PageTitle>Routines</PageTitle>
 <RadzenText TextStyle="TextStyle.H4">Routines</RadzenText>
 
-@if (routinesQueryable is null)
-{
-	<span>Loading...</span>
-}
-else
-{
-    <RadzenDataGrid Data="@routinesQueryable" TItem="Routine" AllowVirtualization="true" AllowPaging="true" PageSize="5">
-		<Columns>
-			<RadzenDataGridColumn TItem="Routine" Property="Name" Title="Name" Frozen="true" />
-			<RadzenDataGridColumn TItem="Routine" Title="View">
-				<Template Context="routine" >
-					<RadzenButton Click="@(() => OpenExercises(routine))">View</RadzenButton>
-				</Template>
-			</RadzenDataGridColumn>
-		</Columns>
-	</RadzenDataGrid>
-}
+<RadzenDataGrid IsLoading="@(routines is null)" 
+				Data="@routines"
+				TItem="Routine" 
+				AllowVirtualization="true"
+				AllowPaging="true" 
+				AllowFiltering="true" 
+				FilterMode="FilterMode.Simple" 
+				PageSize="5" 
+				Density="Density.Compact">
+	<Columns>
+		<RadzenDataGridColumn TItem="Routine" Property="Name" Title="Name" Frozen="true" />
+		<RadzenDataGridColumn TItem="Routine" Title="View" Filterable="false">
+			<Template Context="routine">
+				<RadzenButton Click="@(() => OpenExercises(routine))">View</RadzenButton>
+			</Template>
+		</RadzenDataGridColumn>
+	</Columns>
+</RadzenDataGrid>
 
 @if (exercises is not null)
 {
 	<RadzenText TextStyle="TextStyle.H5">@selectedRoutineName</RadzenText>
 	<RadzenButton Click="@(() => StartRoutine())">Start Exercise</RadzenButton>
 
-	<RadzenDataGrid Data="exercises" TItem="Exercise">
+	<RadzenDataGrid Data="exercises" TItem="Exercise" Density="Density.Compact">
 		<Columns>
 			<RadzenDataGridColumn TItem="Exercise" Property="Sequence" Title="Sequence" />
 			<RadzenDataGridColumn TItem="Exercise" Property="Name" Title="Name" />
 			<RadzenDataGridColumn TItem="Exercise" Property="Sets" Title="Sets" />
-			<RadzenDataGridColumn TItem="Exercise" Property="HasReps" Title="Reps?" />
+			<RadzenDataGridColumn TItem="Exercise" Property="HasReps" Title="Reps?"  />
 			<RadzenDataGridColumn TItem="Exercise" Property="HasWeight" Title="Weight?" />
             <RadzenDataGridColumn TItem="Exercise" Property="HasDuration" Title="Duration?" />
         </Columns>
@@ -56,7 +57,8 @@ else
 	string? selectedRoutineName;
 	int? selectedRoutineId;
 	List<Exercise>? exercises;
-	IQueryable<Routine>? routinesQueryable;
+
+	IEnumerable<Routine>? routines;
 	ApplicationUser? user;
 
 	void OpenExercises(Routine routine)
@@ -83,6 +85,6 @@ else
 		var userId = authState?.User.FindFirstValue(ClaimTypes.NameIdentifier);
 		user = await UserManager.FindByIdAsync(userId);
 
-		routinesQueryable = RoutineService.GetUserRoutinesQueryable(user);
+		routines = RoutineService.GetUserRoutinesQueryable(user);
 	}
 }

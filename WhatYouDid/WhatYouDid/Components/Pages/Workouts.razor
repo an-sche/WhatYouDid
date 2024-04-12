@@ -10,32 +10,30 @@
 @inject UserManager<ApplicationUser> UserManager
 @inject NavigationManager Navigation
 
-<PageTitle>Workouts</PageTitle>
+<PageTitle>Workout History</PageTitle>
 <RadzenText TextStyle="TextStyle.H4">Workouts</RadzenText>
 
-@if (workoutsQueryable is null)
-{
-	<span>Loading...</span>
-}
-else
-{
-    <RadzenDataGrid Data="@workoutsQueryable" TItem="Workout" AllowPaging="true" PageSize="5">
-		<Columns>
-			<RadzenDataGridColumn TItem="Workout" Property="StartTime" Title="Date" Frozen="true" />
-			<RadzenDataGridColumn TItem="Workout" Property="RoutineName" Title="Name" />
-			<RadzenDataGridColumn TItem="Workout" Title="View">
-				<Template Context="workout" >
-					<RadzenButton Click="@(() => ViewWorkout(workout))">View</RadzenButton>
-				</Template>
-			</RadzenDataGridColumn>
-		</Columns>
-	</RadzenDataGrid>
-}
+<RadzenDataGrid IsLoading="@(workoutsQueryable is null)" 
+				Data="@workoutsQueryable"
+				TItem="Workout"
+				AllowPaging="true"
+				PageSize="5"
+				Density="@Density.Compact">
+	<Columns>
+		<RadzenDataGridColumn TItem="Workout" Property="StartTime" Title="Date" Frozen="true" />
+		<RadzenDataGridColumn TItem="Workout" Property="RoutineName" Title="Name" />
+		<RadzenDataGridColumn TItem="Workout" Title="View">
+			<Template Context="workout">
+				<RadzenButton Click="@(() => ViewWorkout(workout))">View</RadzenButton>
+			</Template>
+		</RadzenDataGridColumn>
+	</Columns>
+</RadzenDataGrid>
 
 @if (selectedWorkout is not null)
 {
 	<RadzenText TextStyle="TextStyle.H5">@selectedWorkout.RoutineName</RadzenText>
-	<RadzenDataGrid Data="@selectedWorkout.WorkoutExercises" TItem="WorkoutExerciseDto">
+	<RadzenDataGrid Data="@selectedWorkout.WorkoutExercises" TItem="WorkoutExerciseDto" Density="Density.Compact">
 		<Columns>
 			<RadzenDataGridColumn TItem="WorkoutExerciseDto" Property="Sequence" Title="Sequence" />
 			<RadzenDataGridColumn TItem="WorkoutExerciseDto" Property="ExerciseName" Title="Exercise" />
