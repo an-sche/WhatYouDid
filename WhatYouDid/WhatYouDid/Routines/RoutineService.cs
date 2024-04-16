@@ -150,7 +150,7 @@ public class RoutineService : IRoutineService
 				    Sets = e.Exercise.Sets,
 
 				    HasReps = e.Exercise.HasReps,
-				    HasWeights = e.Exercise.HasReps,
+				    HasWeights = e.Exercise.HasWeight,
 				    HasDurations = e.Exercise.HasDuration,
 
 				    // For the user to fill in
