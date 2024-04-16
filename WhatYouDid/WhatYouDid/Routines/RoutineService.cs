@@ -74,7 +74,7 @@ public class RoutineService : IRoutineService
                     Sets = e.Sets,
 
                     HasReps = e.HasReps,
-                    HasWeights = e.HasReps,
+                    HasWeights = e.HasWeight,
                     HasDurations = e.HasDuration,
 
 					// TODO: Get the "Last" workouts. (for the user to reference) (what you did!)
