@@ -23,7 +23,10 @@
 }
 else {
 	<RadzenText TextStyle="TextStyle.H4">@WorkoutDto?.RoutineName</RadzenText>
-	<hr />
+	if (WorkoutExerciseIndex < @WorkoutDto?.WorkoutExercises?.Count) {
+		string unit = " of " + @WorkoutDto?.WorkoutExercises?.Count;
+		<RadzenProgressBar ProgressBarStyle="ProgressBarStyle.Light" Value="@(WorkoutExerciseIndex + 1)" Max="@(WorkoutDto?.WorkoutExercises?.Count ?? 0)" Unit="@unit"></RadzenProgressBar>
+	}
 	@if (WorkoutExerciseIndex < @WorkoutDto?.WorkoutExercises?.Count)
 	{
 		<RadzenText TextStyle="TextStyle.H5">@WorkoutDto?.WorkoutExercises?[WorkoutExerciseIndex].ExerciseName</RadzenText>
