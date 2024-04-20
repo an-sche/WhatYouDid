@@ -78,7 +78,7 @@ else {
 		<RadzenText TextStyle="TextStyle.H5">Review</RadzenText>
 		<RadzenDataGrid Data="@WorkoutDto?.WorkoutExercises" TItem="WorkoutExerciseDto"> 
 			<Columns>
-				<RadzenDataGridColumn TItem="WorkoutExerciseDto" Property="Sequence" Title="Sequence" /> 
+				<RadzenDataGridColumn TItem="WorkoutExerciseDto" Property="Sequence" Title="#" Width="50px"/> 
 				<RadzenDataGridColumn TItem="WorkoutExerciseDto" Property="ExerciseName" Title="Exercise" />
 				<RadzenDataGridColumn TItem="WorkoutExerciseDto" Property="Review" Title="Review" />
 			</Columns>

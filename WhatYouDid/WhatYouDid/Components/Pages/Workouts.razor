@@ -35,7 +35,7 @@
 	<RadzenText TextStyle="TextStyle.H5">@selectedWorkout.RoutineName</RadzenText>
 	<RadzenDataGrid Data="@selectedWorkout.WorkoutExercises" TItem="WorkoutExerciseDto" Density="Density.Compact">
 		<Columns>
-			<RadzenDataGridColumn TItem="WorkoutExerciseDto" Property="Sequence" Title="Sequence" />
+			<RadzenDataGridColumn TItem="WorkoutExerciseDto" Property="Sequence" Title="#" Width="50px" />
 			<RadzenDataGridColumn TItem="WorkoutExerciseDto" Property="ExerciseName" Title="Exercise" />
 			<RadzenDataGridColumn TItem="WorkoutExerciseDto" Property="Review" Title="Review" />
 		</Columns>
