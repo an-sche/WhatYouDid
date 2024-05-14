@@ -54,9 +54,9 @@ public class WorkoutExerciseDto
     public required bool HasWeights { get; init; }
     public required bool HasDurations { get; init; }
 
-    public List<int?> LastReps { get; init; } = [];
-    public List<int?> LastWeights { get; init; } = [];
-    public List<int?> LastDurations { get; init; } = [];
+    public int?[]? LastReps { get; set; } = [];
+    public int?[]? LastWeights { get; set; } = [];
+    public int?[]? LastDurations { get; set; } = [];
 
     public int?[] Reps { get; init; } = [];
     public int?[] Weights { get; init; } = [];

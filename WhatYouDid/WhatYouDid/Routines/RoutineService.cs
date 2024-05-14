@@ -58,34 +58,70 @@ public class RoutineService : IRoutineService
 
     public async Task<WorkoutDto?> GetStartWorkoutDtoAsync(string applicationUserId, int routineId)
 	{
-        return await _db.Routines
-            .Include(x => x.Exercises)
-            .Where(x => x.CreateUserId == applicationUserId && x.RoutineId == routineId)
-            .Select(x => new WorkoutDto()
-            {
-                RoutineId = routineId,
-                RoutineName = x.Name,
-                ApplicationUserId = applicationUserId,
-                WorkoutExercises = x.Exercises.Select(e => new WorkoutExerciseDto()
-                {
-                    Sequence = e.Sequence,
-                    ExerciseId = e.ExerciseId,
-                    ExerciseName = e.Name,
-                    Sets = e.Sets,
+        return  await 
+                (from routine in _db.Routines.AsNoTracking()
+                where routine.CreateUserId == applicationUserId && routine.RoutineId == routineId
+                select new WorkoutDto() {
 
-                    HasReps = e.HasReps,
-                    HasWeights = e.HasWeight,
-                    HasDurations = e.HasDuration,
+                    RoutineId = routineId,
+                    RoutineName = routine.Name,
+                    ApplicationUserId = applicationUserId,
 
-					// TODO: Get the "Last" workouts. (for the user to reference) (what you did!)
+                    WorkoutExercises = 
+                        (from exercise in routine.Exercises
+                        join pastExercise in _db.WorkoutExercises on exercise.ExerciseId equals pastExercise.ExerciseId into pastExercises
+                        from pastExercise in pastExercises.OrderByDescending(x => x.Workout.StartTime).Take(1).DefaultIfEmpty()
+                        select new WorkoutExerciseDto() {
 
-                    // For the user to fill in
-					Reps = new int?[e.Sets],
-                    Weights = new int?[e.Sets],
-                    Durations = new int?[e.Sets],
-                }).ToList()
-            })
-            .FirstOrDefaultAsync();
+                            Sequence = exercise.Sequence,
+                            ExerciseId = exercise.ExerciseId,
+                            ExerciseName = exercise.Name,
+                            Sets = exercise.Sets,
+
+                            LastDurations = (pastExercise != null && pastExercise.Durations != null) ? pastExercise.Durations.ToArray() : null,
+                            LastReps = (pastExercise != null && pastExercise.Reps != null) ? pastExercise.Reps.ToArray() : null,
+                            LastWeights = (pastExercise != null && pastExercise.Weights != null) ? pastExercise.Weights.ToArray() : null,
+
+                            HasReps = exercise.HasReps,
+                            HasDurations = exercise.HasDuration,
+                            HasWeights = exercise.HasWeight,
+
+                            Reps = new int?[exercise.Sets],
+                            Durations = new int?[exercise.Sets],
+                            Weights = new int?[exercise.Sets],
+                        }).ToList()
+                }).FirstOrDefaultAsync();
+
+        // return await _db.Routines
+            // .Include(x => x.Exercises)
+            // .Where(x => x.CreateUserId == applicationUserId && x.RoutineId == routineId)
+            // .Select(x => new WorkoutDto()
+            // {
+                // RoutineId = routineId,
+                // RoutineName = x.Name,
+                // ApplicationUserId = applicationUserId,
+                // WorkoutExercises = x.Exercises.Select(e => new WorkoutExerciseDto()
+                // {
+                    // Sequence = e.Sequence,
+                    // ExerciseId = e.ExerciseId,
+                    // ExerciseName = e.Name,
+                    // Sets = e.Sets,
+
+                    // HasReps = e.HasReps,
+                    // HasWeights = e.HasWeight,
+                    // HasDurations = e.HasDuration,
+
+                    // LastDurations = (int?[])_db.WorkoutExercises.Where(x => x.ExerciseId == e.ExerciseId).OrderByDescending(x => x.WorkoutId).Select(x => x.Durations).FirstOrDefault(),
+                    // LastReps = (int?[])_db.WorkoutExercises.Where(x => x.ExerciseId == e.ExerciseId).OrderByDescending(x => x.WorkoutId).Select(x => x.Reps).FirstOrDefault(),
+                    // LastWeights = (int?[])_db.WorkoutExercises.Where(x => x.ExerciseId == e.ExerciseId).OrderByDescending(x => x.WorkoutId).Select(x => x.Durations).FirstOrDefault(),
+
+					// // For the user to fill in
+					// Reps = new int?[e.Sets],
+                    // Weights = new int?[e.Sets],
+                    // Durations = new int?[e.Sets],
+                // }).ToList()
+            // })
+            // .FirstOrDefaultAsync();
 	}
 
     public async Task<bool> SaveWorkoutAsync(WorkoutDto workoutDto) {

@@ -34,53 +34,66 @@ else {
 		// This is where i put the information for them to fill out!
 		var workoutExercise = WorkoutDto.WorkoutExercises[WorkoutExerciseIndex];
 		<RadzenStack Orientation="Orientation.Vertical" JustifyContent="JustifyContent.Normal">
-			@for (int i = 0; i < workoutExercise.Sets; i++)
-			{
-				var index = i; // capture the loop variable
-				<RadzenCard Variant="Variant.Outlined">
-					<RadzenText TextStyle="TextStyle.Caption">Set: @(index + 1)</RadzenText>
-					@if (workoutExercise.HasReps)
-					{
-						<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Normal" AlignItems="AlignItems.Center">
-							<RadzenIcon Icon="123"></RadzenIcon>
-							<RadzenFormField AllowFloatingLabel="false" Text="Reps" Style="width: 100%">
-								<ChildContent>
-									<RadzenNumeric Name="Reps" @bind-Value=workoutExercise.Reps[index]></RadzenNumeric>
-								</ChildContent>
-							</RadzenFormField>
-						</RadzenStack>
-					}
+		@for (int i = 0; i < workoutExercise.Sets; i++)
+		{
+			var index = i; // capture the loop variable
+			<RadzenCard Variant="Variant.Outlined">
+				<RadzenText TextStyle="TextStyle.Caption">Set: @(index + 1)</RadzenText>
+				@if (workoutExercise.HasReps)
+				{
+					<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Normal" AlignItems="AlignItems.Center">
+						<RadzenIcon Icon="123"></RadzenIcon>
+						<RadzenFormField AllowFloatingLabel="false" Text="Reps" Style="width: 100%">
+							<ChildContent>
+								<RadzenNumeric Name="Reps" @bind-Value=workoutExercise.Reps[index]></RadzenNumeric>
+							</ChildContent>
+						</RadzenFormField>
+						
+						@if (@workoutExercise.LastReps != null && workoutExercise.LastReps.Length > index) 
+						{
+							<RadzenText>@workoutExercise.LastReps[index]</RadzenText>
+						}
+					</RadzenStack>
+				}
 
-					@if (workoutExercise.HasWeights)
-					{
-						<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Normal" AlignItems="AlignItems.Center">
-							<RadzenIcon Icon="fitness_center"></RadzenIcon>
-							<RadzenFormField AllowFloatingLabel="false" Text="Weight" Style="width: 100%">
-								<ChildContent>
-									<RadzenNumeric Name="Weight" @bind-Value=workoutExercise.Weights[index]></RadzenNumeric>
-								</ChildContent>
-							</RadzenFormField>
-						</RadzenStack>
-					}
+				@if (workoutExercise.HasWeights)
+				{
+					<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Normal" AlignItems="AlignItems.Center">
+						<RadzenIcon Icon="fitness_center"></RadzenIcon>
+						<RadzenFormField AllowFloatingLabel="false" Text="Weight" Style="width: 100%">
+							<ChildContent>
+								<RadzenNumeric Name="Weight" @bind-Value=workoutExercise.Weights[index]></RadzenNumeric>
+							</ChildContent>
+						</RadzenFormField>
+						@if (@workoutExercise.LastWeights != null && workoutExercise.LastWeights.Length > index) 
+						{
+							<RadzenText>@workoutExercise.LastWeights[index]</RadzenText>
+						}
+					</RadzenStack>
+				}
 
-					@if (workoutExercise.HasDurations)
-					{
-						<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Normal" AlignItems="AlignItems.Center">
-							<RadzenIcon Icon="timer"></RadzenIcon>
-							<RadzenFormField AllowFloatingLabel="false" Text="Duration" Style="width: 100%">
-								<ChildContent>
-									<RadzenNumeric Name="Duration" @bind-Value=workoutExercise.Durations[index]></RadzenNumeric>
-								</ChildContent>
-							</RadzenFormField>
-						</RadzenStack>
-					}
-				</RadzenCard>
-			}
+				@if (workoutExercise.HasDurations)
+				{
+					<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Normal" AlignItems="AlignItems.Center">
+						<RadzenIcon Icon="timer"></RadzenIcon>
+						<RadzenFormField AllowFloatingLabel="false" Text="Duration" Style="width: 100%">
+							<ChildContent>
+								<RadzenNumeric Name="Duration" @bind-Value=workoutExercise.Durations[index]></RadzenNumeric>
+							</ChildContent>
+						</RadzenFormField>
+						@if (@workoutExercise.LastDurations != null && workoutExercise.LastDurations.Length > index) 
+						{
+							<RadzenText>@workoutExercise.LastDurations[index]</RadzenText>
+						}
+					</RadzenStack>
+				}
+			</RadzenCard>
+		}
 		</RadzenStack>
 
 		<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" >
 			<RadzenButton Click=@OnBackClick Text="Back" ButtonStyle="ButtonStyle.Secondary" />
-			<RadzenButton Click=@OnNextClick Text="Next" ButtonStyle="ButtonStyle.Primary" />
+			<RadzenButton Click=@OnNextClick Text="Next" ButtonStyle="ButtonStyle.Primary" ButtonType="ButtonType.Submit"/>
 		</RadzenStack>
 	}
 	else {
@@ -96,7 +109,7 @@ else {
 
 		<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" >
 			<RadzenButton Click=@OnBackClick Text="Back" ButtonStyle="ButtonStyle.Secondary" />
-			<RadzenButton Click=@OnSubmitClick Text="Submit" ButtonStyle="ButtonStyle.Primary" />
+			<RadzenButton Click=@OnSubmitClick Text="Submit" ButtonStyle="ButtonStyle.Primary" ButtonType="ButtonType.Submit"/>
 		</RadzenStack>
 	}	
 }
