@@ -1,0 +1,78 @@
+﻿@using WhatYouDid.Routines
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@using System.Text
+@rendermode RenderMode.InteractiveServer
+
+<RadzenFormField AllowFloatingLabel="false" Text="@InternalTitle" Style="width: 100%">
+	<Start>
+		@if (!string.IsNullOrEmpty(Icon))
+		{
+			<RadzenIcon Icon="@Icon"></RadzenIcon>
+		}
+	</Start>
+	<ChildContent>
+		<RadzenNumeric TValue="int?" Name="@InternalTitle" @bind-Value="@EnterValue" Change=@OnChange></RadzenNumeric>
+	</ChildContent>
+	<End>
+		@if (Goal is not null)
+		{
+			<RadzenText>/ @Goal</RadzenText>
+		}
+	</End>
+</RadzenFormField>
+
+@code {
+
+	[Parameter]
+	public WorkoutFormFieldType FormFieldType { get; set; }
+
+	[Parameter]
+	public int? Goal { get; set; } = null;
+
+	[Parameter]
+	public int? EnterValue { get; set; } = null;
+
+	[Parameter]
+	public EventCallback<int?> EnterValueChanged { get; set; }
+
+	async void OnChange(int? value)
+	{
+		await EnterValueChanged.InvokeAsync(value);
+	}
+
+	private string? Icon
+	{
+		get
+		{
+			return FormFieldType switch
+			{
+				WorkoutFormFieldType.Reps => "123",
+				WorkoutFormFieldType.Weight => "fitness_center",
+				WorkoutFormFieldType.Duration => "timer",
+				_ => "123"
+			};
+		}
+	}
+
+	private string? InternalTitle
+	{
+		get
+		{
+			return FormFieldType switch
+			{
+				WorkoutFormFieldType.Reps => "Reps",
+				WorkoutFormFieldType.Weight => "Weight",
+				WorkoutFormFieldType.Duration => "Duration1",
+				_ => ""
+			};
+		}
+	}
+
+	public enum WorkoutFormFieldType
+	{
+		Reps,
+		Weight,
+		Duration
+	}
+}

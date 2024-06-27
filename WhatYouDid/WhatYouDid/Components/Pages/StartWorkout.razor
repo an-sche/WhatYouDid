@@ -5,6 +5,7 @@
 @using Microsoft.AspNetCore.Identity
 @using System.Text
 @using System.Security.Claims
+@using WhatYouDid.Components.Shared
 @attribute [Authorize]
 @rendermode RenderMode.InteractiveServer
 @inject IRoutineService RoutineService
@@ -39,73 +40,49 @@ else {
 			var index = i; // capture the loop variable
 			<RadzenCard Variant="Variant.Outlined">
 				<RadzenText TextStyle="TextStyle.Caption">Set: @(index + 1)</RadzenText>
+
 				@if (workoutExercise.HasReps)
 				{
-					<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Normal" AlignItems="AlignItems.Center">
-						<RadzenFormField AllowFloatingLabel="false" Text="Reps" Style="width: 100%">
-							<Start>
-								<RadzenIcon Icon="123"></RadzenIcon>
-							</Start>
-							<ChildContent>
-								<RadzenNumeric Name="Reps" @bind-Value=workoutExercise.Reps[index]></RadzenNumeric>
-							</ChildContent>
-							<End>
-								@if (@workoutExercise.LastReps != null && workoutExercise.LastReps.Length > index) 
-								{
-									<RadzenText>/ @workoutExercise.LastReps[index]</RadzenText>
-								}
-							</End>
-						</RadzenFormField>
-						
-						
-					</RadzenStack>
+					int? repGoal = null;
+					if (@workoutExercise.LastReps != null && workoutExercise.LastReps.Length > index)
+					{
+						repGoal = @workoutExercise.LastReps[index];
+					}
+					<WorkoutFormField FormFieldType="WorkoutFormField.WorkoutFormFieldType.Reps"
+									  @bind-EnterValue="@workoutExercise.Reps[index]" 
+									  Goal="@repGoal" />
 				}
 
 				@if (workoutExercise.HasWeights)
 				{
-					<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Normal" AlignItems="AlignItems.Center">
-						<RadzenFormField AllowFloatingLabel="false" Text="Weight" Style="width: 100%">
-							<Start>
-								<RadzenIcon Icon="fitness_center"></RadzenIcon>
-							</Start>
-							<ChildContent>
-								<RadzenNumeric Name="Weight" @bind-Value=workoutExercise.Weights[index]></RadzenNumeric>
-							</ChildContent>
-							<End>
-								@if (@workoutExercise.LastWeights != null && workoutExercise.LastWeights.Length > index) 
-								{
-									<RadzenText>/ @workoutExercise.LastWeights[index]</RadzenText>
-								}
-							</End>
-						</RadzenFormField>
-					</RadzenStack>
+					int? weightGoal = null;
+					if (@workoutExercise.LastWeights != null && workoutExercise.LastWeights.Length > index)
+					{
+						weightGoal = @workoutExercise.LastWeights[index];
+					}
+					<WorkoutFormField FormFieldType="WorkoutFormField.WorkoutFormFieldType.Weight"
+									  @bind-EnterValue="@workoutExercise.Weights[index]"
+									  Goal="@weightGoal" />
 				}
 
 				@if (workoutExercise.HasDurations)
 				{
-					<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Normal" AlignItems="AlignItems.Center">
-						<RadzenFormField AllowFloatingLabel="false" Text="Duration" Style="width: 100%">
-							<Start>
-								<RadzenIcon Icon="timer"></RadzenIcon>
-							</Start>
-							<ChildContent>
-								<RadzenNumeric Name="Duration" @bind-Value=workoutExercise.Durations[index]></RadzenNumeric>
-							</ChildContent>
-							<End>
-								@if (@workoutExercise.LastDurations != null && workoutExercise.LastDurations.Length > index) 
-								{
-									<RadzenText>/ @workoutExercise.LastDurations[index]</RadzenText>
-								}
-							</End>
-						</RadzenFormField>
-					</RadzenStack>
+					int? durationGoal = null;
+					@if (@workoutExercise.LastDurations != null && workoutExercise.LastDurations.Length > index)
+					{
+						durationGoal = @workoutExercise.LastDurations[index];
+					}
+
+					<WorkoutFormField FormFieldType="WorkoutFormField.WorkoutFormFieldType.Duration"
+									  @bind-EnterValue="@workoutExercise.Durations[index]"
+									  Goal="@durationGoal" />
 				}
 			</RadzenCard>
 		}
 		</RadzenStack>
 
 		<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" >
-			<RadzenButton Click=@OnBackClick Text="Back" ButtonStyle="ButtonStyle.Secondary" />
+			<RadzenButton Click=@OnBackClick Text="Back" ButtonStyle="ButtonStyle.Secondary" Disabled="WorkoutExerciseIndex == 0" />
 			<RadzenButton Click=@OnNextClick Text="Next" ButtonStyle="ButtonStyle.Primary" ButtonType="ButtonType.Submit"/>
 		</RadzenStack>
 	}
