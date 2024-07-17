@@ -1,8 +1,8 @@
 ﻿using WhatYouDid.Data;
 
-namespace WhatYouDid.Routines;
+namespace WhatYouDid.Services;
 
-public interface IRoutineService
+public interface IWhatYouDidApi
 {
     IQueryable<Routine> GetUserRoutinesQueryable(ApplicationUser user);
     IQueryable<Workout> GetUserWorkoutsQueryable(ApplicationUser user);

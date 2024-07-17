@@ -1,6 +1,6 @@
 ﻿@page "/workout/{RoutineId:int}"
 
-@using WhatYouDid.Routines
+@using WhatYouDid.Services
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Identity
 @using System.Text
@@ -8,7 +8,7 @@
 @using WhatYouDid.Components.Shared
 @attribute [Authorize]
 @rendermode RenderMode.InteractiveServer
-@inject IRoutineService RoutineService
+@inject IWhatYouDidApi Api
 @inject UserManager<ApplicationUser> UserManager
 @inject NavigationManager Navigation
 
@@ -127,7 +127,7 @@ else {
 		var userId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
 		var user = await UserManager.FindByIdAsync(userId);
 
-		WorkoutDto = await RoutineService.GetStartWorkoutDtoAsync(userId, RoutineId);
+		WorkoutDto = await Api.GetStartWorkoutDtoAsync(userId, RoutineId);
 		Loaded = true;
 		//Routine = await RoutineService.GetRoutineAsync(RoutineId);
 	}
@@ -153,7 +153,7 @@ else {
 		if (Saving) return;
 		Saving = true;
 
-		var saveResult = await RoutineService.SaveWorkoutAsync(WorkoutDto);
+		var saveResult = await Api.SaveWorkoutAsync(WorkoutDto);
 
 		// Send the user to the Workouts page...
 		if (saveResult)

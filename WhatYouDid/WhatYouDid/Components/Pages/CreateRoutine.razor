@@ -6,7 +6,7 @@
 @using System.Security.Claims
 @attribute [Authorize]
 @rendermode RenderMode.InteractiveServer
-@inject IRoutineService RoutineService
+@inject IWhatYouDidApi Api
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider Authentication
 @inject UserManager<ApplicationUser> UserManager
@@ -136,7 +136,7 @@
 		}
 
 
-		var createdRoutine = await RoutineService.AddRoutineAsync(routine);
+		var createdRoutine = await Api.AddRoutineAsync(routine);
 
 		// Navigate to the "View Routine" Page:
 		if (createdRoutine is null)

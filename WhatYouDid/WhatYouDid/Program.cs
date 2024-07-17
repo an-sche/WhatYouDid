@@ -6,7 +6,7 @@ using WhatYouDid.Client.Pages;
 using WhatYouDid.Components;
 using WhatYouDid.Components.Account;
 using WhatYouDid.Data;
-using WhatYouDid.Routines;
+using WhatYouDid.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -49,7 +49,7 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
-builder.Services.AddTransient<IRoutineService, RoutineService>();
+builder.Services.AddTransient<IWhatYouDidApi, WhatYouDidApiDirectAccess>();
 
 var app = builder.Build();
 

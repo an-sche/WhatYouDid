@@ -1,12 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using WhatYouDid.Data;
 
-namespace WhatYouDid.Routines;
+namespace WhatYouDid.Services;
 
-public class RoutineService : IRoutineService
+public class WhatYouDidApiDirectAccess : IWhatYouDidApi
 {
     private readonly ApplicationDbContext _db;
-    public RoutineService(ApplicationDbContext db)
+    public WhatYouDidApiDirectAccess(ApplicationDbContext db)
     {
         _db = db;
     }
