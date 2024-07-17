@@ -50,6 +50,7 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 builder.Services.AddTransient<IWhatYouDidApi, WhatYouDidApiDirectAccess>();
+builder.Services.AddScoped<IBrowserStorage, ServerBrowserStorage>();
 
 var app = builder.Build();
 

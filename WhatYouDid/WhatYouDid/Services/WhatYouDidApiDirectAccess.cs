@@ -91,37 +91,6 @@ public class WhatYouDidApiDirectAccess : IWhatYouDidApi
                             Weights = new int?[exercise.Sets],
                         }).ToList()
                 }).FirstOrDefaultAsync();
-
-        // return await _db.Routines
-            // .Include(x => x.Exercises)
-            // .Where(x => x.CreateUserId == applicationUserId && x.RoutineId == routineId)
-            // .Select(x => new WorkoutDto()
-            // {
-                // RoutineId = routineId,
-                // RoutineName = x.Name,
-                // ApplicationUserId = applicationUserId,
-                // WorkoutExercises = x.Exercises.Select(e => new WorkoutExerciseDto()
-                // {
-                    // Sequence = e.Sequence,
-                    // ExerciseId = e.ExerciseId,
-                    // ExerciseName = e.Name,
-                    // Sets = e.Sets,
-
-                    // HasReps = e.HasReps,
-                    // HasWeights = e.HasWeight,
-                    // HasDurations = e.HasDuration,
-
-                    // LastDurations = (int?[])_db.WorkoutExercises.Where(x => x.ExerciseId == e.ExerciseId).OrderByDescending(x => x.WorkoutId).Select(x => x.Durations).FirstOrDefault(),
-                    // LastReps = (int?[])_db.WorkoutExercises.Where(x => x.ExerciseId == e.ExerciseId).OrderByDescending(x => x.WorkoutId).Select(x => x.Reps).FirstOrDefault(),
-                    // LastWeights = (int?[])_db.WorkoutExercises.Where(x => x.ExerciseId == e.ExerciseId).OrderByDescending(x => x.WorkoutId).Select(x => x.Durations).FirstOrDefault(),
-
-					// // For the user to fill in
-					// Reps = new int?[e.Sets],
-                    // Weights = new int?[e.Sets],
-                    // Durations = new int?[e.Sets],
-                // }).ToList()
-            // })
-            // .FirstOrDefaultAsync();
 	}
 
     public async Task<bool> SaveWorkoutAsync(WorkoutDto workoutDto) {

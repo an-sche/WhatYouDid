@@ -9,6 +9,8 @@
 @attribute [Authorize]
 @rendermode RenderMode.InteractiveServer
 @inject IWhatYouDidApi Api
+@inject IBrowserStorage BrowserStorage
+@inject IJSRuntime JS
 @inject UserManager<ApplicationUser> UserManager
 @inject NavigationManager Navigation
 
@@ -117,6 +119,8 @@ else {
 	public bool Loaded = false;
 	public bool Saving = false;
 
+	private bool AlreadyAsked = false; // Field to know if we need to check browser storage
+
 	protected override async Task OnInitializedAsync()
 	{
 		if (authenticationState is null)
@@ -128,22 +132,61 @@ else {
 		var user = await UserManager.FindByIdAsync(userId);
 
 		WorkoutDto = await Api.GetStartWorkoutDtoAsync(userId, RoutineId);
+
+
 		Loaded = true;
 		//Routine = await RoutineService.GetRoutineAsync(RoutineId);
+
+
+		await base.OnInitializedAsync();
 	}
 
-	private void OnBackClick() {
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (!AlreadyAsked && WorkoutDto != null)
+		{
+			AlreadyAsked = true;
+
+			var browserDto = await BrowserStorage.GetAsync<WorkoutDto>(WorkoutDto.GetBrowserStorageId);
+
+			if (browserDto != null)
+			{
+				// Ask the user if they wanna do that one
+				bool startNew = await JS.InvokeAsync<bool>("confirm", "You have an unfinished workout.\n\nOK to start new.\nCancel to continue Unfinished");
+
+				// Otherwise, overwrite it with the new one
+				if (startNew)
+				{
+					await BrowserStorage.SetAsync(WorkoutDto.GetBrowserStorageId, WorkoutDto);
+				}
+				else
+				{
+					WorkoutDto = browserDto;
+					StateHasChanged();
+				}
+			}
+
+		}
+
+		await base.OnAfterRenderAsync(firstRender);
+	}
+
+	private async void OnBackClick() {
 		if (WorkoutDto is null) return;
 
 		if (WorkoutExerciseIndex > 0)
 			WorkoutExerciseIndex--;
+
+		await BrowserStorage.SetAsync(WorkoutDto.GetBrowserStorageId, WorkoutDto);
 	}
 
-	private void OnNextClick() {
+	private async void OnNextClick() {
 		if (WorkoutDto is null) return;
 
 		if (WorkoutExerciseIndex < WorkoutDto.WorkoutExercises?.Count)
 			WorkoutExerciseIndex++;
+
+		await BrowserStorage.SetAsync(WorkoutDto.GetBrowserStorageId, WorkoutDto);
 	}
 
 	private async Task OnSubmitClick() {
@@ -154,6 +197,7 @@ else {
 		Saving = true;
 
 		var saveResult = await Api.SaveWorkoutAsync(WorkoutDto);
+		await BrowserStorage.DeleteAsync(WorkoutDto.GetBrowserStorageId);
 
 		// Send the user to the Workouts page...
 		if (saveResult)
