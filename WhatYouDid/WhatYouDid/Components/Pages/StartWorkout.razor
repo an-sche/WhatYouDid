@@ -10,9 +10,11 @@
 @rendermode RenderMode.InteractiveServer
 @inject IWhatYouDidApi Api
 @inject IBrowserStorage BrowserStorage
-@inject IJSRuntime JS
+@inject DialogService DialogService
 @inject UserManager<ApplicationUser> UserManager
 @inject NavigationManager Navigation
+
+<RadzenDialog />
 
 @if (WorkoutDto is null) {
 	if (Loaded)
@@ -152,7 +154,8 @@ else {
 			if (browserDto != null)
 			{
 				// Ask the user if they wanna do that one
-				bool startNew = await JS.InvokeAsync<bool>("confirm", "You have an unfinished workout.\n\nOK to start new.\nCancel to continue Unfinished");
+				var startNew = await DialogService.Confirm("You have an unfinished workout.\n\nContinue previous workout or start new?", "Confirm",
+					new ConfirmOptions() { OkButtonText = "Start New", CancelButtonText = "Continue previous" }) ?? false;
 
 				// Otherwise, overwrite it with the new one
 				if (startNew)
