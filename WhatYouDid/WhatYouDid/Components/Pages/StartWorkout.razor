@@ -27,17 +27,17 @@
 	}
 }
 else {
-	<RadzenText TextStyle="TextStyle.H4">@WorkoutDto?.RoutineName</RadzenText>
-	if (WorkoutExerciseIndex < @WorkoutDto?.WorkoutExercises?.Count) {
-		string unit = " of " + @WorkoutDto?.WorkoutExercises?.Count;
-		<RadzenProgressBar ProgressBarStyle="ProgressBarStyle.Light" Value="@(WorkoutExerciseIndex + 1)" Max="@(WorkoutDto?.WorkoutExercises?.Count ?? 0)" Unit="@unit"></RadzenProgressBar>
+	<RadzenText TextStyle="TextStyle.H4">@WorkoutDto.RoutineName</RadzenText>
+	if (WorkoutDto.ExerciseIndex < WorkoutDto.WorkoutExercises?.Count) {
+		string unit = " of " + @WorkoutDto.WorkoutExercises?.Count;
+		<RadzenProgressBar ProgressBarStyle="ProgressBarStyle.Light" Value="@(WorkoutDto.ExerciseIndex + 1)" Max="@(WorkoutDto.WorkoutExercises?.Count ?? 0)" Unit="@unit"></RadzenProgressBar>
 	}
-	@if (WorkoutExerciseIndex < @WorkoutDto?.WorkoutExercises?.Count)
+	@if (WorkoutDto.ExerciseIndex < @WorkoutDto.WorkoutExercises?.Count)
 	{
-		<RadzenText TextStyle="TextStyle.H5">@WorkoutDto?.WorkoutExercises?[WorkoutExerciseIndex].ExerciseName</RadzenText>
+		<RadzenText TextStyle="TextStyle.H5">@WorkoutDto.WorkoutExercises?[WorkoutDto.ExerciseIndex].ExerciseName</RadzenText>
 
 		// This is where i put the information for them to fill out!
-		var workoutExercise = WorkoutDto.WorkoutExercises[WorkoutExerciseIndex];
+		var workoutExercise = WorkoutDto.WorkoutExercises[WorkoutDto.ExerciseIndex];
 		<RadzenStack Orientation="Orientation.Vertical" JustifyContent="JustifyContent.Normal">
 		@for (int i = 0; i < workoutExercise.Sets; i++)
 		{
@@ -86,14 +86,14 @@ else {
 		</RadzenStack>
 
 		<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" >
-			<RadzenButton Click=@OnBackClick Text="Back" ButtonStyle="ButtonStyle.Secondary" Disabled="WorkoutExerciseIndex == 0" />
+			<RadzenButton Click=@OnBackClick Text="Back" ButtonStyle="ButtonStyle.Secondary" Disabled="WorkoutDto.ExerciseIndex == 0" />
 			<RadzenButton Click=@OnNextClick Text="Next" ButtonStyle="ButtonStyle.Primary" ButtonType="ButtonType.Submit"/>
 		</RadzenStack>
 	}
 	else {
 
 		<RadzenText TextStyle="TextStyle.H5">Review</RadzenText>
-		<RadzenDataGrid Data="@WorkoutDto?.WorkoutExercises" TItem="WorkoutExerciseDto"> 
+		<RadzenDataGrid Data="@WorkoutDto.WorkoutExercises" TItem="WorkoutExerciseDto"> 
 			<Columns>
 				<RadzenDataGridColumn TItem="WorkoutExerciseDto" Property="Sequence" Title="#" Width="50px"/> 
 				<RadzenDataGridColumn TItem="WorkoutExerciseDto" Property="ExerciseName" Title="Exercise" />
@@ -116,7 +116,7 @@ else {
 
 	[CascadingParameter]
 	private Task<AuthenticationState>? authenticationState { get; set; }
-	public int WorkoutExerciseIndex = 0;
+
 	public WorkoutDto? WorkoutDto { get; set; }
 	public bool Loaded = false;
 	public bool Saving = false;
@@ -157,13 +157,14 @@ else {
 				var startNew = await DialogService.Confirm("You have an unfinished workout.\n\nContinue previous workout or start new?", "Confirm",
 					new ConfirmOptions() { OkButtonText = "Start New", CancelButtonText = "Continue previous" }) ?? false;
 
-				// Otherwise, overwrite it with the new one
 				if (startNew)
 				{
+					// Start a new one
 					await BrowserStorage.SetAsync(WorkoutDto.GetBrowserStorageId, WorkoutDto);
 				}
 				else
 				{
+					// Continue the old one
 					WorkoutDto = browserDto;
 					StateHasChanged();
 				}
@@ -177,8 +178,8 @@ else {
 	private async void OnBackClick() {
 		if (WorkoutDto is null) return;
 
-		if (WorkoutExerciseIndex > 0)
-			WorkoutExerciseIndex--;
+		if (WorkoutDto.ExerciseIndex > 0)
+			WorkoutDto.ExerciseIndex--;
 
 		await BrowserStorage.SetAsync(WorkoutDto.GetBrowserStorageId, WorkoutDto);
 	}
@@ -186,8 +187,8 @@ else {
 	private async void OnNextClick() {
 		if (WorkoutDto is null) return;
 
-		if (WorkoutExerciseIndex < WorkoutDto.WorkoutExercises?.Count)
-			WorkoutExerciseIndex++;
+		if (WorkoutDto.ExerciseIndex < WorkoutDto.WorkoutExercises?.Count)
+			WorkoutDto.ExerciseIndex++;
 
 		await BrowserStorage.SetAsync(WorkoutDto.GetBrowserStorageId, WorkoutDto);
 	}

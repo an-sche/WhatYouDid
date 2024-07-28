@@ -17,7 +17,7 @@ public class WorkoutDto
     public DateTime StartTime { get; set; } = DateTime.Now;
 
     public List<WorkoutExerciseDto>? WorkoutExercises { get; init; }
-    
+    public int ExerciseIndex { get; set; } = 0;
 }
 
 public class WorkoutExerciseDto
