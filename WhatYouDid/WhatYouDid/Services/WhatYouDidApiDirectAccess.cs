@@ -70,7 +70,9 @@ public class WhatYouDidApiDirectAccess : IWhatYouDidApi
                     WorkoutExercises = 
                         (from exercise in routine.Exercises
                         join pastExercise in _db.WorkoutExercises on exercise.ExerciseId equals pastExercise.ExerciseId into pastExercises
-                        from pastExercise in pastExercises.OrderByDescending(x => x.Workout.StartTime).Take(1).DefaultIfEmpty()
+                        from pastExercise in pastExercises
+                                                .Where(x => x.Workout.ApplicationUserId == applicationUserId)
+                                                .OrderByDescending(x => x.Workout.StartTime).Take(1).DefaultIfEmpty()
                         select new WorkoutExerciseDto() {
 
                             Sequence = exercise.Sequence,
