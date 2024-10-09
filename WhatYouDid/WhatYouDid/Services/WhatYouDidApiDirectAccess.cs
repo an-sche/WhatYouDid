@@ -48,7 +48,7 @@ public class WhatYouDidApiDirectAccess : IWhatYouDidApi
 
 	public IQueryable<Routine> GetUserRoutinesQueryable(ApplicationUser user)
 	{
-        return _db.Routines.OrderBy(x => x.Name).Where(x => x.CreateUser == user);
+        return _db.Routines.OrderBy(x => x.Name).Where(x => x.CreateUser == user || x.IsPublic == true);
 	}
 
     public IQueryable<Workout> GetUserWorkoutsQueryable(ApplicationUser user)
@@ -60,7 +60,7 @@ public class WhatYouDidApiDirectAccess : IWhatYouDidApi
 	{
         return  await 
                 (from routine in _db.Routines.AsNoTracking()
-                where routine.CreateUserId == applicationUserId && routine.RoutineId == routineId
+                where (routine.CreateUserId == applicationUserId || routine.IsPublic) && routine.RoutineId == routineId
                 select new WorkoutDto() {
 
                     RoutineId = routineId,

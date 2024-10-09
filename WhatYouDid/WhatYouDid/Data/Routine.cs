@@ -19,5 +19,7 @@ public class Routine
 
 	public ApplicationUser? CreateUser { get; set; } = null;
 	public string? CreateUserId { get; set; } = null;
+
+	public bool IsPublic { get; set; } = false;
 }
 
