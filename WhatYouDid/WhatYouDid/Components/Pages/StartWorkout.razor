@@ -39,50 +39,50 @@ else {
 		// This is where i put the information for them to fill out!
 		var workoutExercise = WorkoutDto.WorkoutExercises[WorkoutDto.ExerciseIndex];
 		<RadzenStack Orientation="Orientation.Vertical" JustifyContent="JustifyContent.Normal">
-		@for (int i = 0; i < workoutExercise.Sets; i++)
-		{
-			var index = i; // capture the loop variable
-			<RadzenCard Variant="Variant.Outlined">
-				<RadzenText TextStyle="TextStyle.Caption">Set: @(index + 1)</RadzenText>
+			@for (int i = 0; i < workoutExercise.Sets; i++)
+			{
+				var index = i; // capture the loop variable
+				<RadzenCard Variant="Variant.Outlined">
+					<RadzenText TextStyle="TextStyle.Caption">Set: @(index + 1)</RadzenText>
 
-				@if (workoutExercise.HasReps)
-				{
-					int? repGoal = null;
-					if (@workoutExercise.LastReps != null && workoutExercise.LastReps.Length > index)
+					@if (workoutExercise.HasReps)
 					{
-						repGoal = @workoutExercise.LastReps[index];
-					}
-					<WorkoutFormField FormFieldType="WorkoutFormField.WorkoutFormFieldType.Reps"
-									  @bind-EnterValue="@workoutExercise.Reps[index]" 
-									  Goal="@repGoal" />
-				}
-
-				@if (workoutExercise.HasWeights)
-				{
-					int? weightGoal = null;
-					if (@workoutExercise.LastWeights != null && workoutExercise.LastWeights.Length > index)
-					{
-						weightGoal = @workoutExercise.LastWeights[index];
-					}
-					<WorkoutFormField FormFieldType="WorkoutFormField.WorkoutFormFieldType.Weight"
-									  @bind-EnterValue="@workoutExercise.Weights[index]"
-									  Goal="@weightGoal" />
-				}
-
-				@if (workoutExercise.HasDurations)
-				{
-					int? durationGoal = null;
-					@if (@workoutExercise.LastDurations != null && workoutExercise.LastDurations.Length > index)
-					{
-						durationGoal = @workoutExercise.LastDurations[index];
+						int? repGoal = null;
+						if (@workoutExercise.LastReps != null && workoutExercise.LastReps.Length > index)
+						{
+							repGoal = @workoutExercise.LastReps[index];
+						}
+						<WorkoutFormField FormFieldType="WorkoutFormField.WorkoutFormFieldType.Reps"
+						@bind-EnterValue="@workoutExercise.Reps[index]" 
+						Goal="@repGoal" />
 					}
 
-					<WorkoutFormField FormFieldType="WorkoutFormField.WorkoutFormFieldType.Duration"
-									  @bind-EnterValue="@workoutExercise.Durations[index]"
-									  Goal="@durationGoal" />
-				}
-			</RadzenCard>
-		}
+					@if (workoutExercise.HasWeights)
+					{
+						int? weightGoal = null;
+						if (@workoutExercise.LastWeights != null && workoutExercise.LastWeights.Length > index)
+						{
+							weightGoal = @workoutExercise.LastWeights[index];
+						}
+						<WorkoutFormField FormFieldType="WorkoutFormField.WorkoutFormFieldType.Weight"
+						@bind-EnterValue="@workoutExercise.Weights[index]"
+						Goal="@weightGoal" />
+					}
+
+					@if (workoutExercise.HasDurations)
+					{
+						int? durationGoal = null;
+						@if (@workoutExercise.LastDurations != null && workoutExercise.LastDurations.Length > index)
+						{
+							durationGoal = @workoutExercise.LastDurations[index];
+						}
+
+						<WorkoutFormField FormFieldType="WorkoutFormField.WorkoutFormFieldType.Duration"
+						@bind-EnterValue="@workoutExercise.Durations[index]"
+						Goal="@durationGoal" />
+					}
+				</RadzenCard>
+			}
 		</RadzenStack>
 
 		<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" >
@@ -118,6 +118,7 @@ else {
 	private Task<AuthenticationState>? authenticationState { get; set; }
 
 	public WorkoutDto? WorkoutDto { get; set; }
+
 	public bool Loaded = false;
 	public bool Saving = false;
 
@@ -166,7 +167,7 @@ else {
 				{
 					// Continue the old one
 					WorkoutDto = browserDto;
-					StateHasChanged();
+					await InvokeAsync(StateHasChanged);
 				}
 			}
 
@@ -182,6 +183,8 @@ else {
 			WorkoutDto.ExerciseIndex--;
 
 		await BrowserStorage.SetAsync(WorkoutDto.GetBrowserStorageId, WorkoutDto);
+
+		await InvokeAsync(StateHasChanged);
 	}
 
 	private async void OnNextClick() {
@@ -191,6 +194,8 @@ else {
 			WorkoutDto.ExerciseIndex++;
 
 		await BrowserStorage.SetAsync(WorkoutDto.GetBrowserStorageId, WorkoutDto);
+		
+		await InvokeAsync(StateHasChanged);
 	}
 
 	private async Task OnSubmitClick() {

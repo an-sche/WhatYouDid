@@ -4,23 +4,26 @@
 @using System.Text
 @rendermode RenderMode.InteractiveServer
 
-<RadzenFormField AllowFloatingLabel="false" Text="@InternalTitle" Style="width: 100%">
-	<Start>
-		@if (!string.IsNullOrEmpty(Icon))
-		{
-			<RadzenIcon Icon="@Icon"></RadzenIcon>
-		}
-	</Start>
-	<ChildContent>
-		<RadzenNumeric TValue="int?" Name="@InternalTitle" @bind-Value="@EnterValue" Change=@OnChange></RadzenNumeric>
-	</ChildContent>
-	<End>
-		@if (Goal is not null)
-		{
-			<RadzenText>/ @Goal</RadzenText>
-		}
-	</End>
-</RadzenFormField>
+@*We need this to force a reload on the components*@
+<div @key=Guid.NewGuid()>
+	<RadzenFormField AllowFloatingLabel="false" Text="@InternalTitle" Style="width: 100%">
+		<Start>
+			@if (!string.IsNullOrEmpty(Icon))
+			{
+				<RadzenIcon Icon="@Icon"></RadzenIcon>
+			}
+		</Start>
+		<ChildContent>
+				<RadzenNumeric TValue="int?" Name="@InternalTitle" @bind-Value="@EnterValue" Change=@OnChange Key></RadzenNumeric>
+		</ChildContent>
+		<End>
+			@if (Goal is not null)
+			{
+				<RadzenText>/ @Goal</RadzenText>
+			}
+		</End>
+	</RadzenFormField>
+</div>
 
 @code {
 
