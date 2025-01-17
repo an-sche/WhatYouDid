@@ -38,7 +38,7 @@ else {
 
 		// This is where i put the information for them to fill out!
 		var workoutExercise = WorkoutDto.WorkoutExercises[WorkoutDto.ExerciseIndex];
-		<RadzenStack Orientation="Orientation.Vertical" JustifyContent="JustifyContent.Normal">
+		<RadzenStack @key="@workoutExercise.ExerciseName" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.Normal">
 			@for (int i = 0; i < workoutExercise.Sets; i++)
 			{
 				var index = i; // capture the loop variable
