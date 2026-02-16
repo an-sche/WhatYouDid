@@ -83,7 +83,12 @@
 
 		var authState = await authenticationState;
 		var userId = authState?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+		if (userId is null)
+			return;
+
 		user = await UserManager.FindByIdAsync(userId);
+		if (user is null)
+			return;
 
 		routines = Api.GetUserRoutinesQueryable(user);
 	}
