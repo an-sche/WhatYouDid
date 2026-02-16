@@ -3,39 +3,33 @@ using WhatYouDid.Data;
 
 namespace WhatYouDid.Services;
 
-public class WhatYouDidApiDirectAccess : IWhatYouDidApi
+public class WhatYouDidApiDirectAccess(ApplicationDbContext db) : IWhatYouDidApi
 {
-    private readonly ApplicationDbContext _db;
-    public WhatYouDidApiDirectAccess(ApplicationDbContext db)
-    {
-        _db = db;
-    }
-
     public async Task<Routine> AddRoutineAsync(Routine routine)
     {
-        var result = await _db.Routines.AddAsync(routine);
-        await _db.SaveChangesAsync();
+        var result = await db.Routines.AddAsync(routine);
+        await db.SaveChangesAsync();
         return result.Entity;
     }
 
     public async void DeleteRoutineAsync(int routineId)
     {
-        var result = await _db.Routines.FirstOrDefaultAsync(x => x.RoutineId == routineId);
+        var result = await db.Routines.FirstOrDefaultAsync(x => x.RoutineId == routineId);
         if (result is null)
             return;
 
-        _db.Routines.Remove(result);
-        await _db.SaveChangesAsync();
+        db.Routines.Remove(result);
+        await db.SaveChangesAsync();
     }
 
 	public IQueryable<Exercise> GetExercises(int routineId)
 	{
-        return _db.Exercises.Where(x => x.RoutineId == routineId);
+        return db.Exercises.Where(x => x.RoutineId == routineId);
 	}
 
 	public async Task<Routine?> GetRoutineAsync(int routineId)
     {
-        var result = await _db.Routines
+        var result = await db.Routines
             .Include(x => x.Exercises)
             .FirstOrDefaultAsync(x => x.RoutineId == routineId);
         return result;
@@ -43,23 +37,23 @@ public class WhatYouDidApiDirectAccess : IWhatYouDidApi
 
     public async Task<List<Routine>> GetRoutinesAsync()
     {
-        return await _db.Routines.ToListAsync();
+        return await db.Routines.ToListAsync();
     }
 
 	public IQueryable<Routine> GetUserRoutinesQueryable(ApplicationUser user)
 	{
-        return _db.Routines.OrderBy(x => x.Name).Where(x => x.CreateUser == user || x.IsPublic == true);
+        return db.Routines.OrderBy(x => x.Name).Where(x => x.CreateUser == user || x.IsPublic == true);
 	}
 
     public IQueryable<Workout> GetUserWorkoutsQueryable(ApplicationUser user)
     {
-        return _db.Workouts.OrderByDescending(x => x.StartTime).Where(x => x.ApplicationUser == user);
+        return db.Workouts.OrderByDescending(x => x.StartTime).Where(x => x.ApplicationUser == user);
     }
 
     public async Task<WorkoutDto?> GetStartWorkoutDtoAsync(string applicationUserId, int routineId)
 	{
         return  await 
-                (from routine in _db.Routines.AsNoTracking()
+                (from routine in db.Routines.AsNoTracking()
                 where (routine.CreateUserId == applicationUserId || routine.IsPublic) && routine.RoutineId == routineId
                 select new WorkoutDto() {
 
@@ -69,7 +63,7 @@ public class WhatYouDidApiDirectAccess : IWhatYouDidApi
 
                     WorkoutExercises = 
                         (from exercise in routine.Exercises
-                        join pastExercise in _db.WorkoutExercises on exercise.ExerciseId equals pastExercise.ExerciseId into pastExercises
+                        join pastExercise in db.WorkoutExercises on exercise.ExerciseId equals pastExercise.ExerciseId into pastExercises
                         from pastExercise in pastExercises
                                                 .Where(x => x.Workout.ApplicationUserId == applicationUserId)
                                                 .OrderByDescending(x => x.Workout.StartTime).Take(1).DefaultIfEmpty()
@@ -128,8 +122,8 @@ public class WhatYouDidApiDirectAccess : IWhatYouDidApi
         }
         workout.WorkoutExercise = exercises;
         
-        await _db.Workouts.AddAsync(workout);
-        await _db.SaveChangesAsync();
+        await db.Workouts.AddAsync(workout);
+        await db.SaveChangesAsync();
 
         // add that to my db table (s) 
         return true;
@@ -142,16 +136,16 @@ public class WhatYouDidApiDirectAccess : IWhatYouDidApi
 
 	public async Task<WorkoutDto?> GetCompletedWorkoutDtoAsync(string user, int workoutId)
 	{
-        return await _db.Workouts
+        return await db.Workouts
             .Where(x => x.ApplicationUserId == user && x.WorkoutId == workoutId)
             .Select(x => new WorkoutDto() 
             {
                 RoutineName = x.RoutineName,
                 RoutineId = x.RoutineId ?? 0,
                 ApplicationUserId = user,
-			    WorkoutExercises = x.WorkoutExercise.Select(e => new WorkoutExerciseDto()
+			    WorkoutExercises = x.WorkoutExercise!.Select(e => new WorkoutExerciseDto()
 			    {
-				    Sequence = e.Exercise.Sequence,
+				    Sequence = e.Exercise!.Sequence,
 				    ExerciseId = e.ExerciseId ?? 0,
 				    ExerciseName = e.ExerciseName,
 				    Sets = e.Exercise.Sets,
