@@ -5,7 +5,7 @@
 @using System.Text
 @using System.Security.Claims
 @attribute [Authorize]
-@rendermode RenderMode.InteractiveServer
+@rendermode InteractiveServer
 @inject IWhatYouDidApi Api
 @inject UserManager<ApplicationUser> UserManager
 @inject NavigationManager Navigation
@@ -35,16 +35,20 @@
 @if (exercises is not null)
 {
 	<RadzenText TextStyle="TextStyle.H5">@selectedRoutineName</RadzenText>
-	<RadzenButton Click="@(() => StartRoutine())">Start Exercise</RadzenButton>
+	<RadzenButton Click="@(() => StartWorkout())">Start @(selectedRoutineName)</RadzenButton>
 
 	<RadzenDataGrid Data="exercises" TItem="Exercise" Density="Density.Compact">
 		<Columns>
 			<RadzenDataGridColumn TItem="Exercise" Property="Sequence" Title="#" Width="50px" />
 			<RadzenDataGridColumn TItem="Exercise" Property="Name" Title="Name" />
 			<RadzenDataGridColumn TItem="Exercise" Property="Sets" Title="Sets" />
-			<RadzenDataGridColumn TItem="Exercise" Property="HasReps" Title="Reps?"  />
-			<RadzenDataGridColumn TItem="Exercise" Property="HasWeight" Title="Weight?" />
-            <RadzenDataGridColumn TItem="Exercise" Property="HasDuration" Title="Duration?" />
+			<RadzenDataGridColumn TItem="Exercise" Title="Rep / Weight / Duration">
+				<Template Context="exercise">
+					<RadzenIcon Icon="123" Style="@(exercise.HasReps ? "opacity: 1.0" : "opacity: 0.1")" />
+					<RadzenIcon Icon="fitness_center" Style="@(exercise.HasWeight ? "opacity: 1.0" : "opacity: 0.1")" />
+					<RadzenIcon Icon="timer" Style="@(exercise.HasDuration ? "opacity: 1.0" : "opacity: 0.1")" />
+				</Template>
+			</RadzenDataGridColumn>
         </Columns>
 	</RadzenDataGrid>
 }
@@ -68,7 +72,7 @@
 		this.selectedRoutineName = routine.Name;
 	}
 
-	void StartRoutine()
+	void StartWorkout()
 	{
 		if (selectedRoutineId is null)
 			return;
