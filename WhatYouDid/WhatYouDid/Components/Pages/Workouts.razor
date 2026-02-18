@@ -51,20 +51,16 @@
 	WorkoutDto? selectedWorkout;
 	IQueryable<Workout>? workoutsQueryable;
 
-	async Task ViewWorkout(Workout workout)
-	{
-		selectedWorkout = await Api.GetCompletedWorkoutDtoAsync(UserId, workout.WorkoutId);	
-	}
+    async Task ViewWorkout(Workout workout)
+    {
+        selectedWorkout = await Api.GetCompletedWorkoutDtoAsync(workout.WorkoutId);
+    }
 
 	protected override async Task OnInitializedAsync()
 	{
 		if (authenticationState is null)
 			return;
 
-		var authState = await authenticationState;
-		UserId = authState?.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-		var user = await UserManager.FindByIdAsync(UserId);
-
-		workoutsQueryable = Api.GetUserWorkoutsQueryable(user);
+        workoutsQueryable = Api.GetUserWorkoutsQueryable();
 	}
 }

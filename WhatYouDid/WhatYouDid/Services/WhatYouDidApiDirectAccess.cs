@@ -3,7 +3,10 @@ using WhatYouDid.Data;
 
 namespace WhatYouDid.Services;
 
-public class WhatYouDidApiDirectAccess(ApplicationDbContext db) : IWhatYouDidApi
+public class WhatYouDidApiDirectAccess(
+    ApplicationDbContext db,
+    ITenantService tenantService
+) : IWhatYouDidApi
 {
     public async Task<Routine> AddRoutineAsync(Routine routine)
     {
@@ -40,18 +43,21 @@ public class WhatYouDidApiDirectAccess(ApplicationDbContext db) : IWhatYouDidApi
         return await db.Routines.ToListAsync();
     }
 
-	public IQueryable<Routine> GetUserRoutinesQueryable(ApplicationUser user)
-	{
-        return db.Routines.OrderBy(x => x.Name).Where(x => x.CreateUser == user || x.IsPublic == true);
-	}
-
-    public IQueryable<Workout> GetUserWorkoutsQueryable(ApplicationUser user)
+    public IQueryable<Routine> GetUserRoutinesQueryable()
     {
-        return db.Workouts.OrderByDescending(x => x.StartTime).Where(x => x.ApplicationUser == user);
+        // Tenant filtering is applied globally via DbContext query filters.
+        return db.Routines.OrderBy(x => x.Name);
     }
 
-    public async Task<WorkoutDto?> GetStartWorkoutDtoAsync(string applicationUserId, int routineId)
+    public IQueryable<Workout> GetUserWorkoutsQueryable()
+    {
+        return db.Workouts.OrderByDescending(x => x.StartTime);
+    }
+
+    public async Task<WorkoutDto?> GetStartWorkoutDtoAsync(int routineId)
 	{
+        var applicationUserId = tenantService.Tenant;
+
         return  await 
                 (from routine in db.Routines.AsNoTracking()
                 where (routine.CreateUserId == applicationUserId || routine.IsPublic) && routine.RoutineId == routineId
@@ -93,7 +99,7 @@ public class WhatYouDidApiDirectAccess(ApplicationDbContext db) : IWhatYouDidApi
 
         // convert that to my db object,
         var workout = new Workout() {
-            ApplicationUserId = workoutDto.ApplicationUserId,
+            ApplicationUserId = tenantService.Tenant,
             RoutineId = workoutDto.RoutineId,
             RoutineName = workoutDto.RoutineName,
             StartTime = workoutDto.StartTime,
@@ -134,8 +140,10 @@ public class WhatYouDidApiDirectAccess(ApplicationDbContext db) : IWhatYouDidApi
         throw new NotImplementedException();
     }
 
-	public async Task<WorkoutDto?> GetCompletedWorkoutDtoAsync(string user, int workoutId)
+    public async Task<WorkoutDto?> GetCompletedWorkoutDtoAsync(int workoutId)
 	{
+        var user = tenantService.Tenant;
+
         return await db.Workouts
             .Where(x => x.ApplicationUserId == user && x.WorkoutId == workoutId)
             .Select(x => new WorkoutDto() 

@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Server;
+using Microsoft.AspNetCore.Components.Server.Circuits;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Radzen;
@@ -7,6 +9,7 @@ using WhatYouDid.Components;
 using WhatYouDid.Components.Account;
 using WhatYouDid.Data;
 using WhatYouDid.Services;
+using WhatYouDid.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,10 +20,31 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
 
+// Configure server-side Blazor SignalR hub options to be more tolerant of
+// mobile devices that sleep or have intermittent connectivity.
+builder.Services.AddServerSideBlazor().AddHubOptions(options =>
+{
+    options.ClientTimeoutInterval = TimeSpan.FromMinutes(3);
+    options.KeepAliveInterval = TimeSpan.FromSeconds(30);
+    options.HandshakeTimeout = TimeSpan.FromSeconds(60);
+});
+
+// Retain disconnected circuits for a longer period to allow reconnect from
+// mobile devices that may be suspended for several minutes.
+builder.Services.Configure<CircuitOptions>(options =>
+{
+    options.DisconnectedCircuitRetentionPeriod = TimeSpan.FromMinutes(10);
+});
+
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, PersistingRevalidatingAuthenticationStateProvider>();
+
+// Tenant resolution service for multi-tenancy
+builder.Services.AddScoped<ITenantService, TenantService>();
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+builder.Services.AddScoped<CircuitHandler, TenantCircuitHandler>();
 
 builder.Services.AddAuthentication(options =>
     {
@@ -42,7 +66,8 @@ else
 }
 
 builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseSqlServer(connectionString),
+    ServiceLifetime.Scoped);
 builder.Services.AddDatabaseDeveloperPageExceptionFilter(); 
 
 builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
@@ -73,6 +98,11 @@ else
 }
 
 app.UseHttpsRedirection();
+
+// Resolve tenant from authenticated user on each HTTP request so the
+// scoped ITenantService has the correct tenant id before EF DbContext
+// and other services run.
+app.UseMiddleware<TenantResolutionMiddleware>();
 
 app.MapStaticAssets();
 app.UseAntiforgery();

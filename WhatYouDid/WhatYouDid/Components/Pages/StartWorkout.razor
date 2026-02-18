@@ -129,17 +129,11 @@ else {
 		if (authenticationState is null)
 			return;
 
-		// Get the user:
-		var authState = await authenticationState;
-		var userId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
-		var user = await UserManager.FindByIdAsync(userId);
-
-		WorkoutDto = await Api.GetStartWorkoutDtoAsync(userId, RoutineId);
-
+        // Tenant is resolved server-side; call API without passing user id
+        WorkoutDto = await Api.GetStartWorkoutDtoAsync(RoutineId);
 
 		Loaded = true;
 		//Routine = await RoutineService.GetRoutineAsync(RoutineId);
-
 
 		await base.OnInitializedAsync();
 	}
@@ -176,7 +170,8 @@ else {
 		await base.OnAfterRenderAsync(firstRender);
 	}
 
-	private async void OnBackClick() {
+	private async void OnBackClick() 
+	{
 		if (WorkoutDto is null) return;
 
 		if (WorkoutDto.ExerciseIndex > 0)
@@ -187,7 +182,8 @@ else {
 		await InvokeAsync(StateHasChanged);
 	}
 
-	private async void OnNextClick() {
+	private async void OnNextClick() 
+	{
 		if (WorkoutDto is null) return;
 
 		if (WorkoutDto.ExerciseIndex < WorkoutDto.WorkoutExercises?.Count)
@@ -198,8 +194,8 @@ else {
 		await InvokeAsync(StateHasChanged);
 	}
 
-	private async Task OnSubmitClick() {
-		// TODO:
+	private async Task OnSubmitClick() 
+	{
 		// Save the workout they created to the database
 		if (WorkoutDto is null) return;	
 		if (Saving) return;
