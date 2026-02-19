@@ -56,22 +56,19 @@ public class WhatYouDidApiDirectAccess(
 
     public async Task<WorkoutDto?> GetStartWorkoutDtoAsync(int routineId)
 	{
-        var applicationUserId = tenantService.Tenant;
-
         return  await 
                 (from routine in db.Routines.AsNoTracking()
-                where (routine.CreateUserId == applicationUserId || routine.IsPublic) && routine.RoutineId == routineId
+                where routine.RoutineId == routineId
                 select new WorkoutDto() {
 
                     RoutineId = routineId,
                     RoutineName = routine.Name,
-                    ApplicationUserId = applicationUserId,
+                    ApplicationUserId = tenantService.Tenant,
 
                     WorkoutExercises = 
                         (from exercise in routine.Exercises
                         join pastExercise in db.WorkoutExercises on exercise.ExerciseId equals pastExercise.ExerciseId into pastExercises
                         from pastExercise in pastExercises
-                                                .Where(x => x.Workout.ApplicationUserId == applicationUserId)
                                                 .OrderByDescending(x => x.Workout.StartTime).Take(1).DefaultIfEmpty()
                         select new WorkoutExerciseDto() {
 
