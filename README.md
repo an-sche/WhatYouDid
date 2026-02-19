@@ -9,6 +9,8 @@ WhatYouDid is a Blazor + SQL project for logging workouts. The repository contai
 3. Shut down the existing IIS website and Application Pool
 4. Replace the existing files with the new published files
 5. Make sure to preserve the `appsettings.json` file with the correct database connection string, or update it if necessary.
+6. Restart the IIS website and Application Pool
+
 
 # Information
 
