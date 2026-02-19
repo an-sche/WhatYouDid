@@ -5,6 +5,7 @@ WhatYouDid is a Blazor + SQL project for logging workouts. The repository contai
 # Deployment Instructions (Manual)
 
 1. Right click and publish the WhatYouDid (Server) project in Visual Studio
+	- Release, net10.0, Self-contained, win-x64
 2. Log into the remote server via RDP and copy the published files
 3. Shut down the existing IIS website and Application Pool
 4. Replace the existing files with the new published files
