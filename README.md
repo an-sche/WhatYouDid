@@ -2,7 +2,15 @@
 
 WhatYouDid is a Blazor + SQL project for logging workouts. The repository contains a Blazor WebAssembly front-end and server-side pieces that communicate with a SQL database to store workout logs.
 
-This README is written to help an AI or a developer quickly understand, run, and safely modify the project while preserving the core workout-logging functionality.
+# Deployment Instructions (Manual)
+
+1. Right click and publish the WhatYouDid (Server) project in Visual Studio
+2. Log into the remote server via RDP and copy the published files
+3. Shut down the existing IIS website and Application Pool
+4. Replace the existing files with the new published files
+5. Make sure to preserve the `appsettings.json` file with the correct database connection string, or update it if necessary.
+
+# Information
 
 Key constraints and priorities
 - Target framework: .NET 10. Make sure any changes keep compatibility with .NET 10.
