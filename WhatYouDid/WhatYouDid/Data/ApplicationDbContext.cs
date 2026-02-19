@@ -16,6 +16,12 @@ public class ApplicationDbContext(
         builder.Entity<Routine>()
             .HasQueryFilter(r => r.CreateUserId == tenantService.Tenant || r.IsPublic);
 
+        builder.Entity<Exercise>()
+            .HasQueryFilter(w => w.ApplicationUserId == tenantService.Tenant);
+
+        builder.Entity<WorkoutExercise>()
+            .HasQueryFilter(w => w.ApplicationUserId == tenantService.Tenant);
+
         base.OnModelCreating(builder);
     }
 

@@ -24,4 +24,7 @@ public class WorkoutExercise
     public ICollection<int?>? Reps { get; set; }
     public ICollection<int?>? Weights { get; set; } 
     public ICollection<int?>? Durations { get; set; }
+
+    public string? ApplicationUserId { get; set; }
+    public ApplicationUser? ApplicationUser { get; set; }
 }
