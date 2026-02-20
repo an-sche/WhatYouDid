@@ -3,13 +3,14 @@ using Microsoft.AspNetCore.Components.Server;
 using Microsoft.AspNetCore.Components.Server.Circuits;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Radzen;
 using WhatYouDid.Client.Pages;
 using WhatYouDid.Components;
 using WhatYouDid.Components.Account;
 using WhatYouDid.Data;
-using WhatYouDid.Services;
 using WhatYouDid.Middleware;
+using WhatYouDid.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,19 +23,19 @@ builder.Services.AddRazorComponents()
 
 // Configure server-side Blazor SignalR hub options to be more tolerant of
 // mobile devices that sleep or have intermittent connectivity.
-builder.Services.AddServerSideBlazor().AddHubOptions(options =>
-{
-    options.ClientTimeoutInterval = TimeSpan.FromMinutes(3);
-    options.KeepAliveInterval = TimeSpan.FromSeconds(30);
-    options.HandshakeTimeout = TimeSpan.FromSeconds(60);
-});
-
-// Retain disconnected circuits for a longer period to allow reconnect from
-// mobile devices that may be suspended for several minutes.
-builder.Services.Configure<CircuitOptions>(options =>
-{
-    options.DisconnectedCircuitRetentionPeriod = TimeSpan.FromMinutes(10);
-});
+builder.Services
+    .AddServerSideBlazor(options =>
+    {
+        // Retain disconnected circuits for a longer period to allow reconnect from
+        // mobile devices that may be suspended for several minutes.
+        options.DisconnectedCircuitRetentionPeriod = TimeSpan.FromMinutes(10);
+    })
+    .AddHubOptions(options =>
+    {
+        options.ClientTimeoutInterval = TimeSpan.FromMinutes(3);
+        options.KeepAliveInterval = TimeSpan.FromSeconds(30);
+        options.HandshakeTimeout = TimeSpan.FromSeconds(60);
+    });
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
