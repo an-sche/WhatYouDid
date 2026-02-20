@@ -2,6 +2,9 @@
 
 namespace WhatYouDid.Data;
 
+/// <summary>
+/// Describes a step in a Routine, such as chin-ups, curls, push-ups
+/// </summary>
 public class Exercise
 {
     [Key]

@@ -10,6 +10,12 @@ public class WhatYouDidApiDirectAccess(
 {
     public async Task<Routine> AddRoutineAsync(Routine routine)
     {
+        routine.CreateUserId = tenantService.Tenant;
+        foreach (var exercise in routine.Exercises)
+        {
+            exercise.ApplicationUserId = tenantService.Tenant;
+        }
+
         var result = await db.Routines.AddAsync(routine);
         await db.SaveChangesAsync();
         return result.Entity;
@@ -108,6 +114,7 @@ public class WhatYouDidApiDirectAccess(
             foreach (var exerciseDto in workoutDto.WorkoutExercises) {
                 var exercise = new WorkoutExercise() {
                     Workout = workout,
+                    ApplicationUserId = tenantService.Tenant,
                     ExerciseId = exerciseDto.ExerciseId,
                     ExerciseName = exerciseDto.ExerciseName,
                 };            

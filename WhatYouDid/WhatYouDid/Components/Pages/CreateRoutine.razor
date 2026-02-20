@@ -36,7 +36,7 @@
 			{
 				<RadzenCard Variant="Variant.Outlined">
 					<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" >
-						<RadzenText TextStyle="TextStyle.H5" TextAlign="TextAlign.Left" Style="left">Exercise: @e.Sequence</RadzenText>
+						<RadzenText TextStyle="TextStyle.H5" TextAlign="TextAlign.Left">Exercise: @e.Sequence</RadzenText>
 						<RadzenButton Click=@(x => RemoveExercise(e)) Icon="delete" Variant="Variant.Text"></RadzenButton>
 					</RadzenStack>
 					<div>
@@ -105,7 +105,7 @@
 
 	async Task OnInvalidSubmit()
 	{
-		await Task.Delay(1);
+		await Task.Yield();
 	}
 
 	async Task OnValidSubmit()
@@ -121,32 +121,20 @@
 			if (authenticationState is null)
 				return;
 
-			var authState = await authenticationState;
-			var userId = authState?.User.FindFirstValue(ClaimTypes.NameIdentifier);
-			var user = await UserManager.FindByIdAsync(userId);
-			routine.CreateUser = user;
+			var createdRoutine = await Api.AddRoutineAsync(routine);
+			if (createdRoutine is null)
+			{
+				// Error Creating Routine
+				return;
+			}
+
+			Navigation.NavigateTo("routines");
 		}
-		catch 
-		{
-			return;	
-		}
+		catch { }
 		finally
 		{
 			Busy = false;
 		}
-
-
-		var createdRoutine = await Api.AddRoutineAsync(routine);
-
-		// Navigate to the "View Routine" Page:
-		if (createdRoutine is null)
-		{
-			// Error Creating Routine??
-			Busy = false;
-			return;
-		}
-
-		Navigation.NavigateTo("routines");
 	}
 
 	void AddExercise()
