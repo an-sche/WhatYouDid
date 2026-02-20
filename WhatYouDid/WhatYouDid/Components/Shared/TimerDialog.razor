@@ -1,0 +1,98 @@
+@using System.Timers
+@using Radzen
+@inject DialogService DialogService
+
+<div style="display:flex;flex-direction:column;gap:0.5rem;padding:1rem;min-width:200px;">
+    <div style="font-size:2rem;font-weight:600;text-align:center;">@FormatTime(_elapsedSeconds)</div>
+
+    <div style="display:flex;gap:2rem;justify-content:center;">
+        <RadzenButton Size="ButtonSize.Medium" Click="Start" Disabled="_running" ButtonStyle="ButtonStyle.Secondary" Icon="play_arrow" Title="Start" />
+        <RadzenButton Size="ButtonSize.Medium" Click="Stop" Disabled="!_running" ButtonStyle="ButtonStyle.Secondary" Icon="pause" Title="Pause" />
+        <RadzenButton Size="ButtonSize.Medium" Click="Reset" ButtonStyle="ButtonStyle.Secondary" Icon="refresh" Title="Reset" />
+    </div>
+
+  @*   <div style="display:flex;gap:0.5rem;justify-content:flex-end;">
+        <RadzenButton Click="Close" ButtonStyle="ButtonStyle.Primary">Close</RadzenButton>
+    </div> *@
+</div>
+
+@code {
+    private Timer? _timer;
+    private bool _running;
+    private int _elapsedSeconds;
+
+    [Parameter]
+    public int InitialSeconds { get; set; } = 0;
+
+    protected override void OnInitialized()
+    {
+        // _elapsedSeconds = InitialSeconds;
+        _elapsedSeconds = 0;
+    }
+
+    private void Start()
+    {
+        if (_running)
+            return;
+
+        if (_timer == null)
+        {
+            _timer = new Timer(1000);
+            _timer.Elapsed += OnTick;
+            _timer.AutoReset = true;
+        }
+        _timer.Start();
+        _running = true;
+    }
+
+    private void Stop()
+    {
+        if (_timer == null)
+            return;
+
+        _timer.Stop();
+        _running = false;
+    }
+
+    private void Reset()
+    {
+        Stop();
+        _elapsedSeconds = 0;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OnTick(object? sender, ElapsedEventArgs e)
+    {
+        _elapsedSeconds++;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private string FormatTime(int seconds)
+    {
+        var ts = TimeSpan.FromSeconds(seconds);
+        return ts.ToString("mm\\:ss");
+    }
+
+    private void Close()
+    {
+        try
+        {
+            DialogService.Close(_elapsedSeconds);
+        }
+        catch { }
+    }
+
+    public void Dispose()
+    {
+        try
+        {
+            if (_timer != null)
+            {
+                _timer.Elapsed -= OnTick;
+                _timer.Dispose();
+                _timer = null;
+            }
+        }
+        catch { }
+    }
+}

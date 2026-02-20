@@ -3,6 +3,7 @@
 @using Microsoft.AspNetCore.Identity
 @using System.Text
 @rendermode InteractiveServer
+@inject DialogService DialogService
 
 <RadzenFormField AllowFloatingLabel="false" Text="@InternalTitle" Style="width: 100%">
 	<Start>
@@ -18,6 +19,11 @@
 		@if (Goal is not null)
 		{
 			<RadzenText>/ @Goal</RadzenText>
+		}
+
+		@if (FormFieldType == WorkoutFormFieldType.Duration)
+		{
+			<RadzenButton Size="ButtonSize.Small" Click="OpenTimer" Icon="timer" Style="margin-left:8px;" ButtonStyle="ButtonStyle.Secondary">Timer</RadzenButton>
 		}
 	</End>
 </RadzenFormField>
@@ -75,4 +81,15 @@
 		Weight,
 		Duration
 	}
+
+    private async Task OpenTimer()
+    {
+        var parameters = new Dictionary<string, object>() { { "InitialSeconds", EnterValue ?? 0 } };
+        var _ = await DialogService.OpenAsync<WhatYouDid.Components.Shared.TimerDialog>("Timer", parameters, new Radzen.DialogOptions() { Width = "275px" });
+        // if (result is int seconds)
+        // {
+        //     EnterValue = seconds;
+        //     await EnterValueChanged.InvokeAsync(EnterValue);
+        // }
+    }
 }
