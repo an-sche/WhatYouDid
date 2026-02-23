@@ -3,7 +3,12 @@
 @inject DialogService DialogService
 
 <div style="display:flex;flex-direction:column;gap:0.5rem;padding:1rem;min-width:200px;">
-    <div style="font-size:2rem;font-weight:600;text-align:center;">@FormatTime(_elapsedSeconds)</div>
+    <div style="font-size:2rem;font-weight:600;text-align:center;color:@(ReachedGoal ? "green" : "inherit")">@FormatTime(_elapsedSeconds)</div>
+
+    @if (Goal > 0)
+    {
+        <div style="text-align:center;color:var(--rz-secondary);font-size:0.9rem;">Target: @FormatTime(Goal)</div>
+    }
 
     <div style="display:flex;gap:2rem;justify-content:center;">
         <RadzenButton Size="ButtonSize.Medium" Click="Start" Disabled="_running" ButtonStyle="ButtonStyle.Secondary" Icon="play_arrow" Title="Start" />
@@ -11,9 +16,6 @@
         <RadzenButton Size="ButtonSize.Medium" Click="Reset" ButtonStyle="ButtonStyle.Secondary" Icon="refresh" Title="Reset" />
     </div>
 
-  @*   <div style="display:flex;gap:0.5rem;justify-content:flex-end;">
-        <RadzenButton Click="Close" ButtonStyle="ButtonStyle.Primary">Close</RadzenButton>
-    </div> *@
 </div>
 
 @code {
@@ -21,14 +23,10 @@
     private bool _running;
     private int _elapsedSeconds;
 
-    [Parameter]
-    public int InitialSeconds { get; set; } = 0;
 
-    protected override void OnInitialized()
-    {
-        // _elapsedSeconds = InitialSeconds;
-        _elapsedSeconds = 0;
-    }
+    [Parameter]
+    public int Goal { get; set; } = 0;
+    private bool ReachedGoal => Goal > 0 && _elapsedSeconds >= Goal;
 
     private void Start()
     {

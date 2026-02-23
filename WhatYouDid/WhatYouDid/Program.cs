@@ -59,6 +59,8 @@ if (builder.Environment.IsDevelopment())
 {
 	connectionString = builder.Configuration.GetConnectionString("DevelopmentConnection") 
         ?? throw new InvalidOperationException("Connection string 'DevelopmentConnection' not found.");
+
+    builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 }
 else
 {
@@ -69,7 +71,6 @@ else
 builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString),
     ServiceLifetime.Scoped);
-builder.Services.AddDatabaseDeveloperPageExceptionFilter(); 
 
 builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>()

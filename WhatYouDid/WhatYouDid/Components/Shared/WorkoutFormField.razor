@@ -84,12 +84,11 @@
 
     private async Task OpenTimer()
     {
-        var parameters = new Dictionary<string, object>() { { "InitialSeconds", EnterValue ?? 0 } };
+        var parameters = new Dictionary<string, object>()
+        {
+            { "Goal", Goal ?? 0 }
+        };
+
         var _ = await DialogService.OpenAsync<WhatYouDid.Components.Shared.TimerDialog>("Timer", parameters, new Radzen.DialogOptions() { Width = "275px" });
-        // if (result is int seconds)
-        // {
-        //     EnterValue = seconds;
-        //     await EnterValueChanged.InvokeAsync(EnterValue);
-        // }
     }
 }
