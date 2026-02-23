@@ -18,7 +18,4 @@
     </PackageReference>
     <PackageReference Include="Radzen.Blazor" Version="9.0.4" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\WhatYouDid.ServiceDefaults\WhatYouDid.ServiceDefaults.csproj" />
-  </ItemGroup>
 </Project>

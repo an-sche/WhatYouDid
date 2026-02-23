@@ -2,8 +2,6 @@
   <Folder Name="/Solution Items/">
     <File Path="README.md" />
   </Folder>
-  <Project Path="WhatYouDid.AppHost/WhatYouDid.AppHost.csproj" />
-  <Project Path="WhatYouDid.ServiceDefaults/WhatYouDid.ServiceDefaults.csproj" />
   <Project Path="WhatYouDid/WhatYouDid.Client/WhatYouDid.Client.csproj" />
   <Project Path="WhatYouDid/WhatYouDid/WhatYouDid.csproj" />
 </Solution>
