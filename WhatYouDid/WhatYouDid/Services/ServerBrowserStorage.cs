@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using WhatYouDid.Shared;
 
 namespace WhatYouDid.Services;
 

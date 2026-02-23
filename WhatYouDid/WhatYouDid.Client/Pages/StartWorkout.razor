@@ -1,18 +1,16 @@
 ﻿@page "/workout/{RoutineId:int}"
 
-@using WhatYouDid.Services
+@using WhatYouDid.Shared
 @using Microsoft.AspNetCore.Authorization
-@using Microsoft.AspNetCore.Identity
+@using WhatYouDid.Client.Components
 @using System.Text
 @using System.Security.Claims
-@using WhatYouDid.Components.Shared
 @attribute [Authorize]
-@rendermode InteractiveServer
-@inject IWhatYouDidApi Api
+@rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
 @inject IBrowserStorage BrowserStorage
 @inject DialogService DialogService
-@inject UserManager<ApplicationUser> UserManager
 @inject NavigationManager Navigation
+@inject HttpClient Http
 
 <RadzenDialog />
 
@@ -130,7 +128,9 @@ else {
 			return;
 
         // Tenant is resolved server-side; call API without passing user id
-        WorkoutDto = await Api.GetStartWorkoutDtoAsync(RoutineId);
+        // WorkoutDto = await Api.GetStartWorkoutDtoAsync(RoutineId);
+		WorkoutDto = await Http.GetFromJsonAsync<WorkoutDto>(
+			$"api/workouts/start/{RoutineId}");
 
 		Loaded = true;
 		//Routine = await RoutineService.GetRoutineAsync(RoutineId);
@@ -170,7 +170,7 @@ else {
 		await base.OnAfterRenderAsync(firstRender);
 	}
 
-	private async void OnBackClick() 
+	private async Task OnBackClick() 
 	{
 		if (WorkoutDto is null) return;
 
@@ -182,7 +182,7 @@ else {
 		await InvokeAsync(StateHasChanged);
 	}
 
-	private async void OnNextClick() 
+	private async Task OnNextClick()
 	{
 		if (WorkoutDto is null) return;
 
@@ -201,7 +201,9 @@ else {
 		if (Saving) return;
 		Saving = true;
 
-		var saveResult = await Api.SaveWorkoutAsync(WorkoutDto);
+		// var saveResult = await Api.SaveWorkoutAsync(WorkoutDto);
+		var response = await Http.PostAsJsonAsync("api/workouts", WorkoutDto);
+        var saveResult = response.IsSuccessStatusCode;
 		await BrowserStorage.DeleteAsync(WorkoutDto.GetBrowserStorageId);
 
 		// Send the user to the Workouts page...

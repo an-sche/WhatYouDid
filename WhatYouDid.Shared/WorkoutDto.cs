@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace WhatYouDid.Data;
+namespace WhatYouDid.Shared;
 
 /// <summary>
 /// Information about a workout defined by a Routine. 

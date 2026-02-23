@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Components.Server;
 using Microsoft.AspNetCore.Components.Server.Circuits;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Radzen;
 using WhatYouDid.Client.Pages;
 using WhatYouDid.Components;
@@ -11,6 +9,8 @@ using WhatYouDid.Components.Account;
 using WhatYouDid.Data;
 using WhatYouDid.Middleware;
 using WhatYouDid.Services;
+using WhatYouDid.Shared;
+using WhatYouDid.EndpointExtensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -116,5 +116,8 @@ app.MapRazorComponents<App>()
 
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
+
+// Map minimal API endpoints used by the WASM client
+app.MapRoutineEndpoints();
 
 app.Run();

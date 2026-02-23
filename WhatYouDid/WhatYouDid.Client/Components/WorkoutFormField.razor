@@ -1,8 +1,8 @@
-﻿@using WhatYouDid.Services
-@using Microsoft.AspNetCore.Authorization
-@using Microsoft.AspNetCore.Identity
+﻿@using Microsoft.AspNetCore.Authorization
 @using System.Text
-@rendermode InteractiveServer
+
+
+@rendermode InteractiveWebAssembly
 @inject DialogService DialogService
 
 <RadzenFormField AllowFloatingLabel="false" Text="@InternalTitle" Style="width: 100%">
@@ -89,6 +89,6 @@
             { "Goal", Goal ?? 0 }
         };
 
-        var _ = await DialogService.OpenAsync<WhatYouDid.Components.Shared.TimerDialog>("Timer", parameters, new Radzen.DialogOptions() { Width = "275px" });
+        var _ = await DialogService.OpenAsync<TimerDialog>("Timer", parameters, new Radzen.DialogOptions() { Width = "275px" });
     }
 }

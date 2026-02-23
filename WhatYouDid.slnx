@@ -2,6 +2,7 @@
   <Folder Name="/Solution Items/">
     <File Path="README.md" />
   </Folder>
+  <Project Path="WhatYouDid.Shared/WhatYouDid.Shared.csproj" Id="f4e2ec27-7316-4943-9b0e-9d4445b438c6" />
   <Project Path="WhatYouDid/WhatYouDid.Client/WhatYouDid.Client.csproj" />
   <Project Path="WhatYouDid/WhatYouDid/WhatYouDid.csproj" />
 </Solution>

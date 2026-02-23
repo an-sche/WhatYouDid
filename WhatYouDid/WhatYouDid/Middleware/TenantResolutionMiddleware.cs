@@ -4,15 +4,8 @@ using WhatYouDid.Services;
 
 namespace WhatYouDid.Middleware;
 
-public class TenantResolutionMiddleware
+public class TenantResolutionMiddleware(RequestDelegate next)
 {
-    private readonly RequestDelegate _next;
-
-    public TenantResolutionMiddleware(RequestDelegate next)
-    {
-        _next = next;
-    }
-
     public async Task InvokeAsync(HttpContext context, ITenantService tenantService)
     {
         try
@@ -34,6 +27,6 @@ public class TenantResolutionMiddleware
             tenantService.SetTenant(string.Empty);
         }
 
-        await _next(context);
+        await next(context);
     }
 }

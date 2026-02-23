@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using WhatYouDid.Data;
+using WhatYouDid.Shared;
 
 namespace WhatYouDid.Services;
 
