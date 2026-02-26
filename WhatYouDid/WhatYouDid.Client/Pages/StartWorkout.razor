@@ -101,7 +101,7 @@ else {
 
 		<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" >
 			<RadzenButton Click=@OnBackClick Text="Back" ButtonStyle="ButtonStyle.Secondary" />
-			<RadzenButton Click=@OnSubmitClick Text="Submit" ButtonStyle="ButtonStyle.Primary" ButtonType="ButtonType.Submit"/>
+			<RadzenButton IsBusy=@Saving Click=@OnSubmitClick Text="Submit" ButtonStyle="ButtonStyle.Primary" ButtonType="ButtonType.Submit"/>
 		</RadzenStack>
 	}	
 }
@@ -201,15 +201,21 @@ else {
 		if (Saving) return;
 		Saving = true;
 
-		// var saveResult = await Api.SaveWorkoutAsync(WorkoutDto);
-		var response = await Http.PostAsJsonAsync("api/workouts", WorkoutDto);
-        var saveResult = response.IsSuccessStatusCode;
-		await BrowserStorage.DeleteAsync(WorkoutDto.GetBrowserStorageId);
+		try
+		{
+			var response = await Http.PostAsJsonAsync("api/workouts", WorkoutDto);
+			
+			response.EnsureSuccessStatusCode();
+			try
+			{
+				await BrowserStorage.DeleteAsync(WorkoutDto.GetBrowserStorageId);
+			}
+			catch { }
 
-		// Send the user to the Workouts page...
-		if (saveResult)
+			// Send the user to the Workouts page...
 			Navigation.NavigateTo("/workouts");
-
-		Saving = false;
+		}
+		catch { }
+		finally { Saving = false; }
 	}
 }
