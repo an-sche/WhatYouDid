@@ -1,5 +1,6 @@
 ﻿namespace WhatYouDid.Client.Services;
 
+using System.Text.Json;
 using Microsoft.JSInterop;
 using WhatYouDid.Shared;
 
@@ -13,7 +14,19 @@ public class ClientBrowserStorage(IJSRuntime js) : IBrowserStorage
     public async Task<T?> GetAsync<T>(string key)
     {
         var json = await js.InvokeAsync<string?>("localStorage.getItem", key);
-        return json is null ? default : System.Text.Json.JsonSerializer.Deserialize<T>(json);
+        if (json is null)
+        {
+            return default;
+        }
+
+        try
+        {
+            var item = JsonSerializer.Deserialize<T>(json);
+            return item;
+        } 
+        catch { }
+
+        return default;
     }
 
     public async Task SetAsync(string key, object value)

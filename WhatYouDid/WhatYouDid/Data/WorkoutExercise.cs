@@ -10,8 +10,10 @@ public class WorkoutExercise
 {
     [Key]
     public int WorkoutExerciseId { get; set; }
+
     [Required]
-    public int WorkoutId { get; set; }
+    public Guid WorkoutId { get; set; }
+
     [Required]
     public Workout Workout { get; set; } = null!;
 

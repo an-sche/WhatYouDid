@@ -8,7 +8,7 @@ namespace WhatYouDid.Data;
 public class Workout
 {
 	[Key]
-	public int WorkoutId { get; set; }
+	public Guid WorkoutId { get; set; }
 
     public required string? ApplicationUserId { get; set; }
     public ApplicationUser? ApplicationUser { get; set; }

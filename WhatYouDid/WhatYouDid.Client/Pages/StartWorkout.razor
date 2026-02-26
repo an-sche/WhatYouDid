@@ -200,6 +200,7 @@ else {
 		if (WorkoutDto is null) return;	
 		if (Saving) return;
 		Saving = true;
+		StateHasChanged();
 
 		try
 		{

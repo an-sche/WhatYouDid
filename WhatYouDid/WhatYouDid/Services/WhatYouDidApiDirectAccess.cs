@@ -66,7 +66,9 @@ public class WhatYouDidApiDirectAccess(
         return  await 
                 (from routine in db.Routines.AsNoTracking()
                 where routine.RoutineId == routineId
-                select new WorkoutDto() {
+                select new WorkoutDto() 
+                {
+                    WorkoutId = Guid.CreateVersion7(),
 
                     RoutineId = routineId,
                     RoutineName = routine.Name,
@@ -99,16 +101,24 @@ public class WhatYouDidApiDirectAccess(
                 }).FirstOrDefaultAsync();
 	}
 
-    public async Task<bool> SaveWorkoutAsync(WorkoutDto workoutDto) {
+    public async Task<bool> SaveWorkoutAsync(WorkoutDto workoutDto) 
+    {
+        if (string.IsNullOrEmpty(tenantService.Tenant))
+        {
+            throw new Exception("Could not resolve tenant");
+        }
 
         // convert that to my db object,
-        var workout = new Workout() {
+        var workout = new Workout() 
+        {
+            WorkoutId = workoutDto.WorkoutId,
             ApplicationUserId = tenantService.Tenant,
             RoutineId = workoutDto.RoutineId,
             RoutineName = workoutDto.RoutineName,
             StartTime = workoutDto.StartTime,
             EndTime = DateTime.Now,
         };
+        
         var exercises = new List<WorkoutExercise>();
 
         if (workoutDto.WorkoutExercises is not null) {
@@ -145,7 +155,7 @@ public class WhatYouDidApiDirectAccess(
         throw new NotImplementedException();
     }
 
-    public async Task<WorkoutDto?> GetCompletedWorkoutDtoAsync(int workoutId)
+    public async Task<WorkoutDto?> GetCompletedWorkoutDtoAsync(Guid workoutId)
 	{
         var user = tenantService.Tenant;
 
@@ -153,6 +163,7 @@ public class WhatYouDidApiDirectAccess(
             .Where(x => x.ApplicationUserId == user && x.WorkoutId == workoutId)
             .Select(x => new WorkoutDto() 
             {
+                WorkoutId = x.WorkoutId,
                 RoutineName = x.RoutineName,
                 RoutineId = x.RoutineId ?? 0,
                 ApplicationUserId = user,

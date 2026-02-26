@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.AspNetCore.Http.HttpResults;
 using WhatYouDid.Data;
 using WhatYouDid.Services;
 using WhatYouDid.Shared;
@@ -20,7 +21,15 @@ public static class WasmEndpointExtensions
             WorkoutDto dto,
             IWhatYouDidApi service) =>
         {
-            return await service.SaveWorkoutAsync(dto);
+            try
+            {
+                await service.SaveWorkoutAsync(dto);
+                return Results.Created();
+            }
+            catch
+            {
+                return Results.Problem("Failed to create workout");
+            }
         });
 
         return app;

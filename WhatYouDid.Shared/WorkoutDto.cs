@@ -10,6 +10,7 @@ public class WorkoutDto
 {
     public string GetBrowserStorageId { get { return "Workout_" + RoutineName + "_" + RoutineId; } }
 
+    public required Guid WorkoutId { get; init; }
     public required string ApplicationUserId { get; init; }
     public required int RoutineId { get; init; }
     public required string RoutineName { get; set; }
