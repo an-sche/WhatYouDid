@@ -42,7 +42,7 @@ else
                     <td>
                         <EditForm Model="model" OnValidSubmit="() => ResetPasswordAsync(user)">
                             <div class="input-group">
-                                <InputText @bind="model.NewPassword" type="password" class="form-control" placeholder="New password" />
+                                <InputText @bind-Value="model.NewPassword" class="form-control" placeholder="New password" />
                                 <button class="btn btn-outline-secondary" type="submit">Reset</button>
                             </div>
                         </EditForm>
@@ -61,30 +61,29 @@ else
 
 <h2>Create user</h2>
 
-<EditForm Model="createModel" OnValidSubmit="CreateUserAsync">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+<RadzenTemplateForm Data="createModel" TItem="CreateModel" Submit="@(args => CreateUserAsync())">
+    <ChildContent>
+        <RadzenFieldset Text="Create user">
+            <RadzenLabel Text="Email" />
+            <RadzenTextBox @bind-Value="createModel.Email" Style="width:100%" />
 
-    <div class="mb-3">
-        <label class="form-label">Email</label>
-        <InputText @bind="createModel.Email" class="form-control" />
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Password</label>
-        <InputText @bind="createModel.Password" type="password" class="form-control" />
-    </div>
-    <div class="mb-3">
-        <label class="form-label">Confirm password</label>
-        <InputText @bind="createModel.ConfirmPassword" type="password" class="form-control" />
-    </div>
+            <RadzenLabel Text="Password" />
+            <RadzenTextBox @bind-Value="createModel.Password" Type="Password" Style="width:100%" />
 
-    <button class="btn btn-primary" type="submit">Create user</button>
+            <RadzenLabel Text="Confirm password" />
+            <RadzenTextBox @bind-Value="createModel.ConfirmPassword" Type="Password" Style="width:100%" />
 
-    @if (!string.IsNullOrEmpty(createStatus))
-    {
-        <div class="mt-2">@createStatus</div>
-    }
-</EditForm>
+            <div class="mt-2">
+                <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Primary">Create user</RadzenButton>
+            </div>
+
+            @if (!string.IsNullOrEmpty(createStatus))
+            {
+                <div class="mt-2">@createStatus</div>
+            }
+        </RadzenFieldset>
+    </ChildContent>
+</RadzenTemplateForm>
 
 @code {
     private List<ApplicationUser>? users;
@@ -98,6 +97,16 @@ else
     protected override async Task OnInitializedAsync()
     {
         await LoadUsersAsync();
+    }
+
+    private ResetModel GetOrCreateResetModel(string userId)
+    {
+        if (!resetModels.ContainsKey(userId))
+        {
+            resetModels[userId] = new ResetModel();
+        }
+
+        return resetModels[userId];
     }
 
     private async Task LoadUsersAsync()
