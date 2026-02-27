@@ -12,12 +12,21 @@ WhatYouDid is a Blazor + SQL project for logging workouts. The repository contai
 5. Make sure to preserve the `appsettings.json` file with the correct database connection string, or update it if necessary.
 6. Restart the IIS website and Application Pool
 
+# Configuration
+
+In UserSecrets: configure the "Admins" section to include your email address for admin access. This is required for accessing admin features in the application.
+```
+"Admins" : [
+  "your@email.here"
+]
+```
 
 # Information
 
 Key constraints and priorities
 - Target framework: .NET 10. Make sure any changes keep compatibility with .NET 10.
 - UI: Blazor (prioritize Blazor-specific patterns over Razor Pages or MVC).
+	- Specifically, prefer Radzen Blazor components for UI consistency.
 - Platform: WebAssembly client exists in the workspace. Preserve client-server communication patterns.
 - Most important feature to preserve: reliable logging of workouts and existing data integrity.
 

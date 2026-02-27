@@ -14,35 +14,44 @@
     <nav class="flex-column">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="routines">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Routines
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="createroutine">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Create Routine
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="workouts">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Workouts
+                <RadzenIcon Icon="home" class="me-2" /> Home
             </NavLink>
         </div>
 
         <AuthorizeView>
             <Authorized>
                 <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="routines">
+                        <RadzenIcon Icon="playlist_play" class="me-2" /> Routines
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="createroutine">
+                        <RadzenIcon Icon="add_circle" class="me-2" /> Create Routine
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="workouts">
+                        <RadzenIcon Icon="fitness_center" class="me-2" /> Workouts
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
                     <NavLink class="nav-link" href="Account/Manage">
                         <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
                     </NavLink>
                 </div>
+                <AuthorizeView Roles="Admin">
+                    <Authorized Context="adminContext">
+                        <div class="nav-item px-3">
+                            <NavLink class="nav-link" href="admin">
+                                <RadzenIcon Icon="admin_panel_settings" class="me-2" /> Admin
+                            </NavLink>
+                        </div>
+                    </Authorized>
+                </AuthorizeView>
                 <div class="nav-item px-3">
                     <form action="Account/Logout" method="post">
                         <AntiforgeryToken />
