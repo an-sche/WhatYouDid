@@ -2,7 +2,7 @@
 @using Radzen
 @inject DialogService DialogService
 
-<div style="display:flex;flex-direction:column;gap:0.5rem;padding:1rem;min-width:200px;">
+<RadzenStack>
     <div style="font-size:2rem;font-weight:600;text-align:center;color:@(ReachedGoal ? "green" : "inherit")">@FormatTime(_elapsedSeconds)</div>
 
     @if (Goal > 0)
@@ -10,13 +10,13 @@
         <div style="text-align:center;color:var(--rz-secondary);font-size:0.9rem;">Target: @FormatTime(Goal)</div>
     }
 
-    <div style="display:flex;gap:2rem;justify-content:center;">
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center">
         <RadzenButton Size="ButtonSize.Medium" Click="Start" Disabled="_running" ButtonStyle="ButtonStyle.Secondary" Icon="play_arrow" Title="Start" />
         <RadzenButton Size="ButtonSize.Medium" Click="Stop" Disabled="!_running" ButtonStyle="ButtonStyle.Secondary" Icon="pause" Title="Pause" />
         <RadzenButton Size="ButtonSize.Medium" Click="Reset" ButtonStyle="ButtonStyle.Secondary" Icon="refresh" Title="Reset" />
-    </div>
+    </RadzenStack>
+</RadzenStack>
 
-</div>
 
 @code {
     private Timer? _timer;

@@ -3,7 +3,8 @@
 @using Microsoft.EntityFrameworkCore
 @using System.ComponentModel.DataAnnotations
 @using WhatYouDid.Data
-@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Admin")]
 
 @inject UserManager<ApplicationUser> UserManager
 @inject NavigationManager NavigationManager
@@ -11,67 +12,46 @@
 <PageTitle>Admin</PageTitle>
 
 <h1>Administration</h1>
-
-<p class="text-muted">Only users in the "Admin" role can access this page.</p>
-
 <hr />
-
-<h2>Users</h2>
 
 @if (users is null)
 {
-    <p>Loading users...</p>
+    <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" />
 }
 else
 {
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Email</th>
-                <th>User name</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var user in users)
-            {
-                var model = resetModels[user.Id];
-                <tr>
-                    <td>@user.Email</td>
-                    <td>@user.UserName</td>
-                    <td>
-                        <EditForm Model="model" OnValidSubmit="() => ResetPasswordAsync(user)">
-                            <div class="input-group">
-                                <InputText @bind-Value="model.NewPassword" class="form-control" placeholder="New password" />
-                                <button class="btn btn-outline-secondary" type="submit">Reset</button>
-                            </div>
-                        </EditForm>
-                        @if (resetStatus.TryGetValue(user.Id, out var msg) && msg is not null)
-                        {
-                            <div class="small mt-1">@msg</div>
-                        }
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <RadzenDataGrid Data="@users" TItem="ApplicationUser" AllowPaging AllowFiltering FilterMode="FilterMode.Simple" PageSize="5">
+        <Columns>
+            <RadzenDataGridColumn Property="Email" Title="Email" Filterable />
+            <RadzenDataGridColumn Title="Actions">
+                <Template Context="user">
+                    @{
+                        var model = new ResetModel(); 
+                    }
+                    <div class="d-flex align-items-center">
+                        <RadzenTextBox @bind-Value="model.NewPassword" Type="Password" Style="width:240px" Placeholder="New password" AutoCompleteType="AutoCompleteType.NewPassword" />
+                        <RadzenButton Click="@(async () => await ResetPasswordAsync(user, model))" Class="ms-2" Icon="refresh" ButtonStyle="ButtonStyle.Secondary">Reset Password</RadzenButton>
+                    </div>
+                    @if (resetStatus.TryGetValue(user.Id, out var msg) && msg is not null)
+                    {
+                        <div class="small mt-1">@msg</div>
+                    }
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
 }
-
-<hr />
-
-<h2>Create user</h2>
-
 <RadzenTemplateForm Data="createModel" TItem="CreateModel" Submit="@(args => CreateUserAsync())">
     <ChildContent>
-        <RadzenFieldset Text="Create user">
+        <RadzenFieldset Text="Create user" >
             <RadzenLabel Text="Email" />
-            <RadzenTextBox @bind-Value="createModel.Email" Style="width:100%" />
+            <RadzenTextBox @bind-Value="createModel.Email" Style="width:100%" AutoCompleteType="AutoCompleteType.Off" />
 
             <RadzenLabel Text="Password" />
-            <RadzenTextBox @bind-Value="createModel.Password" Type="Password" Style="width:100%" />
+            <RadzenTextBox @bind-Value="createModel.Password" Style="width:100%" AutoCompleteType="AutoCompleteType.NewPassword" />
 
             <RadzenLabel Text="Confirm password" />
-            <RadzenTextBox @bind-Value="createModel.ConfirmPassword" Type="Password" Style="width:100%" />
+            <RadzenTextBox @bind-Value="createModel.ConfirmPassword" Style="width:100%" AutoCompleteType="AutoCompleteType.NewPassword" />
 
             <div class="mt-2">
                 <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Primary">Create user</RadzenButton>
@@ -86,9 +66,8 @@ else
 </RadzenTemplateForm>
 
 @code {
-    private List<ApplicationUser>? users;
+    private IQueryable<ApplicationUser>? users;
 
-    private Dictionary<string, ResetModel> resetModels = new();
     private Dictionary<string, string?> resetStatus = new();
 
     private CreateModel createModel = new();
@@ -96,32 +75,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadUsersAsync();
-    }
-
-    private ResetModel GetOrCreateResetModel(string userId)
-    {
-        if (!resetModels.ContainsKey(userId))
-        {
-            resetModels[userId] = new ResetModel();
-        }
-
-        return resetModels[userId];
-    }
-
-    private async Task LoadUsersAsync()
-    {
-        var q = UserManager.Users;
-        users = await q.ToListAsync();
-
-        // Ensure a reset model exists for each user so binding works
-        foreach (var u in users)
-        {
-            if (!resetModels.ContainsKey(u.Id))
-            {
-                resetModels[u.Id] = new ResetModel();
-            }
-        }
+        users = UserManager.Users;
     }
 
     private async Task CreateUserAsync()
@@ -139,19 +93,18 @@ else
         if (result.Succeeded)
         {
             createStatus = "User created.";
-            await LoadUsersAsync();
-            StateHasChanged();
         }
         else
         {
             createStatus = "Error: " + string.Join(", ", result.Errors.Select(e => e.Description));
         }
+        StateHasChanged();
     }
 
-    private async Task ResetPasswordAsync(ApplicationUser user)
+    private async Task ResetPasswordAsync(ApplicationUser user, ResetModel model)
     {
         resetStatus[user.Id] = null;
-        var model = resetModels[user.Id];
+
         if (string.IsNullOrWhiteSpace(model.NewPassword))
         {
             resetStatus[user.Id] = "Password is required.";
@@ -170,6 +123,7 @@ else
         {
             resetStatus[user.Id] = "Error: " + string.Join(", ", result.Errors.Select(e => e.Description));
         }
+        StateHasChanged();
     }
 
     private sealed class ResetModel
