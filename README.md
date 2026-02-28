@@ -12,6 +12,14 @@ WhatYouDid is a Blazor + SQL project for logging workouts. The repository contai
 5. Make sure to preserve the `appsettings.json` file with the correct database connection string, or update it if necessary.
 6. Restart the IIS website and Application Pool
 
+# Hosting Information
+
+* Cloudflare Tunnel 
+	- Installed on IIS server using winget
+	- Running as a windows service
+	- Remaining configurations on Cloudflare website
+* Can Log into Cloudflare to see tunnel status and metrics
+
 # Configuration
 
 In UserSecrets: configure the "Admins" section to include your email address for admin access. This is required for accessing admin features in the application.
