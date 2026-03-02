@@ -1,7 +1,4 @@
-﻿
-using Microsoft.AspNetCore.Http.HttpResults;
-using WhatYouDid.Data;
-using WhatYouDid.Services;
+﻿using WhatYouDid.Services;
 using WhatYouDid.Shared;
 
 namespace WhatYouDid.EndpointExtensions;

@@ -43,6 +43,13 @@
                         <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
                     </NavLink>
                 </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="dashboard">
+                        <RadzenIcon Icon="dashboard" class="me-2" /> Dashboard
+                    </NavLink>
+                </div>
+
                 <AuthorizeView Roles="Admin">
                     <Authorized Context="adminContext">
                         <div class="nav-item px-3">
@@ -51,8 +58,8 @@
                             </NavLink>
                         </div>
                     </Authorized>
-
                 </AuthorizeView>
+
                 <div class="nav-item px-3">
                     <form action="Account/Logout" method="post">
                         <AntiforgeryToken />

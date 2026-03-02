@@ -1,0 +1,83 @@
+@page "/dashboard"
+@using WhatYouDid.Shared
+@using System.Net.Http.Json
+@using Radzen
+@using Radzen.Blazor
+@rendermode InteractiveServer
+
+@inject IDashboardService Service
+@inject HttpClient Http
+
+<PageTitle>Dashboard</PageTitle>
+
+<h1>Dashboard</h1>
+
+<RadzenStack Orientation="Orientation.Horizontal"> 
+    <RadzenNumeric Style="width:240px" Step="1" Min="1900" Max="DateTime.Now.Year" Placeholder="Enter Year" @bind-Value="selectedYear" @bind-Value:after="ReloadDataAsync"/>
+    <RadzenButton Style="width:150px" Click="@ClearYear" Icon="delete" ButtonStyle="ButtonStyle.Secondary">Clear</RadzenButton>
+</RadzenStack>
+<br />
+
+@if (dashboard is null)
+{
+    <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" />
+}
+else
+{
+    <div class="row">
+        @if (dashboard.TopWorkouts is not null && dashboard.TopWorkouts.Any())
+        {
+            @foreach (var w in dashboard.TopWorkouts)
+            {
+                <div class="col-md-4 mb-3">
+                    <RadzenCard Style="height:120px;">
+                        <ChildContent>
+                            <h5>@w.RoutineName</h5>
+                            <div class="display-6">@w.Count</div>
+                            <div class="text-muted">times performed</div>
+                        </ChildContent>
+                    </RadzenCard>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <RadzenCard>
+                    <ChildContent>
+                        <div>No workout data yet.</div>
+                    </ChildContent>
+                </RadzenCard>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private DashboardDto? dashboard;
+    private int? selectedYear;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ReloadDataAsync();
+    }
+
+    private async Task ClearYear()
+    {
+        selectedYear = null;
+        await ReloadDataAsync();
+    }
+
+    private async Task ReloadDataAsync()
+    {
+        try
+        {
+            dashboard = await Service.GetDashboardForUserAsync(selectedYear);
+        }
+        catch
+        {
+            dashboard = new DashboardDto { TopWorkouts = new List<WorkoutSummaryDto>() };
+        }
+        StateHasChanged();
+    }
+}

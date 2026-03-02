@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server.Circuits;
 using Microsoft.AspNetCore.Identity;
@@ -7,10 +8,10 @@ using WhatYouDid.Client.Pages;
 using WhatYouDid.Components;
 using WhatYouDid.Components.Account;
 using WhatYouDid.Data;
+using WhatYouDid.EndpointExtensions;
 using WhatYouDid.Middleware;
 using WhatYouDid.Services;
 using WhatYouDid.Shared;
-using WhatYouDid.EndpointExtensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -77,6 +78,12 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 builder.Services.AddTransient<IWhatYouDidApi, WhatYouDidApiDirectAccess>();
 builder.Services.AddScoped<IBrowserStorage, ServerBrowserStorage>();
 builder.Services.AddHostedService<AdminRoleSeeder>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped(sp =>
+{
+    var nav = sp.GetRequiredService<NavigationManager>();
+    return new HttpClient { BaseAddress = new Uri(nav.BaseUri) };
+});
 
 var app = builder.Build();
 
