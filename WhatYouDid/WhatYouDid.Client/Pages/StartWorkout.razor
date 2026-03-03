@@ -23,20 +23,30 @@
 	{
 		<RadzenText TextStyle="TextStyle.H4">Loading...</RadzenText>
 	}
+	return;
 }
-else {
-	<RadzenText TextStyle="TextStyle.H4">@WorkoutDto.RoutineName</RadzenText>
-	if (WorkoutDto.ExerciseIndex < WorkoutDto.WorkoutExercises?.Count) {
-		string unit = " of " + @WorkoutDto.WorkoutExercises?.Count;
-		<RadzenProgressBar ProgressBarStyle="ProgressBarStyle.Light" Value="@(WorkoutDto.ExerciseIndex + 1)" Max="@(WorkoutDto.WorkoutExercises?.Count ?? 0)" Unit="@unit"></RadzenProgressBar>
-	}
+
+<RadzenText TextStyle="TextStyle.H4">@WorkoutDto.RoutineName</RadzenText>
+
+@if (WorkoutDto.ExerciseIndex < WorkoutDto.WorkoutExercises?.Count) {
+	string unit = " of " + @WorkoutDto.WorkoutExercises?.Count;
+	<RadzenProgressBar ProgressBarStyle="ProgressBarStyle.Light" Value="@(WorkoutDto.ExerciseIndex + 1)" Max="@(WorkoutDto.WorkoutExercises?.Count ?? 0)" Unit="@unit" />
+}
+
+<div class="exercise-wrapper">
 	@if (WorkoutDto.ExerciseIndex < @WorkoutDto.WorkoutExercises?.Count)
 	{
+		// This is where i put the information for them to fill out!
+
 		<RadzenText TextStyle="TextStyle.H5">@WorkoutDto.WorkoutExercises?[WorkoutDto.ExerciseIndex].ExerciseName</RadzenText>
 
-		// This is where i put the information for them to fill out!
 		var workoutExercise = WorkoutDto.WorkoutExercises[WorkoutDto.ExerciseIndex];
-		<RadzenStack @key="@workoutExercise.ExerciseName" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.Normal">
+		
+		<RadzenStack @key="@workoutExercise.ExerciseName" 
+			Orientation="Orientation.Vertical" 
+			JustifyContent="JustifyContent.Normal"
+			Class="@SlidingClass">
+
 			@for (int i = 0; i < workoutExercise.Sets; i++)
 			{
 				var index = i; // capture the loop variable
@@ -84,14 +94,14 @@ else {
 		</RadzenStack>
 
 		<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" >
-			<RadzenButton Click=@OnBackClick Text="Back" ButtonStyle="ButtonStyle.Secondary" Disabled="WorkoutDto.ExerciseIndex == 0" />
-			<RadzenButton Click=@OnNextClick Text="Next" ButtonStyle="ButtonStyle.Primary" ButtonType="ButtonType.Submit"/>
+			<RadzenButton Class="rz-m-2" Style="min-width: 100px" Icon="arrow_back" Click=@OnBackClick ButtonStyle="ButtonStyle.Secondary" Disabled="WorkoutDto.ExerciseIndex == 0" />
+			<RadzenButton Class="rz-m-2" Style="min-width: 100px" Icon="arrow_forward" Click=@OnNextClick ButtonStyle="ButtonStyle.Primary" ButtonType="ButtonType.Submit" />
 		</RadzenStack>
 	}
 	else {
 
 		<RadzenText TextStyle="TextStyle.H5">Review</RadzenText>
-		<RadzenDataGrid Data="@WorkoutDto.WorkoutExercises" TItem="WorkoutExerciseDto"> 
+		<RadzenDataGrid Data="@WorkoutDto.WorkoutExercises" TItem="WorkoutExerciseDto" class="slide-from-right"> 
 			<Columns>
 				<RadzenDataGridColumn TItem="WorkoutExerciseDto" Property="Sequence" Title="#" Width="50px"/> 
 				<RadzenDataGridColumn TItem="WorkoutExerciseDto" Property="ExerciseName" Title="Exercise" />
@@ -100,11 +110,61 @@ else {
 		</RadzenDataGrid>
 
 		<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" >
-			<RadzenButton Click=@OnBackClick Text="Back" ButtonStyle="ButtonStyle.Secondary" />
-			<RadzenButton IsBusy=@Saving Click=@OnSubmitClick Text="Submit" ButtonStyle="ButtonStyle.Primary" ButtonType="ButtonType.Submit"/>
+			<RadzenButton Class="rz-m-2" Style="min-width: 100px" Icon="arrow_back" Click=@OnBackClick ButtonStyle="ButtonStyle.Secondary" />
+			<RadzenButton Class="rz-m-2" Style="min-width: 100px" IsBusy=@Saving Click=@OnSubmitClick Text="Submit" ButtonStyle="ButtonStyle.Primary" ButtonType="ButtonType.Submit"/>
 		</RadzenStack>
 	}	
-}
+</div>
+
+<style>
+	@@keyframes slideInFromRight {
+		from {
+			transform: translateX(100%);
+			opacity: 0;
+		}
+
+		to {
+			transform: translateX(0);
+			opacity: 100;
+		}
+	}
+
+	.slide-from-right {
+		animation-duration: 333ms;
+		animation-timing-function: ease-out; 
+		animation-delay: 0s; 
+		animation-iteration-count: 1; 
+		animation-name: slideInFromRight; 
+	}
+
+	@@keyframes slideInFromLeft {
+		from {
+			transform: translateX(-100%);
+			opacity: 0;
+		}
+
+		to {
+			transform: translateX(0);
+			opacity: 100;
+		}
+	}
+
+	.slide-from-left {
+		animation-duration: 333ms;
+		animation-timing-function: ease-out;
+		animation-delay: 0s;
+		animation-iteration-count: 1;
+		animation-name: slideInFromLeft; 
+	}
+
+	/* prevents animations from going outside the exercise window (over the menu) */
+	.exercise-wrapper {
+		position: relative;
+		overflow: hidden;
+		width: 100%;
+	}
+
+</style>
 
 
 @code {
@@ -121,6 +181,7 @@ else {
 	public bool Saving = false;
 
 	private bool AlreadyAsked = false; // Field to know if we need to check browser storage
+	private string SlidingClass = "slide-from-right";
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -174,6 +235,8 @@ else {
 	{
 		if (WorkoutDto is null) return;
 
+        SlidingClass = "slide-from-left";
+
 		if (WorkoutDto.ExerciseIndex > 0)
 			WorkoutDto.ExerciseIndex--;
 
@@ -185,6 +248,8 @@ else {
 	private async Task OnNextClick()
 	{
 		if (WorkoutDto is null) return;
+		
+		SlidingClass = "slide-from-right";
 
 		if (WorkoutDto.ExerciseIndex < WorkoutDto.WorkoutExercises?.Count)
 			WorkoutDto.ExerciseIndex++;
