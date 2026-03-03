@@ -1,8 +1,6 @@
 @page "/dashboard"
 @using WhatYouDid.Shared
 @using System.Net.Http.Json
-@using Radzen
-@using Radzen.Blazor
 @rendermode InteractiveServer
 
 @inject IDashboardService Service
@@ -21,41 +19,80 @@
 @if (dashboard is null)
 {
     <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" />
+    return;
 }
-else
+@if (dashboard.TopWorkouts is null || !dashboard.TopWorkouts.Any())
 {
-    <div class="row">
-        @if (dashboard.TopWorkouts is not null && dashboard.TopWorkouts.Any())
+    <RadzenColumn Size="12">
+        <RadzenCard>
+            <ChildContent>
+                <div>No workout data for the selected year(s)</div>
+            </ChildContent>
+        </RadzenCard>
+    </RadzenColumn>
+    return;
+}
+
+<RadzenStack Style="max-width: 900px" Orientation="Orientation.Horizontal" Gap="16px" AlignItems="AlignItems.Start" Wrap="FlexWrap.Wrap">
+        @foreach (var w in dashboard.TopWorkouts)
         {
-            @foreach (var w in dashboard.TopWorkouts)
-            {
-                <div class="col-md-4 mb-3">
-                    <RadzenCard Style="height:120px;">
-                        <ChildContent>
-                            <h5>@w.RoutineName</h5>
-                            <div class="display-6">@w.Count</div>
-                            <div class="text-muted">times performed</div>
-                        </ChildContent>
-                    </RadzenCard>
-                </div>
-            }
-        }
-        else
-        {
-            <div class="col-12">
-                <RadzenCard>
+                <RadzenCard Style="height:150px; width:280px">
                     <ChildContent>
-                        <div>No workout data yet.</div>
+                        <h5>@w.RoutineName</h5>
+                        <div class="display-6">@w.Count</div>
+                        <div class="text-muted">times performed</div>
                     </ChildContent>
                 </RadzenCard>
-            </div>
         }
-    </div>
-}
+
+            <RadzenCard Style="height:150px; width:280px">
+                <ChildContent>
+                    <h6>Total Workout Duration</h6>
+                    <div class="display-6">@FormatMinutes(dashboard.TotalWorkoutDuration)</div>
+                    <div class="text-muted">sum of all workouts</div>
+                </ChildContent>
+            </RadzenCard>
+
+            <RadzenCard Style="height:150px; width:280px">
+                <ChildContent>
+                    <h6>Total Reps Completed</h6>
+                    <div class="display-6">@dashboard.TotalReps</div>
+                    <div class="text-muted">count of reps</div>
+                </ChildContent>
+            </RadzenCard>
+
+            <RadzenCard Style="height:150px; width:280px">
+                <ChildContent>
+                    <h6>Longest Workout</h6>
+                    @if (dashboard.LongestWorkoutRoutineName is not null && dashboard.LongestWorkoutDuration.HasValue)
+                    {
+                        <div class="fw-bold">@dashboard.LongestWorkoutRoutineName</div>
+                        <div>@(dashboard.LongestWorkoutDate?.ToString("yyyy-MM-dd")) — @FormatMinutes(dashboard.LongestWorkoutDuration)</div>
+                    }
+                    else
+                    {
+                        <div class="text-muted">No completed workouts</div>
+                    }
+                </ChildContent>
+            </RadzenCard>
+</RadzenStack>
 
 @code {
     private DashboardDto? dashboard;
     private int? selectedYear;
+
+    private static string FormatMinutes(int? minutes)
+    {
+        if (!minutes.HasValue)
+            return "-";
+
+        var ts = TimeSpan.FromMinutes(minutes.Value);
+        if (ts.TotalHours >= 1)
+        {
+            return $"{(int)ts.TotalHours}h {ts.Minutes}m";
+        }
+        return $"{ts.Minutes}m";
+    }
 
     protected override async Task OnInitializedAsync()
     {

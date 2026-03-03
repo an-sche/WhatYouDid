@@ -23,16 +23,18 @@ public class DashboardService(
     private async Task<DashboardDto> ComputeDashboardAsync(int year)
     {
         // Compute top 3 most frequent workouts (by RoutineName) optionally filtered by year.
-        var query = db.Workouts.AsNoTracking().AsQueryable();
+        var workoutsQuery = db.Workouts.AsNoTracking().AsQueryable();
+        var workoutExercisesQuery = db.WorkoutExercises.AsNoTracking().AsQueryable();
         var dto = new DashboardDto();
 
         if (year != 0)
         {
-            query = query.Where(w => w.StartTime.Year == year);
+            workoutsQuery = workoutsQuery.Where(w => w.StartTime.Year == year);
+            workoutExercisesQuery = workoutExercisesQuery.Where(we => we.Workout.StartTime.Year == year);
             dto.Year = year;
         }
 
-        var result = await query
+        var top3workouts = await workoutsQuery
             .GroupBy(w => w.RoutineName)
             .Select(g => new { RoutineName = g.Key, Count = g.Count() })
             .OrderByDescending(x => x.Count)
@@ -40,7 +42,35 @@ public class DashboardService(
             .Select(x => new WorkoutSummaryDto { RoutineName = x.RoutineName ?? "", Count = x.Count })
             .ToListAsync();
 
-        dto.TopWorkouts = result;
+        dto.TopWorkouts = top3workouts;
+
+        // Total Workout Duration
+        dto.TotalWorkoutDuration = await workoutsQuery
+            .Where(x => x.EndTime != null)
+            .Where(x => x.EndTime > x.StartTime)
+            .SumAsync(w => EF.Functions.DateDiffMinute(w.StartTime, w.EndTime));
+
+        // Total Reps Completed
+        dto.TotalReps = await workoutExercisesQuery
+            .SelectMany(we => we.Reps!)
+            .SumAsync(r => r);
+
+        // Longest Workout
+        var longestWorkout = await workoutsQuery
+            .Where(x => x.EndTime != null)
+            .Where(x => x.EndTime > x.StartTime)
+            .OrderByDescending(w => EF.Functions.DateDiffMinute(w.StartTime, w.EndTime))
+            .Select(x => new
+            {
+                StartDate = x.StartTime,
+                WorkoutName = x.RoutineName,
+                DurationMinutes = EF.Functions.DateDiffMinute(x.StartTime, x.EndTime),
+            })
+            .FirstOrDefaultAsync();
+
+        dto.LongestWorkoutDate = longestWorkout?.StartDate;
+        dto.LongestWorkoutRoutineName = longestWorkout?.WorkoutName;
+        dto.LongestWorkoutDuration = longestWorkout?.DurationMinutes;
 
         return dto;
     }
