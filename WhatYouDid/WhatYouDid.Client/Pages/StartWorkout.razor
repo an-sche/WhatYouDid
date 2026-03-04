@@ -196,8 +196,8 @@
 		Loaded = true;
 		if (WorkoutDto is not null)
 		{
-			ExerciseNames = WorkoutDto.WorkoutExercises?.Index()
-				.Select(item => $"{item.Index + 1}: {item.Item.ExerciseName}").ToArray() ?? new string[0];
+			ExerciseNames = WorkoutDto.WorkoutExercises?
+				.Select(w => $"{w.Sequence}: {w.ExerciseName}").ToArray() ?? new string[0];
 		}
 
 		await base.OnInitializedAsync();

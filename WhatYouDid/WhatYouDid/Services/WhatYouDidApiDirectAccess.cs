@@ -72,7 +72,6 @@ public class WhatYouDidApiDirectAccess(
 
                     RoutineId = routineId,
                     RoutineName = routine.Name,
-                    ApplicationUserId = tenantService.Tenant,
 
                     WorkoutExercises = 
                         (from exercise in routine.Exercises
@@ -157,16 +156,13 @@ public class WhatYouDidApiDirectAccess(
 
     public async Task<WorkoutDto?> GetCompletedWorkoutDtoAsync(Guid workoutId)
 	{
-        var user = tenantService.Tenant;
-
         return await db.Workouts
-            .Where(x => x.ApplicationUserId == user && x.WorkoutId == workoutId)
+            .Where(x => x.WorkoutId == workoutId)
             .Select(x => new WorkoutDto() 
             {
                 WorkoutId = x.WorkoutId,
                 RoutineName = x.RoutineName,
                 RoutineId = x.RoutineId ?? 0,
-                ApplicationUserId = user,
 			    WorkoutExercises = x.WorkoutExercise!.Select(e => new WorkoutExerciseDto()
 			    {
 				    Sequence = e.Exercise!.Sequence,
