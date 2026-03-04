@@ -1,6 +1,7 @@
 @using System.Timers
 @using Radzen
 @inject DialogService DialogService
+@inject IJSRuntime JS
 
 <RadzenStack>
     <div style="font-size:2rem;font-weight:600;text-align:center;color:@(ReachedGoal ? "green" : "inherit")">@FormatTime(_elapsedSeconds)</div>
@@ -28,7 +29,7 @@
     public int Goal { get; set; } = 0;
     private bool ReachedGoal => Goal > 0 && _elapsedSeconds >= Goal;
 
-    private void Start()
+    private async Task Start()
     {
         if (_running)
             return;
@@ -39,24 +40,29 @@
             _timer.Elapsed += OnTick;
             _timer.AutoReset = true;
         }
+
+        await JS.InvokeVoidAsync("wakeLockHelper.enable");
+
         _timer.Start();
         _running = true;
     }
 
-    private void Stop()
+    private async Task Stop()
     {
         if (_timer == null)
             return;
 
         _timer.Stop();
         _running = false;
+
+        await JS.InvokeVoidAsync("wakeLockHelper.disable");
     }
 
-    private void Reset()
+    private async Task Reset()
     {
-        Stop();
+        await Stop();
         _elapsedSeconds = 0;
-        InvokeAsync(StateHasChanged);
+        await InvokeAsync(StateHasChanged);
     }
 
     private void OnTick(object? sender, ElapsedEventArgs e)

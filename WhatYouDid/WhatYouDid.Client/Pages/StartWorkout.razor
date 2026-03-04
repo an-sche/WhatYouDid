@@ -12,8 +12,6 @@
 @inject NavigationManager Navigation
 @inject HttpClient Http
 
-<RadzenDialog />
-
 @if (WorkoutDto is null) {
 	if (Loaded)
 	{
@@ -37,8 +35,10 @@
 	@if (WorkoutDto.ExerciseIndex < @WorkoutDto.WorkoutExercises?.Count)
 	{
 		// This is where i put the information for them to fill out!
-
-		<RadzenText TextStyle="TextStyle.H5">@WorkoutDto.WorkoutExercises?[WorkoutDto.ExerciseIndex].ExerciseName</RadzenText>
+		<RadzenDropDown Class="rz-m-2"
+			Value="@WorkoutDto.WorkoutExercises[WorkoutDto.ExerciseIndex].ExerciseName" 
+			Data="@WorkoutDto.WorkoutExercises.Select(x => x.ExerciseName)" 
+			Change="@OnDropdownValueChanged" />
 
 		var workoutExercise = WorkoutDto.WorkoutExercises[WorkoutDto.ExerciseIndex];
 		
@@ -166,7 +166,6 @@
 
 </style>
 
-
 @code {
 
 	[Parameter]
@@ -188,8 +187,8 @@
 		if (authenticationState is null)
 			return;
 
-        // Tenant is resolved server-side; call API without passing user id
-        // WorkoutDto = await Api.GetStartWorkoutDtoAsync(RoutineId);
+		// Tenant is resolved server-side; call API without passing user id
+		// WorkoutDto = await Api.GetStartWorkoutDtoAsync(RoutineId);
 		WorkoutDto = await Http.GetFromJsonAsync<WorkoutDto>(
 			$"api/workouts/start/{RoutineId}");
 
@@ -229,6 +228,27 @@
 		}
 
 		await base.OnAfterRenderAsync(firstRender);
+	}
+
+	private async Task OnDropdownValueChanged(object item)
+	{
+		if (WorkoutDto is null
+			|| WorkoutDto.WorkoutExercises is null)
+		{
+			return;
+		}
+
+		if (item is not string exercise)
+		{
+			return;
+		}
+
+		var newIndex = WorkoutDto.WorkoutExercises.FindIndex(x => x.ExerciseName == exercise);
+		SlidingClass = (newIndex < WorkoutDto.ExerciseIndex)
+			? "slide-from-left"
+			: "slide-from-right";
+
+		WorkoutDto.ExerciseIndex = newIndex;
 	}
 
 	private async Task OnBackClick() 
