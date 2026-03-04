@@ -12,7 +12,8 @@ public static class WasmEndpointExtensions
             IWhatYouDidApi service) =>
         {
             return await service.GetStartWorkoutDtoAsync(routineId);
-        });
+        })
+        .RequireAuthorization();
 
         app.MapPost("/api/workouts", async (
             WorkoutDto dto,
@@ -27,7 +28,8 @@ public static class WasmEndpointExtensions
             {
                 return Results.Problem("Failed to create workout");
             }
-        });
+        })
+        .RequireAuthorization();
 
         return app;
     }
