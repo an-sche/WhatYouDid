@@ -6,7 +6,7 @@ let wakeLock = null;
 window.wakeLockHelper = {
     enable: async () => {
         try {
-            if ('wakeLock' in navigator) {
+            if ('wakeLock' in navigator && 'request' in navigate.wakeLock) {
                 wakeLock = await navigator.wakeLock.request('screen');
             }
         } catch { }

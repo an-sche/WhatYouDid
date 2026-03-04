@@ -37,7 +37,7 @@
 		// This is where i put the information for them to fill out!
 		<RadzenDropDown Class="rz-m-2"
 			Value="@WorkoutDto.WorkoutExercises[WorkoutDto.ExerciseIndex].ExerciseName" 
-			Data="@WorkoutDto.WorkoutExercises.Select(x => x.ExerciseName)" 
+			Data="@ExerciseNames" 
 			Change="@OnDropdownValueChanged" />
 
 		var workoutExercise = WorkoutDto.WorkoutExercises[WorkoutDto.ExerciseIndex];
@@ -175,6 +175,7 @@
 	private Task<AuthenticationState>? authenticationState { get; set; }
 
 	public WorkoutDto? WorkoutDto { get; set; }
+	public string[] ExerciseNames { get; set; } = [];
 
 	public bool Loaded = false;
 	public bool Saving = false;
@@ -193,7 +194,11 @@
 			$"api/workouts/start/{RoutineId}");
 
 		Loaded = true;
-		//Routine = await RoutineService.GetRoutineAsync(RoutineId);
+		if (WorkoutDto is not null)
+		{
+			ExerciseNames = WorkoutDto.WorkoutExercises?.Index()
+				.Select(item => $"{item.Index + 1}: {item.Item.ExerciseName}").ToArray() ?? new string[0];
+		}
 
 		await base.OnInitializedAsync();
 	}
@@ -243,7 +248,12 @@
 			return;
 		}
 
-		var newIndex = WorkoutDto.WorkoutExercises.FindIndex(x => x.ExerciseName == exercise);
+		var newIndex = ExerciseNames.IndexOf(exercise);
+		if (newIndex < 0 || newIndex == WorkoutDto.WorkoutExercises?.Count)
+		{
+			return;
+		}
+
 		SlidingClass = (newIndex < WorkoutDto.ExerciseIndex)
 			? "slide-from-left"
 			: "slide-from-right";
