@@ -22,12 +22,18 @@ WhatYouDid is a Blazor + SQL project for logging workouts. The repository contai
 
 # Configuration
 
-In UserSecrets: configure the "Admins" section to include your email address for admin access. This is required for accessing admin features in the application.
+
+Quick local setup
+1. Install prerequisites: .NET 10 SDK
+2. Install SQL and create a database. Put that database in `appsettings` under `DevelopmentConnection`
+3. Apply migrations to your local database `dotnet ef database update`
+4. In UserSecrets: configure the "Admins" section to include your email address for admin access. This is required for accessing admin features in the application.
 ```
 "Admins" : [
   "your@email.here"
 ]
 ```
+5. Run the application `f5` or `dotnet run`
 
 # Information
 
@@ -38,34 +44,3 @@ Key constraints and priorities
 - Platform: WebAssembly client exists in the workspace. Preserve client-server communication patterns.
 - Most important feature to preserve: reliable logging of workouts and existing data integrity.
 
-Quick local setup
-1. Install prerequisites: .NET 10 SDK and any required workloads for Blazor WebAssembly (if needed): `dotnet workload install wasm-tools` (optional).
-2. Clone the repo and restore packages: `git clone <repo> && cd <repo> && dotnet restore`.
-3. Inspect configuration: open `appsettings.json` or environment-specific files to find the database connection string. Do not commit secrets.
-4. If the project uses EF Core migrations, apply them from the server / data project: `dotnet ef database update -p <ServerProject> -s <ServerProject>` (only if migrations exist).
-5. Run the solution or projects: `dotnet build` then `dotnet run` from the appropriate project directory (usually the server project). For client-only work, run the Blazor WebAssembly client project.
-
-Where to look first (for AI)
-- Project layout to check: `Client`, `Server`, `Shared`, `Data`, `Pages`, `Components`, `wwwroot`.
-- API endpoints and controllers: check `Server/Controllers` or `Pages` that expose workout APIs.
-- Database models and DbContext: look for `*DbContext*` in a `Data` or `Server` project.
-- UI components that log workouts: check `Client/Pages`, `Client/Components` and search for words like `Workout`, `Log`, `Exercise`.
-
-Development rules for AI changes
-- Make minimal, well-scoped changes that preserve existing behavior unless the user requests a breaking change.
-- Run `dotnet build` and `dotnet test` after making changes. Fix compile/test errors before committing.
-- If changing the database schema, include EF Core migrations and migration commands, and document any required migration steps.
-- Keep secrets and production connection strings out of the repo. Use user secrets or environment variables.
-- Add tests for new behavior; prefer small focused tests.
-
-Producing patches and PRs
-- Create a branch per feature or fix, include a short description, and reference relevant issue/bug.
-- Keep PRs small and focused; include screenshots or curl examples for API changes when applicable.
-
-If you (the AI) are asked to modify or extend behavior, always ask or record:
-- Is changing the DB schema allowed?
-- Should the UI/UX remain unchanged?
-- Any backwards-compatibility requirements?
-
-Contact
-For project-specific questions, inspect the repository code and open an issue describing the desired change.
