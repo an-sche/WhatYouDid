@@ -1,30 +1,24 @@
-﻿@page "/createroutine"
+@page "/createroutine"
 
 @using Microsoft.AspNetCore.Authorization
-@using Microsoft.AspNetCore.Identity
-@using System.Text
-@using System.Security.Claims
 @attribute [Authorize]
 @rendermode InteractiveServer
 @inject IWhatYouDidApi Api
 @inject NavigationManager Navigation
-@inject AuthenticationStateProvider Authentication
-@inject UserManager<ApplicationUser> UserManager
+@inject IJSRuntime JS
 
 
 <PageTitle>Create Routine</PageTitle>
 <RadzenText TextStyle="TextStyle.H4">Create Routine</RadzenText>
 
-<AuthorizeView>
-	<div class="col-md-4">
+<div class="col-md-4">
 		<hr />
 		<EditForm Model=@routine OnValidSubmit="OnValidSubmit" OnInvalidSubmit="OnInvalidSubmit" FormName="EditRoutine" Context="EditRoutine">
 
 			<DataAnnotationsValidator />
 			<ValidationSummary />
 
-
-			<RadzenFormField AllowFloatingLabel="false" Text="Routine Name" Style="width: 100%" >
+			<RadzenFormField AllowFloatingLabel="false" Text="Routine Name" Style="width: 100%">
 				<ChildContent>
 					<RadzenTextBox Name="RoutineName" @bind-Value=routine.Name />
 				</ChildContent>
@@ -32,60 +26,84 @@
 			<ValidationMessage For="() => routine.Name" />
 			<hr />
 
-			@foreach (var e in routine.Exercises)
+			@for (int idx = 0; idx < routine.Exercises.Count; idx++)
 			{
-				<RadzenCard Variant="Variant.Outlined">
-					<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" >
-						<RadzenText TextStyle="TextStyle.H5" TextAlign="TextAlign.Left">Exercise: @e.Sequence</RadzenText>
-						<RadzenButton Click=@(x => RemoveExercise(e)) Icon="delete" Variant="Variant.Text"></RadzenButton>
-					</RadzenStack>
-					<div>
-						<RadzenFormField AllowFloatingLabel="false" Text="Exercise Name">
-							<ChildContent>
-								<RadzenTextBox Name="ExerciseName" @bind-Value=e.Name />
-							</ChildContent>
-						</RadzenFormField>
-						<ValidationMessage For="() => e.Name" />
+				var e = routine.Exercises[idx];
+				var i = idx;
 
-						<RadzenFormField AllowFloatingLabel="false" Text="Sets">
-							<ChildContent>
-								<RadzenNumeric Name="Sets" @bind-Value=e.Sets />
-							</ChildContent>
-						</RadzenFormField>
-						<ValidationMessage For="() => e.Sets" />
-					</div>
-					<div>
-						<RadzenCheckBox @bind-Value=e.HasReps />
-						<RadzenLabel Text="Reps?" />
-						<RadzenCheckBox @bind-Value=e.HasWeight />
-						<RadzenLabel Text="Weight?" />
-						<RadzenCheckBox @bind-Value=e.HasDuration />
-						<RadzenLabel Text="Duration?" />
-					</div>
+				<RadzenCard Variant="Variant.Outlined" class="rz-mb-4" data-exercise-card="@_exerciseKeys[i]">
+					<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center" class="rz-mb-2">
+						<RadzenText TextStyle="TextStyle.Subtitle2">Exercise @e.Sequence</RadzenText>
+						<RadzenStack Orientation="Orientation.Horizontal" Gap="0">
+							<RadzenButton Click=@(() => MoveExerciseUp(e)) Icon="arrow_upward" Variant="Variant.Text" ButtonStyle="ButtonStyle.Light" Disabled="@(i == 0)" />
+							<RadzenButton Click=@(() => MoveExerciseDown(e)) Icon="arrow_downward" Variant="Variant.Text" ButtonStyle="ButtonStyle.Light" Disabled="@(i == routine.Exercises.Count - 1)" />
+							<RadzenButton Click=@(() => RemoveExercise(e)) Icon="delete" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" />
+						</RadzenStack>
+					</RadzenStack>
+
+					<RadzenFormField AllowFloatingLabel="false" Text="Exercise Name" Style="width: 100%">
+						<ChildContent>
+							<RadzenTextBox Name="@($"ExerciseName_{i}")" @bind-Value=e.Name />
+						</ChildContent>
+					</RadzenFormField>
+					<ValidationMessage For="() => e.Name" />
+
+					<RadzenFormField AllowFloatingLabel="false" Text="Description (optional)" Style="width: 100%" class="rz-mt-3">
+						<ChildContent>
+							<RadzenTextArea Name="@($"Description_{i}")" @bind-Value=e.Description Rows="2" Style="width: 100%" />
+						</ChildContent>
+					</RadzenFormField>
+					<ValidationMessage For="() => e.Description" />
+
+					<RadzenFormField AllowFloatingLabel="false" Text="Sets" class="rz-mt-3">
+						<ChildContent>
+							<RadzenNumeric Name="@($"Sets_{i}")" @bind-Value=e.Sets Min="1" Max="10" />
+						</ChildContent>
+					</RadzenFormField>
+					<ValidationMessage For="() => e.Sets" />
+
+					<RadzenStack Orientation="Orientation.Horizontal" Gap="1.5rem" Wrap="FlexWrap.Wrap" class="rz-mt-3">
+						<RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+							<RadzenCheckBox Name="@($"HasReps_{i}")" @bind-Value=e.HasReps />
+							<RadzenLabel Text="Reps" Component="@($"HasReps_{i}")" />
+						</RadzenStack>
+						<RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+							<RadzenCheckBox Name="@($"HasWeight_{i}")" @bind-Value=e.HasWeight />
+							<RadzenLabel Text="Weight" Component="@($"HasWeight_{i}")" />
+						</RadzenStack>
+						<RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+							<RadzenCheckBox Name="@($"HasDuration_{i}")" @bind-Value=e.HasDuration />
+							<RadzenLabel Text="Duration" Component="@($"HasDuration_{i}")" />
+						</RadzenStack>
+					</RadzenStack>
 				</RadzenCard>
-				<hr />
-			}	
-			
-			<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" >
-				<RadzenButton Click="@AddExercise" Text="Add Exercise" Icon="add_circle_outline" ButtonStyle="ButtonStyle.Primary" />
-				<RadzenButton ButtonType="ButtonType.Submit" Text="Create Routine" Icon="save" ButtonStyle="ButtonStyle.Secondary" />
-			</RadzenStack>
+			}
+
+			<RadzenButton Click="@AddExercise" Text="Add Exercise" Icon="add_circle_outline" ButtonStyle="ButtonStyle.Primary" class="rz-mb-4" Style="width: 100%" />
+
+			@if (errorMessage is not null)
+			{
+				<RadzenAlert AlertStyle="AlertStyle.Danger" ShowIcon="true" Variant="Variant.Flat" class="rz-mb-3">
+					@errorMessage
+				</RadzenAlert>
+			}
+
+			<RadzenButton ButtonType="ButtonType.Submit" Text="Create Routine" Icon="save" ButtonStyle="ButtonStyle.Secondary" IsBusy="@Busy" Style="width: 100%" />
 
 		</EditForm>
 	</div>
-</AuthorizeView>
 
 
 
 @code {
 
 	private bool Busy = false;
+	private string? errorMessage = null;
+	private List<string> _exerciseKeys = [Guid.NewGuid().ToString("N")];
+	private Dictionary<string, double>? _flipPositions;
 
 	[Parameter]
 	public int? Id { get; set; }
-
-	[CascadingParameter]
-	private Task<AuthenticationState>? authenticationState { get; set; }
 
 	Routine routine = new() {
 		Name = string.Empty,
@@ -112,28 +130,41 @@
 	{
 		if (Busy) return;
 		Busy = true;
+		errorMessage = null;
 
-		// Submit the changes / additions
-
-		// Assume the form was valid:
 		try
 		{
-			if (authenticationState is null)
+			if (routine.Exercises.Any(e => string.IsNullOrWhiteSpace(e.Name) || e.Name.Trim().Length < 3))
+			{
+				errorMessage = "All exercises must have a name (at least 3 characters).";
 				return;
+			}
 
 			var createdRoutine = await Api.AddRoutineAsync(routine);
 			if (createdRoutine is null)
 			{
-				// Error Creating Routine
+				errorMessage = "Failed to create routine. Please try again.";
 				return;
 			}
 
 			Navigation.NavigateTo("routines");
 		}
-		catch { }
+		catch
+		{
+			errorMessage = "An unexpected error occurred. Please try again.";
+		}
 		finally
 		{
 			Busy = false;
+		}
+	}
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (_flipPositions is not null)
+		{
+			await JS.InvokeVoidAsync("exerciseCardHelper.animateFlip", _flipPositions);
+			_flipPositions = null;
 		}
 	}
 
@@ -150,16 +181,44 @@
 				HasWeight = true
 			}
 		);
+		_exerciseKeys.Add(Guid.NewGuid().ToString("N"));
 	}
 
 	void RemoveExercise(Exercise e)
 	{
+		int index = routine.Exercises.IndexOf(e);
 		if (routine.Exercises.Remove(e))
 		{
-			for (int i = 0; i < routine.Exercises.Count; i++)
-			{
-				routine.Exercises[i].Sequence = i + 1;
-			}
+			_exerciseKeys.RemoveAt(index);
+			RenumberExercises();
 		}
+	}
+
+	async Task MoveExerciseUp(Exercise e)
+	{
+		int index = routine.Exercises.IndexOf(e);
+		if (index <= 0) return;
+		_flipPositions = await JS.InvokeAsync<Dictionary<string, double>>("exerciseCardHelper.capturePositions");
+		routine.Exercises.RemoveAt(index);
+		routine.Exercises.Insert(index - 1, e);
+		(_exerciseKeys[index], _exerciseKeys[index - 1]) = (_exerciseKeys[index - 1], _exerciseKeys[index]);
+		RenumberExercises();
+	}
+
+	async Task MoveExerciseDown(Exercise e)
+	{
+		int index = routine.Exercises.IndexOf(e);
+		if (index < 0 || index >= routine.Exercises.Count - 1) return;
+		_flipPositions = await JS.InvokeAsync<Dictionary<string, double>>("exerciseCardHelper.capturePositions");
+		routine.Exercises.RemoveAt(index);
+		routine.Exercises.Insert(index + 1, e);
+		(_exerciseKeys[index], _exerciseKeys[index + 1]) = (_exerciseKeys[index + 1], _exerciseKeys[index]);
+		RenumberExercises();
+	}
+
+	void RenumberExercises()
+	{
+		for (int i = 0; i < routine.Exercises.Count; i++)
+			routine.Exercises[i].Sequence = i + 1;
 	}
 }

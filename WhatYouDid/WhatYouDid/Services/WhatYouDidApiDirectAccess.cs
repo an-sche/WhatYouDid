@@ -11,6 +11,11 @@ public class WhatYouDidApiDirectAccess(
 {
     public async Task<Routine> AddRoutineAsync(Routine routine)
     {
+        if (string.IsNullOrEmpty(tenantService.Tenant))
+        {
+            throw new Exception("Could not resolve tenant");
+        }
+
         routine.CreateUserId = tenantService.Tenant;
         foreach (var exercise in routine.Exercises)
         {
