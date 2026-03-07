@@ -1,11 +1,13 @@
 @page "/createroutine"
 
 @using Microsoft.AspNetCore.Authorization
+@using WhatYouDid.Shared
 @attribute [Authorize]
 @rendermode InteractiveServer
 @inject IWhatYouDidApi Api
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
+@inject IBrowserStorage BrowserStorage
 
 
 <PageTitle>Create Routine</PageTitle>
@@ -97,6 +99,8 @@
 
 @code {
 
+	private const string DraftKey = "CreateRoutine_Draft";
+	private bool _initialized = false;
 	private bool Busy = false;
 	private string? errorMessage = null;
 	private List<string> _exerciseKeys = [Guid.NewGuid().ToString("N")];
@@ -147,6 +151,7 @@
 				return;
 			}
 
+			await BrowserStorage.DeleteAsync(DraftKey);
 			Navigation.NavigateTo("routines");
 		}
 		catch
@@ -165,6 +170,24 @@
 		{
 			await JS.InvokeVoidAsync("exerciseCardHelper.animateFlip", _flipPositions);
 			_flipPositions = null;
+		}
+
+		if (firstRender)
+		{
+			var draft = await BrowserStorage.GetAsync<Routine>(DraftKey);
+			if (draft is not null)
+			{
+				routine = draft;
+				_exerciseKeys = routine.Exercises.Select(_ => Guid.NewGuid().ToString("N")).ToList();
+				StateHasChanged();
+			}
+			_initialized = true;
+			return;
+		}
+
+		if (_initialized)
+		{
+			await BrowserStorage.SetAsync(DraftKey, routine);
 		}
 	}
 
@@ -221,4 +244,5 @@
 		for (int i = 0; i < routine.Exercises.Count; i++)
 			routine.Exercises[i].Sequence = i + 1;
 	}
+
 }
