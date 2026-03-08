@@ -163,24 +163,19 @@ public class WhatYouDidApiDirectAccess(
         return true;
     }
 
-    public async Task<bool> UpdateWorkoutExercisesAsync(WorkoutDto workoutDto)
+    public async Task<bool> UpdateWorkoutExerciseAsync(Guid workoutId, WorkoutExerciseDto exerciseDto)
     {
-        var exercises = await db.WorkoutExercises
-            .Where(x => x.WorkoutId == workoutDto.WorkoutId)
-            .ToListAsync();
+        var entity = await db.WorkoutExercises
+            .FirstOrDefaultAsync(x => x.WorkoutId == workoutId && x.ExerciseId == exerciseDto.ExerciseId);
 
-        foreach (var exerciseDto in workoutDto.WorkoutExercises ?? [])
-        {
-            var entity = exercises.FirstOrDefault(x => x.ExerciseId == exerciseDto.ExerciseId);
-            if (entity is null) continue;
+        if (entity is null) return false;
 
-            if (exerciseDto.HasReps)
-                entity.Reps = exerciseDto.Reps.ToList();
-            if (exerciseDto.HasWeights)
-                entity.Weights = exerciseDto.Weights.ToList();
-            if (exerciseDto.HasDurations)
-                entity.Durations = exerciseDto.Durations.ToList();
-        }
+        if (exerciseDto.HasReps)
+            entity.Reps = exerciseDto.Reps.ToList();
+        if (exerciseDto.HasWeights)
+            entity.Weights = exerciseDto.Weights.ToList();
+        if (exerciseDto.HasDurations)
+            entity.Durations = exerciseDto.Durations.ToList();
 
         await db.SaveChangesAsync();
         return true;

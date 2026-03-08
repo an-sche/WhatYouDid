@@ -21,5 +21,5 @@ public interface IWhatYouDidApi
     Task<WorkoutDto?> GetCompletedWorkoutDtoAsync(Guid workoutId);
 
     Task<bool> SaveWorkoutAsync(WorkoutDto workout);
-    Task<bool> UpdateWorkoutExercisesAsync(WorkoutDto workout);
+    Task<bool> UpdateWorkoutExerciseAsync(Guid workoutId, WorkoutExerciseDto exercise);
 }

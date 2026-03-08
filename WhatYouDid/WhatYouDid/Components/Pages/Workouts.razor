@@ -111,7 +111,7 @@
 		StateHasChanged();
 		try
 		{
-			await Api.UpdateWorkoutExercisesAsync(selectedWorkout);
+			await Api.UpdateWorkoutExerciseAsync(selectedWorkout.WorkoutId, exercise);
 			editingExercise = null;
 		}
 		finally
