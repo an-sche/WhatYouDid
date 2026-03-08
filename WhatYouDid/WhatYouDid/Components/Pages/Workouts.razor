@@ -34,51 +34,57 @@
 @if (selectedWorkout is not null)
 {
 	<RadzenText TextStyle="TextStyle.H5">@selectedWorkout.RoutineName</RadzenText>
-
-	@if (!editMode)
-	{
-		<RadzenDataGrid Data="@selectedWorkout.WorkoutExercises" TItem="WorkoutExerciseDto" Density="Density.Compact">
-			<Columns>
-				<RadzenDataGridColumn TItem="WorkoutExerciseDto" Property="Sequence" Title="#" Width="50px" />
-				<RadzenDataGridColumn TItem="WorkoutExerciseDto" Property="ExerciseName" Title="Exercise" />
-				<RadzenDataGridColumn TItem="WorkoutExerciseDto" Property="Review" Title="Review" />
-			</Columns>
-		</RadzenDataGrid>
-		<RadzenButton Text="Edit" Click="() => editMode = true" ButtonStyle="ButtonStyle.Secondary" />
-	}
-	else
-	{
-		@foreach (var exercise in selectedWorkout.WorkoutExercises ?? [])
-		{
-			<RadzenText TextStyle="TextStyle.Subtitle1">@exercise.ExerciseName</RadzenText>
-			@for (int i = 0; i < exercise.Sets; i++)
-			{
-				var setIndex = i;
-				<RadzenCard Variant="Variant.Outlined">
-					<RadzenText TextStyle="TextStyle.Caption">Set @(setIndex + 1)</RadzenText>
-					@if (exercise.HasReps)
+	<RadzenDataGrid Data="@selectedWorkout.WorkoutExercises" TItem="WorkoutExerciseDto" Density="Density.Compact">
+		<Columns>
+			<RadzenDataGridColumn TItem="WorkoutExerciseDto" Property="Sequence" Title="#" Width="50px" />
+			<RadzenDataGridColumn TItem="WorkoutExerciseDto" Property="ExerciseName" Title="Exercise" />
+			<RadzenDataGridColumn TItem="WorkoutExerciseDto" Title="Review">
+				<Template Context="exercise">
+					@if (editingExercise == exercise)
 					{
-						<RadzenLabel Text="Reps" />
-						<RadzenNumeric TValue="int?" @bind-Value="exercise.Reps[setIndex]" />
+						@for (int i = 0; i < exercise.Sets; i++)
+						{
+							var setIndex = i;
+							<span>Set @(setIndex + 1):&nbsp;</span>
+							@if (exercise.HasReps)
+							{
+								<RadzenNumeric TValue="int?" @bind-Value="exercise.Reps[setIndex]" Style="width:65px" />
+								<span>&nbsp;reps&nbsp;</span>
+							}
+							@if (exercise.HasWeights)
+							{
+								<RadzenNumeric TValue="int?" @bind-Value="exercise.Weights[setIndex]" Style="width:65px" />
+								<span>&nbsp;lbs&nbsp;</span>
+							}
+							@if (exercise.HasDurations)
+							{
+								<RadzenNumeric TValue="int?" @bind-Value="exercise.Durations[setIndex]" Style="width:65px" />
+								<span>&nbsp;sec&nbsp;</span>
+							}
+							<br />
+						}
 					}
-					@if (exercise.HasWeights)
+					else
 					{
-						<RadzenLabel Text="Weight" />
-						<RadzenNumeric TValue="int?" @bind-Value="exercise.Weights[setIndex]" />
+						@exercise.Review
 					}
-					@if (exercise.HasDurations)
+				</Template>
+			</RadzenDataGridColumn>
+			<RadzenDataGridColumn TItem="WorkoutExerciseDto" Title="" Width="130px">
+				<Template Context="exercise">
+					@if (editingExercise == exercise)
 					{
-						<RadzenLabel Text="Duration" />
-						<RadzenNumeric TValue="int?" @bind-Value="exercise.Durations[setIndex]" />
+						<RadzenButton Text="Save" IsBusy="saving" Click="() => SaveExerciseEdit(exercise)" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
+						<RadzenButton Text="Cancel" Click="CancelExerciseEdit" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" />
 					}
-				</RadzenCard>
-			}
-		}
-		<RadzenStack Orientation="Orientation.Horizontal">
-			<RadzenButton Text="Save" IsBusy="saving" Click="SaveEdits" ButtonStyle="ButtonStyle.Primary" />
-			<RadzenButton Text="Cancel" Click="() => editMode = false" ButtonStyle="ButtonStyle.Secondary" />
-		</RadzenStack>
-	}
+					else
+					{
+						<RadzenButton Text="Edit" Click="() => editingExercise = exercise" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" Disabled="saving" />
+					}
+				</Template>
+			</RadzenDataGridColumn>
+		</Columns>
+	</RadzenDataGrid>
 }
 
 @code {
@@ -89,16 +95,16 @@
 	private string UserId = string.Empty;
 	WorkoutDto? selectedWorkout;
 	IQueryable<Workout>? workoutsQueryable;
-	bool editMode = false;
+	WorkoutExerciseDto? editingExercise;
 	bool saving = false;
 
-    async Task ViewWorkout(Workout workout)
-    {
-		editMode = false;
-        selectedWorkout = await Api.GetCompletedWorkoutDtoAsync(workout.WorkoutId);
-    }
+	async Task ViewWorkout(Workout workout)
+	{
+		editingExercise = null;
+		selectedWorkout = await Api.GetCompletedWorkoutDtoAsync(workout.WorkoutId);
+	}
 
-	private async Task SaveEdits()
+	private async Task SaveExerciseEdit(WorkoutExerciseDto exercise)
 	{
 		if (selectedWorkout is null) return;
 		saving = true;
@@ -106,7 +112,7 @@
 		try
 		{
 			await Api.UpdateWorkoutExercisesAsync(selectedWorkout);
-			editMode = false;
+			editingExercise = null;
 		}
 		finally
 		{
@@ -114,11 +120,18 @@
 		}
 	}
 
+	private async Task CancelExerciseEdit()
+	{
+		editingExercise = null;
+		if (selectedWorkout is not null)
+			selectedWorkout = await Api.GetCompletedWorkoutDtoAsync(selectedWorkout.WorkoutId);
+	}
+
 	protected override async Task OnInitializedAsync()
 	{
 		if (authenticationState is null)
 			return;
 
-        workoutsQueryable = Api.GetUserWorkoutsQueryable();
+		workoutsQueryable = Api.GetUserWorkoutsQueryable();
 	}
 }
