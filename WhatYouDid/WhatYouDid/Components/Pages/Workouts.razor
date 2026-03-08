@@ -1,4 +1,4 @@
-﻿@page "/workouts"
+@page "/workouts"
 @using WhatYouDid
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Identity
@@ -14,7 +14,7 @@
 <PageTitle>Workout History</PageTitle>
 <RadzenText TextStyle="TextStyle.H4">Workouts</RadzenText>
 
-<RadzenDataGrid IsLoading="@(workoutsQueryable is null)" 
+<RadzenDataGrid IsLoading="@(workoutsQueryable is null)"
 				Data="@workoutsQueryable"
 				TItem="Workout"
 				AllowPaging="true"
@@ -38,7 +38,51 @@
 		<Columns>
 			<RadzenDataGridColumn TItem="WorkoutExerciseDto" Property="Sequence" Title="#" Width="50px" />
 			<RadzenDataGridColumn TItem="WorkoutExerciseDto" Property="ExerciseName" Title="Exercise" />
-			<RadzenDataGridColumn TItem="WorkoutExerciseDto" Property="Review" Title="Review" />
+			<RadzenDataGridColumn TItem="WorkoutExerciseDto" Title="Review">
+				<Template Context="exercise">
+					@if (editingExercise == exercise)
+					{
+						@for (int i = 0; i < exercise.Sets; i++)
+						{
+							var setIndex = i;
+							<span>Set @(setIndex + 1):&nbsp;</span>
+							@if (exercise.HasReps)
+							{
+								<RadzenNumeric TValue="int?" @bind-Value="exercise.Reps[setIndex]" Style="width:65px" />
+								<span>&nbsp;reps&nbsp;</span>
+							}
+							@if (exercise.HasWeights)
+							{
+								<RadzenNumeric TValue="int?" @bind-Value="exercise.Weights[setIndex]" Style="width:65px" />
+								<span>&nbsp;lbs&nbsp;</span>
+							}
+							@if (exercise.HasDurations)
+							{
+								<RadzenNumeric TValue="int?" @bind-Value="exercise.Durations[setIndex]" Style="width:65px" />
+								<span>&nbsp;sec&nbsp;</span>
+							}
+							<br />
+						}
+					}
+					else
+					{
+						@exercise.Review
+					}
+				</Template>
+			</RadzenDataGridColumn>
+			<RadzenDataGridColumn TItem="WorkoutExerciseDto" Title="" Width="130px">
+				<Template Context="exercise">
+					@if (editingExercise == exercise)
+					{
+						<RadzenButton Text="Save" IsBusy="saving" Click="() => SaveExerciseEdit(exercise)" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
+						<RadzenButton Text="Cancel" Click="CancelExerciseEdit" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" />
+					}
+					else
+					{
+						<RadzenButton Text="Edit" Click="() => editingExercise = exercise" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" Disabled="saving" />
+					}
+				</Template>
+			</RadzenDataGridColumn>
 		</Columns>
 	</RadzenDataGrid>
 }
@@ -51,17 +95,43 @@
 	private string UserId = string.Empty;
 	WorkoutDto? selectedWorkout;
 	IQueryable<Workout>? workoutsQueryable;
+	WorkoutExerciseDto? editingExercise;
+	bool saving = false;
 
-    async Task ViewWorkout(Workout workout)
-    {
-        selectedWorkout = await Api.GetCompletedWorkoutDtoAsync(workout.WorkoutId);
-    }
+	async Task ViewWorkout(Workout workout)
+	{
+		editingExercise = null;
+		selectedWorkout = await Api.GetCompletedWorkoutDtoAsync(workout.WorkoutId);
+	}
+
+	private async Task SaveExerciseEdit(WorkoutExerciseDto exercise)
+	{
+		if (selectedWorkout is null) return;
+		saving = true;
+		StateHasChanged();
+		try
+		{
+			await Api.UpdateWorkoutExerciseAsync(selectedWorkout.WorkoutId, exercise);
+			editingExercise = null;
+		}
+		finally
+		{
+			saving = false;
+		}
+	}
+
+	private async Task CancelExerciseEdit()
+	{
+		editingExercise = null;
+		if (selectedWorkout is not null)
+			selectedWorkout = await Api.GetCompletedWorkoutDtoAsync(selectedWorkout.WorkoutId);
+	}
 
 	protected override async Task OnInitializedAsync()
 	{
 		if (authenticationState is null)
 			return;
 
-        workoutsQueryable = Api.GetUserWorkoutsQueryable();
+		workoutsQueryable = Api.GetUserWorkoutsQueryable();
 	}
 }

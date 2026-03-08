@@ -163,6 +163,24 @@ public class WhatYouDidApiDirectAccess(
         return true;
     }
 
+    public async Task<bool> UpdateWorkoutExerciseAsync(Guid workoutId, WorkoutExerciseDto exerciseDto)
+    {
+        var entity = await db.WorkoutExercises
+            .FirstOrDefaultAsync(x => x.WorkoutId == workoutId && x.ExerciseId == exerciseDto.ExerciseId);
+
+        if (entity is null) return false;
+
+        if (exerciseDto.HasReps)
+            entity.Reps = exerciseDto.Reps.ToList();
+        if (exerciseDto.HasWeights)
+            entity.Weights = exerciseDto.Weights.ToList();
+        if (exerciseDto.HasDurations)
+            entity.Durations = exerciseDto.Durations.ToList();
+
+        await db.SaveChangesAsync();
+        return true;
+    }
+
 	public Task<Routine> UpdateRoutineAsync(Routine routine)
     {
         throw new NotImplementedException();
