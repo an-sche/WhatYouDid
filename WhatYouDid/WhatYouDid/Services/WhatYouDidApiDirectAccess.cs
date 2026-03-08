@@ -9,22 +9,31 @@ public class WhatYouDidApiDirectAccess(
     ITenantService tenantService
 ) : IWhatYouDidApi
 {
-    public async Task<Routine> AddRoutineAsync(Routine routine)
+    public async Task<bool> AddRoutineAsync(CreateRoutineDto dto)
     {
         if (string.IsNullOrEmpty(tenantService.Tenant))
-        {
             throw new Exception("Could not resolve tenant");
-        }
 
-        routine.CreateUserId = tenantService.Tenant;
-        foreach (var exercise in routine.Exercises)
+        var routine = new Routine
         {
-            exercise.ApplicationUserId = tenantService.Tenant;
-        }
+            Name = dto.Name,
+            CreateUserId = tenantService.Tenant,
+            Exercises = dto.Exercises.Select(e => new Exercise
+            {
+                Name = e.Name,
+                Description = e.Description,
+                Sequence = e.Sequence,
+                Sets = e.Sets,
+                HasReps = e.HasReps,
+                HasWeight = e.HasWeight,
+                HasDuration = e.HasDuration,
+                ApplicationUserId = tenantService.Tenant,
+            }).ToList()
+        };
 
-        var result = await db.Routines.AddAsync(routine);
+        await db.Routines.AddAsync(routine);
         await db.SaveChangesAsync();
-        return result.Entity;
+        return true;
     }
 
     public async void DeleteRoutineAsync(int routineId)

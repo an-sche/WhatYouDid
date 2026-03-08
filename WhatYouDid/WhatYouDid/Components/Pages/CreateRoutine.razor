@@ -109,11 +109,11 @@
 	[Parameter]
 	public int? Id { get; set; }
 
-	Routine routine = new() {
+	CreateRoutineDto routine = new() {
 		Name = string.Empty,
-		Exercises = new List<Exercise>()
+		Exercises = new List<CreateExerciseDto>()
 		{
-			new Exercise()
+			new CreateExerciseDto()
 			{
 				Sequence = 1,
 				Name = string.Empty,
@@ -144,8 +144,8 @@
 				return;
 			}
 
-			var createdRoutine = await Api.AddRoutineAsync(routine);
-			if (createdRoutine is null)
+			var success = await Api.AddRoutineAsync(routine);
+			if (!success)
 			{
 				errorMessage = "Failed to create routine. Please try again.";
 				return;
@@ -174,7 +174,7 @@
 
 		if (firstRender)
 		{
-			var draft = await BrowserStorage.GetAsync<Routine>(DraftKey);
+			var draft = await BrowserStorage.GetAsync<CreateRoutineDto>(DraftKey);
 			if (draft is not null)
 			{
 				routine = draft;
@@ -194,7 +194,7 @@
 	void AddExercise()
 	{
 		routine.Exercises.Add(
-			new Exercise()
+			new CreateExerciseDto()
 			{
 				Sequence = routine.Exercises.Count + 1,
 				Name = string.Empty,
@@ -207,7 +207,7 @@
 		_exerciseKeys.Add(Guid.NewGuid().ToString("N"));
 	}
 
-	void RemoveExercise(Exercise e)
+	void RemoveExercise(CreateExerciseDto e)
 	{
 		int index = routine.Exercises.IndexOf(e);
 		if (routine.Exercises.Remove(e))
@@ -217,7 +217,7 @@
 		}
 	}
 
-	async Task MoveExerciseUp(Exercise e)
+	async Task MoveExerciseUp(CreateExerciseDto e)
 	{
 		int index = routine.Exercises.IndexOf(e);
 		if (index <= 0) return;
@@ -228,7 +228,7 @@
 		RenumberExercises();
 	}
 
-	async Task MoveExerciseDown(Exercise e)
+	async Task MoveExerciseDown(CreateExerciseDto e)
 	{
 		int index = routine.Exercises.IndexOf(e);
 		if (index < 0 || index >= routine.Exercises.Count - 1) return;
