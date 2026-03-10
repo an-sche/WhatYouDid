@@ -11,7 +11,7 @@ public class ApplicationDbContext(
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.Entity<Workout>()
-            .HasQueryFilter(w => w.ApplicationUserId == tenantService.Tenant);
+            .HasQueryFilter(w => w.ApplicationUserId == tenantService.Tenant && !w.IsDeleted);
 
         builder.Entity<Routine>()
             .HasQueryFilter(r => r.CreateUserId == tenantService.Tenant || r.IsPublic);

@@ -22,4 +22,5 @@ public interface IWhatYouDidApi
 
     Task<bool> SaveWorkoutAsync(WorkoutDto workout);
     Task<bool> UpdateWorkoutExerciseAsync(Guid workoutId, WorkoutExerciseDto exercise);
+    Task<bool> DeleteWorkoutAsync(Guid workoutId);
 }

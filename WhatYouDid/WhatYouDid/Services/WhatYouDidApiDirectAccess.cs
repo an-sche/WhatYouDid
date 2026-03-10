@@ -181,6 +181,17 @@ public class WhatYouDidApiDirectAccess(
         return true;
     }
 
+    public async Task<bool> DeleteWorkoutAsync(Guid workoutId)
+    {
+        var workout = await db.Workouts.FirstOrDefaultAsync(w => w.WorkoutId == workoutId);
+        if (workout is null) return false;
+
+        workout.IsDeleted = true;
+        workout.DeletedDt = DateTime.UtcNow;
+        await db.SaveChangesAsync();
+        return true;
+    }
+
 	public Task<Routine> UpdateRoutineAsync(Routine routine)
     {
         throw new NotImplementedException();

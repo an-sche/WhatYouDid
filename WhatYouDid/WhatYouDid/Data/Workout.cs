@@ -21,4 +21,7 @@ public class Workout
 
     public required DateTime StartTime { get; set; } = DateTime.Now;
     public DateTime? EndTime { get; set;}
+
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedDt { get; set; }
 }

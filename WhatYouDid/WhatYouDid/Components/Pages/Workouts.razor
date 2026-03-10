@@ -10,6 +10,7 @@
 @inject IWhatYouDidApi Api
 @inject UserManager<ApplicationUser> UserManager
 @inject NavigationManager Navigation
+@inject DialogService DialogService
 
 <PageTitle>Workout History</PageTitle>
 <RadzenText TextStyle="TextStyle.H4">Workouts</RadzenText>
@@ -23,9 +24,12 @@
 	<Columns>
 		<RadzenDataGridColumn TItem="Workout" Property="StartTime" Title="Date" Frozen="true" />
 		<RadzenDataGridColumn TItem="Workout" Property="RoutineName" Title="Name" />
-		<RadzenDataGridColumn TItem="Workout" Title="View">
+		<RadzenDataGridColumn TItem="Workout" Title="" Width="90px">
 			<Template Context="workout">
-				<RadzenButton Click="@(() => ViewWorkout(workout))">View</RadzenButton>
+				<RadzenButton Icon="visibility" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text"
+					Size="ButtonSize.Small" Click="@(() => ViewWorkout(workout))" />
+				<RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text"
+					Size="ButtonSize.Small" Click="@(() => DeleteWorkout(workout))" />
 			</Template>
 		</RadzenDataGridColumn>
 	</Columns>
@@ -89,9 +93,6 @@
 
 @code {
 
-	[CascadingParameter]
-	private Task<AuthenticationState>? authenticationState { get; set; }
-
 	private string UserId = string.Empty;
 	WorkoutDto? selectedWorkout;
 	IQueryable<Workout>? workoutsQueryable;
@@ -127,11 +128,23 @@
 			selectedWorkout = await Api.GetCompletedWorkoutDtoAsync(selectedWorkout.WorkoutId);
 	}
 
+	async Task DeleteWorkout(Workout workout)
+	{
+		var confirmed = await DialogService.Confirm(
+			"Are you sure you wish to delete the workout?",
+			"Delete Workout",
+			new ConfirmOptions { OkButtonText = "Delete", CancelButtonText = "Cancel" });
+
+		if (confirmed != true) return;
+
+		await Api.DeleteWorkoutAsync(workout.WorkoutId);
+		workoutsQueryable = Api.GetUserWorkoutsQueryable();
+		if (selectedWorkout?.WorkoutId == workout.WorkoutId)
+			selectedWorkout = null;
+	}
+
 	protected override async Task OnInitializedAsync()
 	{
-		if (authenticationState is null)
-			return;
-
 		workoutsQueryable = Api.GetUserWorkoutsQueryable();
 	}
 }
