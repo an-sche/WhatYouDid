@@ -99,8 +99,47 @@ else
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 
-    // Migrate the production server.
-    app.Services.GetRequiredService<ApplicationDbContext>().Database.Migrate();
+    // Migrate the production server, with a pre-migration backup.
+    var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+    var hasPendingMigrations = db.Database.GetPendingMigrations().Any();
+    if (hasPendingMigrations)
+    {
+        var backupPath = app.Configuration["DatabaseBackupPath"]
+            ?? throw new InvalidOperationException(
+                "DatabaseBackupPath is not configured. Add it to appsettings.json.");
+
+        if (!Directory.Exists(backupPath))
+            throw new InvalidOperationException($"Backup directory does not exist: {backupPath}");
+
+        var connection = db.Database.GetDbConnection();
+        var databaseName = connection.Database;
+        var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+        var backupFile = Path.Combine(backupPath, $"{databaseName}_{timestamp}.bak");
+
+        connection.Open();
+        try
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = $"BACKUP DATABASE [{databaseName}] TO DISK = @backupFile WITH FORMAT, INIT"; //, COMPRESSION (when using full sql)
+            cmd.CommandTimeout = 300; // 5 minutes
+            var param = cmd.CreateParameter();
+            param.ParameterName = "@backupFile";
+            param.Value = backupFile;
+            cmd.Parameters.Add(param);
+            cmd.ExecuteNonQuery();
+        }
+        finally
+        {
+            connection.Close();
+        }
+
+        Console.WriteLine($"[Backup] Completed before migration: {backupFile}");
+        
+        db.Database.Migrate();
+    }
+
 }
 
 app.UseHttpsRedirection();
