@@ -212,7 +212,7 @@
 		if (_shouldFocusFirst)
 		{
 			_shouldFocusFirst = false;
-			await JS.InvokeVoidAsync("eval", "document.querySelector('#exercise-stack input')?.focus()");
+			await JS.InvokeVoidAsync("eval", "setTimeout(() => document.querySelector('#exercise-stack input')?.focus(), 350)");
 		}
 
 		if (!AlreadyAsked && WorkoutDto != null)
