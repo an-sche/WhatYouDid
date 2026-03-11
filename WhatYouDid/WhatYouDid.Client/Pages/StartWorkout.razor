@@ -185,7 +185,7 @@
 
 	private bool AlreadyAsked = false; // Field to know if we need to check browser storage
 	private string SlidingClass = "slide-from-right";
-	private bool _shouldFocusFirst = false;
+	private bool _shouldFocusFirst = true;
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -283,8 +283,6 @@
 			WorkoutDto.ExerciseIndex--;
 
 		await BrowserStorage.SetAsync(WorkoutDto.GetBrowserStorageId, WorkoutDto);
-
-		await InvokeAsync(StateHasChanged);
 	}
 
 	private async Task OnNextClick()
@@ -298,8 +296,6 @@
 			WorkoutDto.ExerciseIndex++;
 
 		await BrowserStorage.SetAsync(WorkoutDto.GetBrowserStorageId, WorkoutDto);
-		
-		await InvokeAsync(StateHasChanged);
 	}
 
 	private async Task OnSubmitClick() 
