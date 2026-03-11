@@ -152,6 +152,13 @@ app.UseMiddleware<TenantResolutionMiddleware>();
 app.MapStaticAssets();
 app.UseAntiforgery();
 
+// Workaround for .NET 10.0.3 SDK bug: Microsoft.DotNet.HotReload.WebAssembly.Browser
+// is listed in the WASM JS module initializer manifest but is absent from publish
+// endpoints, causing WASM to fail with a MIME type error in production.
+// In development the static assets endpoint (exact match) takes priority over this.
+app.MapGet("_content/Microsoft.DotNet.HotReload.WebAssembly.Browser/{**path}",
+    () => Results.Content("export {};", "text/javascript"));
+
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode()

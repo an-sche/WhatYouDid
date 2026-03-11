@@ -8,12 +8,12 @@
 			Hi @context.User.Identity?.Name!
 		</p>
 		<p>
-			<RadzenButton ButtonStyle="ButtonStyle.Primary" Text="Start Workout" href="/routines" />
+			<a href="/routines" class="rz-button rz-button-md rz-variant-filled rz-primary rz-shade-default">Start Workout</a>
 		</p>
 	</Authorized>
 	<NotAuthorized>
 		<p>
-			<RadzenButton ButtonStyle="ButtonStyle.Primary" Text="Log In" href="/Account/Login" />
+			<a href="/Account/Login" class="rz-button rz-button-md rz-variant-filled rz-primary rz-shade-default">Log In</a>
 		</p>
 	</NotAuthorized>
 </AuthorizeView>
