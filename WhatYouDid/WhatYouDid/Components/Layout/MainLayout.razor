@@ -1,10 +1,23 @@
 ﻿@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
 
+@{
+    // The workout page uses pure WASM — skip the InteractiveServer RadzenComponents
+    // so no SignalR circuit is created, preventing reconnect prompts on mobile.
+    var isWorkoutPage = NavigationManager.ToBaseRelativePath(NavigationManager.Uri)
+        .StartsWith("workout/", StringComparison.OrdinalIgnoreCase);
+}
 
 <div class="page">
-    
-    <RadzenComponents @rendermode="InteractiveServer" />
-    <RadzenComponents @rendermode="InteractiveWebAssembly" />
+
+    @if (!isWorkoutPage)
+    {
+        <RadzenComponents @rendermode="InteractiveServer" />
+    }
+    else 
+    {
+        <RadzenComponents @rendermode="InteractiveWebAssembly" />
+    }
 
     <div class="sidebar">
         <NavMenu />

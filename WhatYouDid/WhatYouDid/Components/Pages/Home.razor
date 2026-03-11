@@ -1,8 +1,5 @@
 ﻿@page "/"
 
-@inject NavigationManager navigation
-@rendermode InteractiveServer
-
 <PageTitle>Home</PageTitle>
 
 <AuthorizeView>
@@ -11,20 +8,12 @@
 			Hi @context.User.Identity?.Name!
 		</p>
 		<p>
-			<RadzenButton 
-				ButtonStyle="ButtonStyle.Primary"
-				Click="@(() => navigation.NavigateTo("/routines"))">
-				Start Workout
-			</RadzenButton>
+			<RadzenButton ButtonStyle="ButtonStyle.Primary" Text="Start Workout" href="/routines" />
 		</p>
 	</Authorized>
 	<NotAuthorized>
 		<p>
-			<RadzenButton 
-				ButtonStyle="ButtonStyle.Primary"
-				Click="@(() => navigation.NavigateTo("/Account/Login"))">
-				Log In
-			</RadzenButton>
+			<RadzenButton ButtonStyle="ButtonStyle.Primary" Text="Log In" href="/Account/Login" />
 		</p>
 	</NotAuthorized>
 </AuthorizeView>
