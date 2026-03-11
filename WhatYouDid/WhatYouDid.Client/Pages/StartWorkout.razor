@@ -11,6 +11,7 @@
 @inject DialogService DialogService
 @inject NavigationManager Navigation
 @inject HttpClient Http
+@inject IJSRuntime JS
 
 @if (WorkoutDto is null) {
 	if (Loaded)
@@ -42,10 +43,11 @@
 
 		var workoutExercise = WorkoutDto.WorkoutExercises[WorkoutDto.ExerciseIndex];
 		
-		<RadzenStack @key="@workoutExercise.ExerciseName" 
-			Orientation="Orientation.Vertical" 
+		<RadzenStack @key="@workoutExercise.ExerciseName"
+			Orientation="Orientation.Vertical"
 			JustifyContent="JustifyContent.Normal"
-			Class="@SlidingClass">
+			Class="@SlidingClass"
+			id="exercise-stack">
 
 			@for (int i = 0; i < workoutExercise.Sets; i++)
 			{
@@ -160,8 +162,9 @@
 	/* prevents animations from going outside the exercise window (over the menu) */
 	.exercise-wrapper {
 		position: relative;
-		overflow: hidden;
+		overflow-x: hidden;
 		width: 100%;
+		padding-bottom: 3rem;
 	}
 
 </style>
@@ -182,6 +185,7 @@
 
 	private bool AlreadyAsked = false; // Field to know if we need to check browser storage
 	private string SlidingClass = "slide-from-right";
+	private bool _shouldFocusFirst = false;
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -205,6 +209,12 @@
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
+		if (_shouldFocusFirst)
+		{
+			_shouldFocusFirst = false;
+			await JS.InvokeVoidAsync("eval", "document.querySelector('#exercise-stack input')?.focus()");
+		}
+
 		if (!AlreadyAsked && WorkoutDto != null)
 		{
 			AlreadyAsked = true;
@@ -258,14 +268,16 @@
 			? "slide-from-left"
 			: "slide-from-right";
 
+		_shouldFocusFirst = true;
 		WorkoutDto.ExerciseIndex = newIndex;
 	}
 
-	private async Task OnBackClick() 
+	private async Task OnBackClick()
 	{
 		if (WorkoutDto is null) return;
 
-        SlidingClass = "slide-from-left";
+		SlidingClass = "slide-from-left";
+		_shouldFocusFirst = true;
 
 		if (WorkoutDto.ExerciseIndex > 0)
 			WorkoutDto.ExerciseIndex--;
@@ -278,8 +290,9 @@
 	private async Task OnNextClick()
 	{
 		if (WorkoutDto is null) return;
-		
+
 		SlidingClass = "slide-from-right";
+		_shouldFocusFirst = true;
 
 		if (WorkoutDto.ExerciseIndex < WorkoutDto.WorkoutExercises?.Count)
 			WorkoutDto.ExerciseIndex++;
