@@ -42,7 +42,17 @@
 			Change="@OnDropdownValueChanged" />
 
 		var workoutExercise = WorkoutDto.WorkoutExercises[WorkoutDto.ExerciseIndex];
-		
+		bool hasLastValues = (workoutExercise.HasReps || workoutExercise.HasWeights || workoutExercise.HasDurations)
+			&& ((workoutExercise.LastReps?.Any(r => r != null) == true) ||
+			(workoutExercise.LastWeights?.Any(w => w != null) == true) ||
+			(workoutExercise.LastDurations?.Any(d => d != null) == true));
+
+		@if (hasLastValues)
+		{
+			<RadzenButton Class="rz-m-2" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small"
+				Icon="history" Click="OnAutofillLastTime" />
+		}
+
 		<RadzenStack @key="@workoutExercise.ExerciseName"
 			Orientation="Orientation.Vertical"
 			JustifyContent="JustifyContent.Normal"
@@ -270,6 +280,21 @@
 
 		_shouldFocusFirst = true;
 		WorkoutDto.ExerciseIndex = newIndex;
+	}
+
+	private void OnAutofillLastTime()
+	{
+		if (WorkoutDto?.WorkoutExercises is null) return;
+		var ex = WorkoutDto.WorkoutExercises[WorkoutDto.ExerciseIndex];
+		for (int i = 0; i < ex.Sets; i++)
+		{
+			if (ex.HasReps && ex.LastReps != null && ex.LastReps.Length > i)
+				ex.Reps[i] = ex.LastReps[i];
+			if (ex.HasWeights && ex.LastWeights != null && ex.LastWeights.Length > i)
+				ex.Weights[i] = ex.LastWeights[i];
+			if (ex.HasDurations && ex.LastDurations != null && ex.LastDurations.Length > i)
+				ex.Durations[i] = ex.LastDurations[i];
+		}
 	}
 
 	private async Task OnBackClick()
