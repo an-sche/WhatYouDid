@@ -78,6 +78,7 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 builder.Services.AddTransient<IWhatYouDidApi, WhatYouDidApiDirectAccess>();
 builder.Services.AddScoped<IBrowserStorage, ServerBrowserStorage>();
 builder.Services.AddHostedService<AdminRoleSeeder>();
+builder.Services.AddHostedService<DevDataSeeder>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped(sp =>
 {
