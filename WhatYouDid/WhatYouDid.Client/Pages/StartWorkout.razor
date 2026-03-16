@@ -334,7 +334,7 @@
 		try
 		{
 			var response = await Http.PostAsJsonAsync("api/workouts", WorkoutDto);
-			
+
 			response.EnsureSuccessStatusCode();
 			try
 			{
@@ -343,9 +343,12 @@
 			catch { }
 
 			// Send the user to the Workouts page...
-			Navigation.NavigateTo("/workouts");
+			Navigation.NavigateTo("/workouts", forceLoad: true);
 		}
-		catch { }
+		catch
+		{
+			await DialogService.Alert("Your workout could not be saved. Please try again.", "Error");
+		}
 		finally { Saving = false; }
 	}
 }
