@@ -222,29 +222,43 @@ public class WhatYouDidApiDirectAccess(
     {
         using var db = await dbFactory.CreateDbContextAsync();
 
-        return await db.Workouts
+        var workoutExercises = await (
+            from we in db.WorkoutExercises
+            where we.WorkoutId == workoutId
+            join ex in db.Exercises.IgnoreQueryFilters()
+                on we.ExerciseId equals ex.ExerciseId into exJoin
+            from ex in exJoin.DefaultIfEmpty()
+            select new WorkoutExerciseDto
+            {
+                Sequence = ex != null ? ex.Sequence : 0,
+                ExerciseId = we.ExerciseId ?? 0,
+                ExerciseName = we.ExerciseName,
+                Sets = ex != null ? ex.Sets : 0,
+
+                HasReps = ex != null && ex.HasReps,
+                HasWeights = ex != null && ex.HasWeight,
+                HasDurations = ex != null && ex.HasDuration,
+
+                Reps = we.Reps.ToArray(),
+                Weights = we.Weights.ToArray(),
+                Durations = we.Durations.ToArray(),
+            })
+            .ToListAsync();
+
+        var workout = await db.Workouts
             .Where(x => x.WorkoutId == workoutId)
             .Select(x => new WorkoutDto()
             {
                 WorkoutId = x.WorkoutId,
                 RoutineName = x.RoutineName,
                 RoutineId = x.RoutineId ?? 0,
-                WorkoutExercises = x.WorkoutExercise!.Select(e => new WorkoutExerciseDto()
-                {
-                    Sequence = e.Exercise!.Sequence,
-                    ExerciseId = e.ExerciseId ?? 0,
-                    ExerciseName = e.ExerciseName,
-                    Sets = e.Exercise.Sets,
-
-                    HasReps = e.Exercise.HasReps,
-                    HasWeights = e.Exercise.HasWeight,
-                    HasDurations = e.Exercise.HasDuration,
-
-                    Reps = e.Reps.ToArray(),
-                    Weights = e.Weights.ToArray(),
-                    Durations = e.Durations.ToArray(),
-                }).ToList()
             })
             .FirstOrDefaultAsync();
+
+        if (workout is null)
+            return null;
+
+        workout.WorkoutExercises = workoutExercises;
+        return workout;
     }
 }
