@@ -20,7 +20,7 @@ else
 {
     foreach (var workout in workouts)
     {
-        <WorkoutCard Workout="@workout" OnDeleted="LoadPage" />
+        <WorkoutCard @key="@workout.WorkoutId" Workout="@workout" OnDeleted="LoadPage" />
     }
 
     <RadzenPager @ref="pager" Count="totalWorkouts" PageSize="pageSize" PageNumbersCount="5" PageChanged="OnPageChanged" />
