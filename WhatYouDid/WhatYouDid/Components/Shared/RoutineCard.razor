@@ -1,0 +1,67 @@
+@inject IWhatYouDidApi Api
+@inject NavigationManager Navigation
+
+<RadzenCard class="routine-card">
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+        <RadzenText TextStyle="TextStyle.H6" Style="margin: 0">@Name</RadzenText>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="8px">
+            <RadzenButton Text="@(expanded ? "Hide" : "View")"
+                          Icon="@(expanded ? "expand_less" : "expand_more")"
+                          ButtonStyle="ButtonStyle.Secondary"
+                          Variant="Variant.Outlined"
+                          Size="ButtonSize.Small"
+                          Click="ToggleExpanded" />
+            <RadzenButton Text="Start"
+                          Icon="play_arrow"
+                          ButtonStyle="ButtonStyle.Primary"
+                          Size="ButtonSize.Small"
+                          Click="StartWorkout" />
+        </RadzenStack>
+    </RadzenStack>
+
+    @if (expanded)
+    {
+        <RadzenStack Gap="4px" Style="margin-top: 12px">
+            @if (exercises is null)
+            {
+                <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" />
+            }
+            else
+            {
+                @foreach (var exercise in exercises)
+                {
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="8px" Style="padding: 6px 0; border-top: 1px solid var(--rz-border-disabled-color)">
+                        <RadzenText Style="flex: 1; margin: 0">@exercise.Sequence. @exercise.Name</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0; color: var(--rz-text-secondary-color)">@exercise.Sets set@(exercise.Sets != 1 ? "s" : "")</RadzenText>
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap="2px">
+                            <RadzenIcon Icon="123" Style="@(exercise.HasReps ? "opacity: 1.0; font-size: 1rem" : "opacity: 0.15; font-size: 1rem")" />
+                            <RadzenIcon Icon="fitness_center" Style="@(exercise.HasWeight ? "opacity: 1.0; font-size: 1rem" : "opacity: 0.15; font-size: 1rem")" />
+                            <RadzenIcon Icon="timer" Style="@(exercise.HasDuration ? "opacity: 1.0; font-size: 1rem" : "opacity: 0.15; font-size: 1rem")" />
+                        </RadzenStack>
+                    </RadzenStack>
+                }
+            }
+        </RadzenStack>
+    }
+</RadzenCard>
+
+@code {
+
+    [Parameter, EditorRequired] 
+    public required string Name { get; set; }
+
+    [Parameter, EditorRequired]
+    public required int RoutineId { get; set; }
+
+    bool expanded = false;
+    List<Exercise>? exercises;
+
+    void ToggleExpanded()
+    {
+        expanded = !expanded;
+        if (expanded && exercises is null)
+            exercises = Api.GetExercises(RoutineId).ToList();
+    }
+
+    void StartWorkout() => Navigation.NavigateTo($"workout/{RoutineId}");
+}
