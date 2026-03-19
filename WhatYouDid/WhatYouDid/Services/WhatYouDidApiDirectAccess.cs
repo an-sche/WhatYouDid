@@ -1,11 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using WhatYouDid.Data;
 using WhatYouDid.Shared;
 
 namespace WhatYouDid.Services;
 
 public class WhatYouDidApiDirectAccess(
-    ApplicationDbContext db,
+    IDbContextFactory<ApplicationDbContext> dbFactory,
     ITenantService tenantService
 ) : IWhatYouDidApi
 {
@@ -13,6 +13,8 @@ public class WhatYouDidApiDirectAccess(
     {
         if (string.IsNullOrEmpty(tenantService.Tenant))
             throw new Exception("Could not resolve tenant");
+
+        using var db = await dbFactory.CreateDbContextAsync();
 
         var routine = new Routine
         {
@@ -38,6 +40,8 @@ public class WhatYouDidApiDirectAccess(
 
     public async void DeleteRoutineAsync(int routineId)
     {
+        using var db = await dbFactory.CreateDbContextAsync();
+
         var result = await db.Routines.FirstOrDefaultAsync(x => x.RoutineId == routineId);
         if (result is null)
             return;
@@ -46,48 +50,63 @@ public class WhatYouDidApiDirectAccess(
         await db.SaveChangesAsync();
     }
 
-	public IQueryable<Exercise> GetExercises(int routineId)
-	{
-        return db.Exercises.Where(x => x.RoutineId == routineId);
-	}
-
-	public async Task<Routine?> GetRoutineAsync(int routineId)
+    public async Task<List<Exercise>> GetExercisesAsync(int routineId)
     {
-        var result = await db.Routines
+        using var db = await dbFactory.CreateDbContextAsync();
+        return await db.Exercises.Where(x => x.RoutineId == routineId).ToListAsync();
+    }
+
+    public async Task<Routine?> GetRoutineAsync(int routineId)
+    {
+        using var db = await dbFactory.CreateDbContextAsync();
+        return await db.Routines
             .Include(x => x.Exercises)
             .FirstOrDefaultAsync(x => x.RoutineId == routineId);
-        return result;
     }
 
     public async Task<List<Routine>> GetRoutinesAsync()
     {
+        using var db = await dbFactory.CreateDbContextAsync();
         return await db.Routines.ToListAsync();
     }
 
-    public IQueryable<Routine> GetUserRoutinesQueryable()
+    public async Task<List<Routine>> GetUserRoutinesAsync()
     {
-        // Tenant filtering is applied globally via DbContext query filters.
-        return db.Routines.OrderBy(x => x.Name);
+        using var db = await dbFactory.CreateDbContextAsync();
+        return await db.Routines.OrderBy(x => x.Name).ToListAsync();
     }
 
-    public IQueryable<Workout> GetUserWorkoutsQueryable()
+    public async Task<int> GetWorkoutsCountAsync()
     {
-        return db.Workouts.OrderByDescending(x => x.StartTime);
+        using var db = await dbFactory.CreateDbContextAsync();
+        return await db.Workouts.CountAsync();
+    }
+
+    public async Task<List<Workout>> GetWorkoutsAsync(int startIndex, int count)
+    {
+        using var db = await dbFactory.CreateDbContextAsync();
+        return await db.Workouts
+            .OrderByDescending(x => x.StartTime)
+            .Skip(startIndex)
+            .Take(count)
+            .ToListAsync();
     }
 
     public async Task<WorkoutDto?> GetStartWorkoutDtoAsync(int routineId)
-	{
-        return  await 
+    {
+        using var db = await dbFactory.CreateDbContextAsync();
+
+        return await
                 (from routine in db.Routines.AsNoTracking()
                 where routine.RoutineId == routineId
-                select new WorkoutDto() 
+                select new WorkoutDto()
                 {
                     WorkoutId = Guid.CreateVersion7(),
 
                     RoutineId = routineId,
                     RoutineName = routine.Name,
 
-                    WorkoutExercises = 
+                    WorkoutExercises =
                         (from exercise in routine.Exercises
                         join pastExercise in db.WorkoutExercises on exercise.ExerciseId equals pastExercise.ExerciseId into pastExercises
                         from pastExercise in pastExercises
@@ -112,17 +131,16 @@ public class WhatYouDidApiDirectAccess(
                             Weights = new int?[exercise.Sets],
                         }).ToList()
                 }).FirstOrDefaultAsync();
-	}
+    }
 
-    public async Task<bool> SaveWorkoutAsync(WorkoutDto workoutDto) 
+    public async Task<bool> SaveWorkoutAsync(WorkoutDto workoutDto)
     {
         if (string.IsNullOrEmpty(tenantService.Tenant))
-        {
             throw new Exception("Could not resolve tenant");
-        }
 
-        // convert that to my db object,
-        var workout = new Workout() 
+        using var db = await dbFactory.CreateDbContextAsync();
+
+        var workout = new Workout()
         {
             WorkoutId = workoutDto.WorkoutId,
             ApplicationUserId = tenantService.Tenant,
@@ -131,7 +149,7 @@ public class WhatYouDidApiDirectAccess(
             StartTime = workoutDto.StartTime,
             EndTime = DateTime.Now,
         };
-        
+
         var exercises = new List<WorkoutExercise>();
 
         if (workoutDto.WorkoutExercises is not null) {
@@ -141,10 +159,10 @@ public class WhatYouDidApiDirectAccess(
                     ApplicationUserId = tenantService.Tenant,
                     ExerciseId = exerciseDto.ExerciseId,
                     ExerciseName = exerciseDto.ExerciseName,
-                };            
+                };
                 if (exerciseDto.HasReps) {
                     exercise.Reps = exerciseDto.Reps.ToList();
-                } 
+                }
                 if (exerciseDto.HasWeights) {
                     exercise.Weights = exerciseDto.Weights.ToList();
                 }
@@ -155,16 +173,17 @@ public class WhatYouDidApiDirectAccess(
             }
         }
         workout.WorkoutExercise = exercises;
-        
+
         await db.Workouts.AddAsync(workout);
         await db.SaveChangesAsync();
 
-        // add that to my db table (s) 
         return true;
     }
 
     public async Task<bool> UpdateWorkoutExerciseAsync(Guid workoutId, WorkoutExerciseDto exerciseDto)
     {
+        using var db = await dbFactory.CreateDbContextAsync();
+
         var entity = await db.WorkoutExercises
             .FirstOrDefaultAsync(x => x.WorkoutId == workoutId && x.ExerciseId == exerciseDto.ExerciseId);
 
@@ -183,6 +202,8 @@ public class WhatYouDidApiDirectAccess(
 
     public async Task<bool> DeleteWorkoutAsync(Guid workoutId)
     {
+        using var db = await dbFactory.CreateDbContextAsync();
+
         var workout = await db.Workouts.FirstOrDefaultAsync(w => w.WorkoutId == workoutId);
         if (workout is null) return false;
 
@@ -192,37 +213,38 @@ public class WhatYouDidApiDirectAccess(
         return true;
     }
 
-	public Task<Routine> UpdateRoutineAsync(Routine routine)
+    public Task<Routine> UpdateRoutineAsync(Routine routine)
     {
         throw new NotImplementedException();
     }
 
     public async Task<WorkoutDto?> GetCompletedWorkoutDtoAsync(Guid workoutId)
-	{
+    {
+        using var db = await dbFactory.CreateDbContextAsync();
+
         return await db.Workouts
             .Where(x => x.WorkoutId == workoutId)
-            .Select(x => new WorkoutDto() 
+            .Select(x => new WorkoutDto()
             {
                 WorkoutId = x.WorkoutId,
                 RoutineName = x.RoutineName,
                 RoutineId = x.RoutineId ?? 0,
-			    WorkoutExercises = x.WorkoutExercise!.Select(e => new WorkoutExerciseDto()
-			    {
-				    Sequence = e.Exercise!.Sequence,
-				    ExerciseId = e.ExerciseId ?? 0,
-				    ExerciseName = e.ExerciseName,
-				    Sets = e.Exercise.Sets,
+                WorkoutExercises = x.WorkoutExercise!.Select(e => new WorkoutExerciseDto()
+                {
+                    Sequence = e.Exercise!.Sequence,
+                    ExerciseId = e.ExerciseId ?? 0,
+                    ExerciseName = e.ExerciseName,
+                    Sets = e.Exercise.Sets,
 
-				    HasReps = e.Exercise.HasReps,
-				    HasWeights = e.Exercise.HasWeight,
-				    HasDurations = e.Exercise.HasDuration,
+                    HasReps = e.Exercise.HasReps,
+                    HasWeights = e.Exercise.HasWeight,
+                    HasDurations = e.Exercise.HasDuration,
 
-				    // For the user to fill in
-				    Reps = e.Reps.ToArray(),
-				    Weights = e.Weights.ToArray(),
-				    Durations = e.Durations.ToArray(),
-			    }).ToList()
-		    })
+                    Reps = e.Reps.ToArray(),
+                    Weights = e.Weights.ToArray(),
+                    Durations = e.Durations.ToArray(),
+                }).ToList()
+            })
             .FirstOrDefaultAsync();
-	}
+    }
 }

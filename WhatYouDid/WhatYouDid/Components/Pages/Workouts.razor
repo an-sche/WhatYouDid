@@ -25,12 +25,11 @@
 
     Virtualize<Workout>? virtualizeRef;
 
-    private ValueTask<ItemsProviderResult<Workout>> LoadWorkouts(ItemsProviderRequest request)
+    private async ValueTask<ItemsProviderResult<Workout>> LoadWorkouts(ItemsProviderRequest request)
     {
-        var queryable = Api.GetUserWorkoutsQueryable();
-        var total = queryable.Count();
-        var items = queryable.Skip(request.StartIndex).Take(request.Count).ToList();
-        return ValueTask.FromResult(new ItemsProviderResult<Workout>(items, total));
+        var total = await Api.GetWorkoutsCountAsync();
+        var items = await Api.GetWorkoutsAsync(request.StartIndex, request.Count);
+        return new ItemsProviderResult<Workout>(items, total);
     }
 
     async Task RefreshList()

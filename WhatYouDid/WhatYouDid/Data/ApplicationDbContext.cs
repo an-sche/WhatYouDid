@@ -8,19 +8,21 @@ public class ApplicationDbContext(
     ITenantService tenantService
 ) : IdentityDbContext<ApplicationUser>(options)
 {
+    private readonly string _tenant = tenantService.Tenant;
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.Entity<Workout>()
-            .HasQueryFilter(w => w.ApplicationUserId == tenantService.Tenant && !w.IsDeleted);
+            .HasQueryFilter(w => w.ApplicationUserId == _tenant && !w.IsDeleted);
 
         builder.Entity<Routine>()
-            .HasQueryFilter(r => r.CreateUserId == tenantService.Tenant || r.IsPublic);
+            .HasQueryFilter(r => r.CreateUserId == _tenant || r.IsPublic);
 
         builder.Entity<Exercise>()
-            .HasQueryFilter(w => w.ApplicationUserId == tenantService.Tenant || w.Routine!.IsPublic);
+            .HasQueryFilter(w => w.ApplicationUserId == _tenant || w.Routine!.IsPublic);
 
         builder.Entity<WorkoutExercise>()
-            .HasQueryFilter(w => w.ApplicationUserId == tenantService.Tenant);
+            .HasQueryFilter(w => w.ApplicationUserId == _tenant);
 
         base.OnModelCreating(builder);
     }

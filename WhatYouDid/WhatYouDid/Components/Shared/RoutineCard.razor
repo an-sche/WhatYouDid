@@ -56,11 +56,11 @@
     bool expanded = false;
     List<Exercise>? exercises;
 
-    void ToggleExpanded()
+    async Task ToggleExpanded()
     {
         expanded = !expanded;
         if (expanded && exercises is null)
-            exercises = Api.GetExercises(RoutineId).ToList();
+            exercises = await Api.GetExercisesAsync(RoutineId);
     }
 
     void StartWorkout() => Navigation.NavigateTo($"workout/{RoutineId}");

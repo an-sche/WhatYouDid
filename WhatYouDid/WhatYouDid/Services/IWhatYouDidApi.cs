@@ -8,9 +8,10 @@ public interface IWhatYouDidApi
     // All methods assume the current tenant has been resolved in the scoped
     // DbContext (via ITenantService). No caller should pass user id.
 
-    IQueryable<Routine> GetUserRoutinesQueryable();
-    IQueryable<Workout> GetUserWorkoutsQueryable();
-    IQueryable<Exercise> GetExercises(int routineId);
+    Task<List<Routine>> GetUserRoutinesAsync();
+    Task<List<Exercise>> GetExercisesAsync(int routineId);
+    Task<int> GetWorkoutsCountAsync();
+    Task<List<Workout>> GetWorkoutsAsync(int startIndex, int count);
 
     Task<List<Routine>> GetRoutinesAsync();
     Task<Routine?> GetRoutineAsync(int routineId);
