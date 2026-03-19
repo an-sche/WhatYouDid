@@ -10,37 +10,43 @@
 <PageTitle>Workout History</PageTitle>
 <RadzenText TextStyle="TextStyle.H4">Workouts</RadzenText>
 
-<Virtualize ItemsProvider="LoadWorkouts" ItemSize="80" OverscanCount="3" @ref="virtualizeRef">
-    <ItemContent>
-        <WorkoutCard Workout="@context" OnDeleted="RefreshList" />
-    </ItemContent>
-    <Placeholder>
-        <RadzenCard Style="margin-bottom: 8px">
-            <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" />
-        </RadzenCard>
-    </Placeholder>
-</Virtualize>
+@if (workouts is null)
+{
+    <RadzenCard Style="margin-bottom: 8px">
+        <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" />
+    </RadzenCard>
+}
+else
+{
+    foreach (var workout in workouts)
+    {
+        <WorkoutCard Workout="@workout" OnDeleted="LoadPage" />
+    }
+
+    <RadzenPager @ref="pager" Count="totalWorkouts" PageSize="pageSize" PageNumbersCount="5" PageChanged="OnPageChanged" />
+}
 
 @code {
 
-    Virtualize<Workout>? virtualizeRef;
+    RadzenPager? pager;
+    List<Workout>? workouts;
     int totalWorkouts;
+    const int pageSize = 10;
 
     protected override async Task OnInitializedAsync()
     {
-        totalWorkouts = await Api.GetWorkoutsCountAsync();
+        await LoadPage();
     }
 
-    private async ValueTask<ItemsProviderResult<Workout>> LoadWorkouts(ItemsProviderRequest request)
+    private async Task LoadPage()
     {
-        var items = await Api.GetWorkoutsAsync(request.StartIndex, request.Count);
-        return new ItemsProviderResult<Workout>(items, totalWorkouts);
+        var currentPage = pager?.CurrentPage ?? 0;
+        totalWorkouts = await Api.GetWorkoutsCountAsync();
+        workouts = await Api.GetWorkoutsAsync(currentPage * pageSize, pageSize);
     }
 
-    async Task RefreshList()
+    private async Task OnPageChanged(PagerEventArgs args)
     {
-        totalWorkouts = await Api.GetWorkoutsCountAsync();
-        if (virtualizeRef is not null)
-            await virtualizeRef.RefreshDataAsync();
+        workouts = await Api.GetWorkoutsAsync(args.Skip, args.Top);
     }
 }
