@@ -24,16 +24,22 @@
 @code {
 
     Virtualize<Workout>? virtualizeRef;
+    int totalWorkouts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        totalWorkouts = await Api.GetWorkoutsCountAsync();
+    }
 
     private async ValueTask<ItemsProviderResult<Workout>> LoadWorkouts(ItemsProviderRequest request)
     {
-        var total = await Api.GetWorkoutsCountAsync();
         var items = await Api.GetWorkoutsAsync(request.StartIndex, request.Count);
-        return new ItemsProviderResult<Workout>(items, total);
+        return new ItemsProviderResult<Workout>(items, totalWorkouts);
     }
 
     async Task RefreshList()
     {
+        totalWorkouts = await Api.GetWorkoutsCountAsync();
         if (virtualizeRef is not null)
             await virtualizeRef.RefreshDataAsync();
     }
