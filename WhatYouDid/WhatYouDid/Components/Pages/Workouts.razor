@@ -1,150 +1,41 @@
 @page "/workouts"
 @using WhatYouDid
 @using Microsoft.AspNetCore.Authorization
-@using Microsoft.AspNetCore.Identity
-@using System.Text
-@using System.Security.Claims
 @using WhatYouDid.Shared
 @attribute [Authorize]
 @rendermode InteractiveServer
 @inject IWhatYouDidApi Api
-@inject UserManager<ApplicationUser> UserManager
-@inject NavigationManager Navigation
 @inject DialogService DialogService
 
 <PageTitle>Workout History</PageTitle>
 <RadzenText TextStyle="TextStyle.H4">Workouts</RadzenText>
 
-<RadzenDataGrid IsLoading="@(workoutsQueryable is null)"
-				Data="@workoutsQueryable"
-				TItem="Workout"
-				AllowPaging="true"
-				PageSize="5"
-				Density="@Density.Compact">
-	<Columns>
-		<RadzenDataGridColumn TItem="Workout" Property="StartTime" Title="Date" Frozen="true" />
-		<RadzenDataGridColumn TItem="Workout" Property="RoutineName" Title="Name" />
-		<RadzenDataGridColumn TItem="Workout" Title="" Width="90px">
-			<Template Context="workout">
-				<RadzenButton Icon="visibility" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text"
-					Size="ButtonSize.Small" Click="@(() => ViewWorkout(workout))" />
-				<RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text"
-					Size="ButtonSize.Small" Click="@(() => DeleteWorkout(workout))" />
-			</Template>
-		</RadzenDataGridColumn>
-	</Columns>
-</RadzenDataGrid>
-
-@if (selectedWorkout is not null)
-{
-	<RadzenText TextStyle="TextStyle.H5">@selectedWorkout.RoutineName</RadzenText>
-	<RadzenDataGrid Data="@selectedWorkout.WorkoutExercises" TItem="WorkoutExerciseDto" Density="Density.Compact">
-		<Columns>
-			<RadzenDataGridColumn TItem="WorkoutExerciseDto" Property="Sequence" Title="#" Width="50px" />
-			<RadzenDataGridColumn TItem="WorkoutExerciseDto" Property="ExerciseName" Title="Exercise" />
-			<RadzenDataGridColumn TItem="WorkoutExerciseDto" Title="Review">
-				<Template Context="exercise">
-					@if (editingExercise == exercise)
-					{
-						@for (int i = 0; i < exercise.Sets; i++)
-						{
-							var setIndex = i;
-							<span>Set @(setIndex + 1):&nbsp;</span>
-							@if (exercise.HasReps)
-							{
-								<RadzenNumeric TValue="int?" @bind-Value="exercise.Reps[setIndex]" Style="width:65px" />
-								<span>&nbsp;reps&nbsp;</span>
-							}
-							@if (exercise.HasWeights)
-							{
-								<RadzenNumeric TValue="int?" @bind-Value="exercise.Weights[setIndex]" Style="width:65px" />
-								<span>&nbsp;lbs&nbsp;</span>
-							}
-							@if (exercise.HasDurations)
-							{
-								<RadzenNumeric TValue="int?" @bind-Value="exercise.Durations[setIndex]" Style="width:65px" />
-								<span>&nbsp;sec&nbsp;</span>
-							}
-							<br />
-						}
-					}
-					else
-					{
-						@exercise.Review
-					}
-				</Template>
-			</RadzenDataGridColumn>
-			<RadzenDataGridColumn TItem="WorkoutExerciseDto" Title="" Width="130px">
-				<Template Context="exercise">
-					@if (editingExercise == exercise)
-					{
-						<RadzenButton Text="Save" IsBusy="saving" Click="() => SaveExerciseEdit(exercise)" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
-						<RadzenButton Text="Cancel" Click="CancelExerciseEdit" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" />
-					}
-					else
-					{
-						<RadzenButton Text="Edit" Click="() => editingExercise = exercise" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" Disabled="saving" />
-					}
-				</Template>
-			</RadzenDataGridColumn>
-		</Columns>
-	</RadzenDataGrid>
-}
+<Virtualize ItemsProvider="LoadWorkouts" ItemSize="80" OverscanCount="3" @ref="virtualizeRef">
+    <ItemContent>
+        <WorkoutCard Workout="@context" OnDeleted="RefreshList" />
+    </ItemContent>
+    <Placeholder>
+        <RadzenCard Style="margin-bottom: 8px">
+            <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" />
+        </RadzenCard>
+    </Placeholder>
+</Virtualize>
 
 @code {
 
-	private string UserId = string.Empty;
-	WorkoutDto? selectedWorkout;
-	IQueryable<Workout>? workoutsQueryable;
-	WorkoutExerciseDto? editingExercise;
-	bool saving = false;
+    Virtualize<Workout>? virtualizeRef;
 
-	async Task ViewWorkout(Workout workout)
-	{
-		editingExercise = null;
-		selectedWorkout = await Api.GetCompletedWorkoutDtoAsync(workout.WorkoutId);
-	}
+    private ValueTask<ItemsProviderResult<Workout>> LoadWorkouts(ItemsProviderRequest request)
+    {
+        var queryable = Api.GetUserWorkoutsQueryable();
+        var total = queryable.Count();
+        var items = queryable.Skip(request.StartIndex).Take(request.Count).ToList();
+        return ValueTask.FromResult(new ItemsProviderResult<Workout>(items, total));
+    }
 
-	private async Task SaveExerciseEdit(WorkoutExerciseDto exercise)
-	{
-		if (selectedWorkout is null) return;
-		saving = true;
-		StateHasChanged();
-		try
-		{
-			await Api.UpdateWorkoutExerciseAsync(selectedWorkout.WorkoutId, exercise);
-			editingExercise = null;
-		}
-		finally
-		{
-			saving = false;
-		}
-	}
-
-	private async Task CancelExerciseEdit()
-	{
-		editingExercise = null;
-		if (selectedWorkout is not null)
-			selectedWorkout = await Api.GetCompletedWorkoutDtoAsync(selectedWorkout.WorkoutId);
-	}
-
-	async Task DeleteWorkout(Workout workout)
-	{
-		var confirmed = await DialogService.Confirm(
-			"Are you sure you wish to delete the workout?",
-			"Delete Workout",
-			new ConfirmOptions { OkButtonText = "Delete", CancelButtonText = "Cancel" });
-
-		if (confirmed != true) return;
-
-		await Api.DeleteWorkoutAsync(workout.WorkoutId);
-		workoutsQueryable = Api.GetUserWorkoutsQueryable();
-		if (selectedWorkout?.WorkoutId == workout.WorkoutId)
-			selectedWorkout = null;
-	}
-
-	protected override async Task OnInitializedAsync()
-	{
-		workoutsQueryable = Api.GetUserWorkoutsQueryable();
-	}
+    async Task RefreshList()
+    {
+        if (virtualizeRef is not null)
+            await virtualizeRef.RefreshDataAsync();
+    }
 }

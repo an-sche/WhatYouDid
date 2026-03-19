@@ -1,0 +1,145 @@
+@inject IWhatYouDidApi Api
+@inject DialogService DialogService
+@using WhatYouDid.Shared
+
+<RadzenCard Style="margin-bottom: 8px">
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+        <RadzenStack Gap="2px">
+            <RadzenText TextStyle="TextStyle.Body1" Style="margin: 0; font-weight: 600">@Workout.RoutineName</RadzenText>
+            <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0; color: var(--rz-text-secondary-color)">
+                @Workout.StartTime.ToString("MMM d, yyyy h:mm tt")
+            </RadzenText>
+        </RadzenStack>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0">
+            <RadzenButton Icon="@(expanded ? "expand_less" : "expand_more")"
+                          ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text"
+                          Size="ButtonSize.Small" Click="ToggleExpanded" />
+            <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text"
+                          Size="ButtonSize.Small" Click="DeleteWorkout" />
+        </RadzenStack>
+    </RadzenStack>
+
+    @if (expanded)
+    {
+        <RadzenStack Gap="0" Style="margin-top: 12px">
+            @if (detail is null)
+            {
+                <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" />
+            }
+            else
+            {
+                @foreach (var exercise in detail.WorkoutExercises ?? [])
+                {
+                    <RadzenStack Gap="6px" Style="padding: 10px 0; border-top: 1px solid var(--rz-border-disabled-color)">
+                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+                            <RadzenText TextStyle="TextStyle.Body2" Style="margin: 0; font-weight: 600">
+                                @exercise.Sequence. @exercise.ExerciseName
+                            </RadzenText>
+                            @if (editingExercise == exercise)
+                            {
+                                <RadzenStack Orientation="Orientation.Horizontal" Gap="4px">
+                                    <RadzenButton Text="Save" IsBusy="saving"
+                                                  Click="() => SaveExerciseEdit(exercise)"
+                                                  ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
+                                    <RadzenButton Text="Cancel" Click="CancelExerciseEdit"
+                                                  ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" />
+                                </RadzenStack>
+                            }
+                            else
+                            {
+                                <RadzenButton Text="Edit" Click="() => editingExercise = exercise"
+                                              ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small"
+                                              Disabled="saving" />
+                            }
+                        </RadzenStack>
+
+                        @if (editingExercise == exercise)
+                        {
+                            @for (int i = 0; i < exercise.Sets; i++)
+                            {
+                                var setIndex = i;
+                                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="6px" Style="flex-wrap: wrap">
+                                    <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0; min-width: 40px">Set @(setIndex + 1)</RadzenText>
+                                    @if (exercise.HasReps)
+                                    {
+                                        <RadzenNumeric TValue="int?" @bind-Value="exercise.Reps[setIndex]" Style="width: 65px" />
+                                        <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0">reps</RadzenText>
+                                    }
+                                    @if (exercise.HasWeights)
+                                    {
+                                        <RadzenNumeric TValue="int?" @bind-Value="exercise.Weights[setIndex]" Style="width: 65px" />
+                                        <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0">lbs</RadzenText>
+                                    }
+                                    @if (exercise.HasDurations)
+                                    {
+                                        <RadzenNumeric TValue="int?" @bind-Value="exercise.Durations[setIndex]" Style="width: 65px" />
+                                        <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0">sec</RadzenText>
+                                    }
+                                </RadzenStack>
+                            }
+                        }
+                        else
+                        {
+                            <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0; white-space: pre-line; color: var(--rz-text-secondary-color)">
+                                @exercise.Review
+                            </RadzenText>
+                        }
+                    </RadzenStack>
+                }
+            }
+        </RadzenStack>
+    }
+</RadzenCard>
+
+@code {
+    [Parameter, EditorRequired] public required Workout Workout { get; set; }
+    [Parameter] public EventCallback OnDeleted { get; set; }
+
+    bool expanded = false;
+    WorkoutDto? detail;
+    WorkoutExerciseDto? editingExercise;
+    bool saving = false;
+
+    async Task ToggleExpanded()
+    {
+        expanded = !expanded;
+        if (expanded && detail is null)
+            detail = await Api.GetCompletedWorkoutDtoAsync(Workout.WorkoutId);
+    }
+
+    async Task SaveExerciseEdit(WorkoutExerciseDto exercise)
+    {
+        if (detail is null) return;
+        saving = true;
+        StateHasChanged();
+        try
+        {
+            await Api.UpdateWorkoutExerciseAsync(detail.WorkoutId, exercise);
+            editingExercise = null;
+        }
+        finally
+        {
+            saving = false;
+        }
+    }
+
+    async Task CancelExerciseEdit()
+    {
+        editingExercise = null;
+        if (detail is not null)
+            detail = await Api.GetCompletedWorkoutDtoAsync(detail.WorkoutId);
+    }
+
+    async Task DeleteWorkout()
+    {
+        var confirmed = await DialogService.Confirm(
+            "Are you sure you wish to delete the workout?",
+            "Delete Workout",
+            new ConfirmOptions { OkButtonText = "Delete", CancelButtonText = "Cancel" });
+
+        if (confirmed != true) return;
+
+        await Api.DeleteWorkoutAsync(Workout.WorkoutId);
+        await OnDeleted.InvokeAsync();
+    }
+}
