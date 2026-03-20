@@ -1,0 +1,82 @@
+@page "/admin/createuser"
+@using Microsoft.AspNetCore.Identity
+@using System.ComponentModel.DataAnnotations
+@using WhatYouDid.Data
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Admin")]
+
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create User</PageTitle>
+
+<h1>Create User</h1>
+<hr />
+
+<RadzenTemplateForm Data="createModel" TItem="CreateModel" Submit="@(args => CreateUserAsync())">
+    <ChildContent>
+        <RadzenFieldset Text="New user">
+            <RadzenLabel Text="Email" />
+            <RadzenTextBox @bind-Value="createModel.Email" Style="width:100%" AutoCompleteType="AutoCompleteType.Off" />
+
+            <RadzenLabel Text="Password" />
+            <RadzenTextBox @bind-Value="createModel.Password" Style="width:100%" AutoCompleteType="AutoCompleteType.NewPassword" />
+
+            <RadzenLabel Text="Confirm password" />
+            <RadzenTextBox @bind-Value="createModel.ConfirmPassword" Style="width:100%" AutoCompleteType="AutoCompleteType.NewPassword" />
+
+            <div class="mt-2 d-flex gap-2">
+                <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Primary">Create user</RadzenButton>
+                <RadzenButton ButtonStyle="ButtonStyle.Light" Click="@(() => NavigationManager.NavigateTo("/admin"))">Back</RadzenButton>
+            </div>
+
+            @if (!string.IsNullOrEmpty(createStatus))
+            {
+                <div class="mt-2">@createStatus</div>
+            }
+        </RadzenFieldset>
+    </ChildContent>
+</RadzenTemplateForm>
+
+@code {
+    private CreateModel createModel = new();
+    private string? createStatus;
+
+    private async Task CreateUserAsync()
+    {
+        createStatus = null;
+
+        if (string.IsNullOrWhiteSpace(createModel.Email) || string.IsNullOrWhiteSpace(createModel.Password))
+        {
+            createStatus = "Email and password are required.";
+            return;
+        }
+
+        var user = new ApplicationUser { UserName = createModel.Email, Email = createModel.Email };
+        var result = await UserManager.CreateAsync(user, createModel.Password);
+        if (result.Succeeded)
+        {
+            createStatus = "User created.";
+            createModel = new();
+        }
+        else
+        {
+            createStatus = "Error: " + string.Join(", ", result.Errors.Select(e => e.Description));
+        }
+        StateHasChanged();
+    }
+
+    private sealed class CreateModel
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(100, MinimumLength = 6)]
+        public string Password { get; set; } = string.Empty;
+
+        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+        public string ConfirmPassword { get; set; } = string.Empty;
+    }
+}

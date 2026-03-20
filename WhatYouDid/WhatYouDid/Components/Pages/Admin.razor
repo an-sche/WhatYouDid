@@ -1,144 +1,26 @@
 @page "/admin"
-@using Microsoft.AspNetCore.Identity
-@using Microsoft.EntityFrameworkCore
-@using System.ComponentModel.DataAnnotations
-@using WhatYouDid.Data
-@rendermode InteractiveServer
 @attribute [Authorize(Roles = "Admin")]
-
-@inject UserManager<ApplicationUser> UserManager
-@inject NavigationManager NavigationManager
 
 <PageTitle>Admin</PageTitle>
 
 <h1>Administration</h1>
 <hr />
 
-@if (users is null)
-{
-    <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" />
-}
-else
-{
-    @foreach (var user in users)
-    {
-        var model = resetModels.GetOrAdd(user.Id, _ => new ResetModel());
-        <RadzenCard style="margin-bottom: 8px">
-            <RadzenText TextStyle="TextStyle.Subtitle1" Style="font-weight:bold">@user.Email</RadzenText>
-            <RadzenTextBox @bind-Value="model.NewPassword" Type="Password" Style="width:100%" Placeholder="New password" AutoCompleteType="AutoCompleteType.NewPassword" />
-            <div class="mt-2">
-                <RadzenButton Click="@(async () => await ResetPasswordAsync(user, model))" Icon="refresh" ButtonStyle="ButtonStyle.Secondary">Reset Password</RadzenButton>
-            </div>
-            @if (resetStatus.TryGetValue(user.Id, out var msg) && msg is not null)
-            {
-                <div class="small mt-1">@msg</div>
-            }
-        </RadzenCard>
-    }
-}
-<RadzenTemplateForm Data="createModel" TItem="CreateModel" Submit="@(args => CreateUserAsync())">
-    <ChildContent>
-        <RadzenFieldset Text="Create user" >
-            <RadzenLabel Text="Email" />
-            <RadzenTextBox @bind-Value="createModel.Email" Style="width:100%" AutoCompleteType="AutoCompleteType.Off" />
+<div class="d-flex flex-column gap-3" style="max-width: 400px">
+    <RadzenCard>
+        <RadzenText TextStyle="TextStyle.Subtitle1" Style="font-weight:bold">Create User</RadzenText>
+        <RadzenText TextStyle="TextStyle.Body2">Add a new user account.</RadzenText>
+        <div class="mt-2">
+            <a href="/admin/createuser" class="rz-button rz-button-md rz-variant-filled rz-primary">Create User</a>
+        </div>
+    </RadzenCard>
 
-            <RadzenLabel Text="Password" />
-            <RadzenTextBox @bind-Value="createModel.Password" Style="width:100%" AutoCompleteType="AutoCompleteType.NewPassword" />
+    <RadzenCard>
+        <RadzenText TextStyle="TextStyle.Subtitle1" Style="font-weight:bold">Reset Password</RadzenText>
+        <RadzenText TextStyle="TextStyle.Body2">Reset a password for an existing user.</RadzenText>
+        <div class="mt-2">
+            <a href="/admin/resetpassword" class="rz-button rz-button-md rz-variant-filled rz-secondary">Reset Password</a>
+        </div>
+    </RadzenCard>
+</div>
 
-            <RadzenLabel Text="Confirm password" />
-            <RadzenTextBox @bind-Value="createModel.ConfirmPassword" Style="width:100%" AutoCompleteType="AutoCompleteType.NewPassword" />
-
-            <div class="mt-2">
-                <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Primary">Create user</RadzenButton>
-            </div>
-
-            @if (!string.IsNullOrEmpty(createStatus))
-            {
-                <div class="mt-2">@createStatus</div>
-            }
-        </RadzenFieldset>
-    </ChildContent>
-</RadzenTemplateForm>
-
-@code {
-    private List<ApplicationUser>? users;
-
-    private Dictionary<string, string?> resetStatus = new();
-    private System.Collections.Concurrent.ConcurrentDictionary<string, ResetModel> resetModels = new();
-
-    private CreateModel createModel = new();
-    private string? createStatus;
-
-    protected override async Task OnInitializedAsync()
-    {
-        users = await UserManager.Users.ToListAsync();
-    }
-
-    private async Task CreateUserAsync()
-    {
-        createStatus = null;
-
-        if (string.IsNullOrWhiteSpace(createModel.Email) || string.IsNullOrWhiteSpace(createModel.Password))
-        {
-            createStatus = "Email and password are required.";
-            return;
-        }
-
-        var user = new ApplicationUser { UserName = createModel.Email, Email = createModel.Email };
-        var result = await UserManager.CreateAsync(user, createModel.Password);
-        if (result.Succeeded)
-        {
-            createStatus = "User created.";
-        }
-        else
-        {
-            createStatus = "Error: " + string.Join(", ", result.Errors.Select(e => e.Description));
-        }
-        StateHasChanged();
-    }
-
-    private async Task ResetPasswordAsync(ApplicationUser user, ResetModel model)
-    {
-        resetStatus[user.Id] = null;
-
-        if (string.IsNullOrWhiteSpace(model.NewPassword))
-        {
-            resetStatus[user.Id] = "Password is required.";
-            return;
-        }
-
-        // Generate reset token and apply it
-        var token = await UserManager.GeneratePasswordResetTokenAsync(user);
-        var result = await UserManager.ResetPasswordAsync(user, token, model.NewPassword);
-        if (result.Succeeded)
-        {
-            resetStatus[user.Id] = "Password reset.";
-            model.NewPassword = string.Empty;
-        }
-        else
-        {
-            resetStatus[user.Id] = "Error: " + string.Join(", ", result.Errors.Select(e => e.Description));
-        }
-        StateHasChanged();
-    }
-
-    private sealed class ResetModel
-    {
-        [Required]
-        public string? NewPassword { get; set; }
-    }
-
-    private sealed class CreateModel
-    {
-        [Required]
-        [EmailAddress]
-        public string Email { get; set; } = string.Empty;
-
-        [Required]
-        [StringLength(100, MinimumLength = 6)]
-        public string Password { get; set; } = string.Empty;
-
-        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
-        public string ConfirmPassword { get; set; } = string.Empty;
-    }
-}
