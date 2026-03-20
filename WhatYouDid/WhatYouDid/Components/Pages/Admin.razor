@@ -20,26 +20,21 @@
 }
 else
 {
-    <RadzenDataGrid Data="@users" TItem="ApplicationUser" AllowPaging AllowFiltering FilterMode="FilterMode.Simple" PageSize="5">
-        <Columns>
-            <RadzenDataGridColumn Property="Email" Title="Email" Filterable />
-            <RadzenDataGridColumn Title="Actions">
-                <Template Context="user">
-                    @{
-                        var model = new ResetModel(); 
-                    }
-                    <div class="d-flex align-items-center">
-                        <RadzenTextBox @bind-Value="model.NewPassword" Type="Password" Style="width:240px" Placeholder="New password" AutoCompleteType="AutoCompleteType.NewPassword" />
-                        <RadzenButton Click="@(async () => await ResetPasswordAsync(user, model))" Class="ms-2" Icon="refresh" ButtonStyle="ButtonStyle.Secondary">Reset Password</RadzenButton>
-                    </div>
-                    @if (resetStatus.TryGetValue(user.Id, out var msg) && msg is not null)
-                    {
-                        <div class="small mt-1">@msg</div>
-                    }
-                </Template>
-            </RadzenDataGridColumn>
-        </Columns>
-    </RadzenDataGrid>
+    @foreach (var user in users)
+    {
+        var model = resetModels.GetOrAdd(user.Id, _ => new ResetModel());
+        <RadzenCard style="margin-bottom: 8px">
+            <RadzenText TextStyle="TextStyle.Subtitle1" Style="font-weight:bold">@user.Email</RadzenText>
+            <RadzenTextBox @bind-Value="model.NewPassword" Type="Password" Style="width:100%" Placeholder="New password" AutoCompleteType="AutoCompleteType.NewPassword" />
+            <div class="mt-2">
+                <RadzenButton Click="@(async () => await ResetPasswordAsync(user, model))" Icon="refresh" ButtonStyle="ButtonStyle.Secondary">Reset Password</RadzenButton>
+            </div>
+            @if (resetStatus.TryGetValue(user.Id, out var msg) && msg is not null)
+            {
+                <div class="small mt-1">@msg</div>
+            }
+        </RadzenCard>
+    }
 }
 <RadzenTemplateForm Data="createModel" TItem="CreateModel" Submit="@(args => CreateUserAsync())">
     <ChildContent>
@@ -66,16 +61,17 @@ else
 </RadzenTemplateForm>
 
 @code {
-    private IQueryable<ApplicationUser>? users;
+    private List<ApplicationUser>? users;
 
     private Dictionary<string, string?> resetStatus = new();
+    private System.Collections.Concurrent.ConcurrentDictionary<string, ResetModel> resetModels = new();
 
     private CreateModel createModel = new();
     private string? createStatus;
 
     protected override async Task OnInitializedAsync()
     {
-        users = UserManager.Users;
+        users = await UserManager.Users.ToListAsync();
     }
 
     private async Task CreateUserAsync()
