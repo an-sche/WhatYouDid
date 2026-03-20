@@ -76,16 +76,22 @@ public class WhatYouDidApiDirectAccess(
         return await db.Routines.OrderBy(x => x.Name).ToListAsync();
     }
 
-    public async Task<int> GetWorkoutsCountAsync()
+    public async Task<int> GetWorkoutsCountAsync(string? search = null)
     {
         using var db = await dbFactory.CreateDbContextAsync();
-        return await db.Workouts.CountAsync();
+        var query = db.Workouts.AsQueryable();
+        if (!string.IsNullOrWhiteSpace(search))
+            query = query.Where(x => x.RoutineName.Contains(search));
+        return await query.CountAsync();
     }
 
-    public async Task<List<Workout>> GetWorkoutsAsync(int startIndex, int count)
+    public async Task<List<Workout>> GetWorkoutsAsync(int startIndex, int count, string? search = null)
     {
         using var db = await dbFactory.CreateDbContextAsync();
-        return await db.Workouts
+        var query = db.Workouts.AsQueryable();
+        if (!string.IsNullOrWhiteSpace(search))
+            query = query.Where(x => x.RoutineName.Contains(search));
+        return await query
             .OrderByDescending(x => x.StartTime)
             .Skip(startIndex)
             .Take(count)

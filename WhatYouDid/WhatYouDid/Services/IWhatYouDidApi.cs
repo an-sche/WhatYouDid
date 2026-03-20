@@ -10,8 +10,8 @@ public interface IWhatYouDidApi
 
     Task<List<Routine>> GetUserRoutinesAsync();
     Task<List<Exercise>> GetExercisesAsync(int routineId);
-    Task<int> GetWorkoutsCountAsync();
-    Task<List<Workout>> GetWorkoutsAsync(int startIndex, int count);
+    Task<int> GetWorkoutsCountAsync(string? search = null);
+    Task<List<Workout>> GetWorkoutsAsync(int startIndex, int count, string? search = null);
 
     Task<List<Routine>> GetRoutinesAsync();
     Task<Routine?> GetRoutineAsync(int routineId);
