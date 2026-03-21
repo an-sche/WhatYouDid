@@ -37,9 +37,10 @@
 	{
 		// This is where i put the information for them to fill out!
 		<RadzenDropDown Class="rz-m-2"
-			Value="@WorkoutDto.WorkoutExercises[WorkoutDto.ExerciseIndex].ExerciseName" 
-			Data="@ExerciseNames" 
-			Change="@OnDropdownValueChanged" />
+			Value="@WorkoutDto.WorkoutExercises[WorkoutDto.ExerciseIndex].ExerciseName"
+			Data="@ExerciseNames"
+			Change="@OnDropdownValueChanged"
+			Style="width: calc(100% - 1rem)" />
 
 		var workoutExercise = WorkoutDto.WorkoutExercises[WorkoutDto.ExerciseIndex];
 		bool hasLastValues = (workoutExercise.HasReps || workoutExercise.HasWeights || workoutExercise.HasDurations)
@@ -105,25 +106,27 @@
 			}
 		</RadzenStack>
 
-		<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" >
-			<RadzenButton Class="rz-m-2" Style="min-width: 100px" Icon="arrow_back" Click=@OnBackClick ButtonStyle="ButtonStyle.Secondary" Disabled="WorkoutDto.ExerciseIndex == 0" />
-			<RadzenButton Class="rz-m-2" Style="min-width: 100px" Icon="arrow_forward" Click=@OnNextClick ButtonStyle="ButtonStyle.Primary" ButtonType="ButtonType.Submit" />
+		<RadzenStack Orientation="Orientation.Horizontal" Gap="8px" Style="margin: 0.5rem">
+			<RadzenButton Style="flex:1" Icon="arrow_back" Click=@OnBackClick ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Large" Disabled="WorkoutDto.ExerciseIndex == 0" />
+			<RadzenButton Style="flex:1" Icon="arrow_forward" Click=@OnNextClick ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Large" ButtonType="ButtonType.Submit" />
 		</RadzenStack>
 	}
 	else {
 
 		<RadzenText TextStyle="TextStyle.H5">Review</RadzenText>
-		<RadzenDataGrid Data="@WorkoutDto.WorkoutExercises" TItem="WorkoutExerciseDto" class="slide-from-right"> 
-			<Columns>
-				<RadzenDataGridColumn TItem="WorkoutExerciseDto" Property="Sequence" Title="#" Width="50px"/> 
-				<RadzenDataGridColumn TItem="WorkoutExerciseDto" Property="ExerciseName" Title="Exercise" />
-				<RadzenDataGridColumn TItem="WorkoutExerciseDto" Property="Review" Title="Review" />
-			</Columns>
-		</RadzenDataGrid>
+		<RadzenStack Gap="0" class="slide-from-right" Style="margin-bottom: 1rem">
+			@foreach (var ex in WorkoutDto.WorkoutExercises ?? [])
+			{
+				<RadzenStack Gap="2px" Style="padding: 10px 0; border-top: 1px solid var(--rz-border-disabled-color)">
+					<RadzenText TextStyle="TextStyle.Body2" Style="margin: 0; font-weight: 600">@ex.Sequence. @ex.ExerciseName</RadzenText>
+					<RadzenText TextStyle="TextStyle.Caption" Style="margin: 0; color: var(--rz-text-secondary-color); white-space: pre-line">@ex.Review</RadzenText>
+				</RadzenStack>
+			}
+		</RadzenStack>
 
-		<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" >
-			<RadzenButton Class="rz-m-2" Style="min-width: 100px" Icon="arrow_back" Click=@OnBackClick ButtonStyle="ButtonStyle.Secondary" />
-			<RadzenButton Class="rz-m-2" Style="min-width: 100px" IsBusy=@Saving Click=@OnSubmitClick Text="Submit" ButtonStyle="ButtonStyle.Primary" ButtonType="ButtonType.Submit"/>
+		<RadzenStack Orientation="Orientation.Horizontal" Gap="8px" Style="margin: 0.5rem">
+			<RadzenButton Style="flex:1" Icon="arrow_back" Click=@OnBackClick ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Large" />
+			<RadzenButton Style="flex:1" IsBusy=@Saving Click=@OnSubmitClick Text="Submit" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Large" ButtonType="ButtonType.Submit" />
 		</RadzenStack>
 	}	
 </div>
