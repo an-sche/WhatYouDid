@@ -2,20 +2,17 @@
 @inject NavigationManager Navigation
 
 <RadzenCard class="routine-card">
-    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center"
+                 @onclick="ToggleExpanded" Style="cursor:pointer">
         <RadzenText TextStyle="TextStyle.H6" Style="margin: 0">@Name</RadzenText>
-        <RadzenStack Orientation="Orientation.Horizontal" Gap="8px">
-            <RadzenButton Text="@(expanded ? "Hide" : "View")"
-                          Icon="@(expanded ? "expand_less" : "expand_more")"
-                          ButtonStyle="ButtonStyle.Secondary"
-                          Variant="Variant.Outlined"
-                          Size="ButtonSize.Small"
-                          Click="ToggleExpanded" />
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="8px" AlignItems="AlignItems.Center">
+            <RadzenIcon Icon="@(expanded ? "expand_less" : "expand_more")" Style="color: var(--rz-secondary); font-size: 1.75rem" />
             <RadzenButton Text="Start"
                           Icon="play_arrow"
                           ButtonStyle="ButtonStyle.Primary"
-                          Size="ButtonSize.Small"
-                          Click="StartWorkout" />
+                          Size="ButtonSize.Medium"
+                          Click="StartWorkout"
+                          @onclick:stopPropagation="true" />
         </RadzenStack>
     </RadzenStack>
 
