@@ -3,19 +3,19 @@
 @using WhatYouDid.Shared
 
 <RadzenCard Style="margin-bottom: 8px">
-    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center"
+                 @onclick="ToggleExpanded" Style="cursor:pointer">
         <RadzenStack Gap="2px">
             <RadzenText TextStyle="TextStyle.Body1" Style="margin: 0; font-weight: 600">@Workout.RoutineName</RadzenText>
             <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0; color: var(--rz-text-secondary-color)">
                 @Workout.StartTime.ToString("MMM d, yyyy h:mm tt")
             </RadzenText>
         </RadzenStack>
-        <RadzenStack Orientation="Orientation.Horizontal" Gap="0">
-            <RadzenButton Icon="@(expanded ? "expand_less" : "expand_more")"
-                          ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text"
-                          Size="ButtonSize.Small" Click="ToggleExpanded" />
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="8px">
+            <RadzenIcon Icon="@(expanded ? "expand_less" : "expand_more")" Style="color: var(--rz-primary); font-size: 1.75rem" />
             <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text"
-                          Size="ButtonSize.Small" Click="DeleteWorkout" />
+                          Size="ButtonSize.Medium" Click="DeleteWorkout" @onclick:stopPropagation="true"
+                          Style="font-size: 1.75rem" />
         </RadzenStack>
     </RadzenStack>
 
