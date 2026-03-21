@@ -7,20 +7,18 @@
 <hr />
 
 <div class="d-flex flex-column gap-3" style="max-width: 400px">
-    <RadzenCard>
-        <RadzenText TextStyle="TextStyle.Subtitle1" Style="font-weight:bold">Create User</RadzenText>
-        <RadzenText TextStyle="TextStyle.Body2">Add a new user account.</RadzenText>
-        <div class="mt-2">
-            <a href="/admin/createuser" class="rz-button rz-button-md rz-variant-filled rz-primary">Create User</a>
-        </div>
-    </RadzenCard>
+    <a href="/admin/createuser" style="text-decoration:none; color:inherit">
+        <RadzenCard style="cursor:pointer">
+            <RadzenText TextStyle="TextStyle.Subtitle1" Style="font-weight:bold">Create User</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2">Add a new user account.</RadzenText>
+        </RadzenCard>
+    </a>
 
-    <RadzenCard>
-        <RadzenText TextStyle="TextStyle.Subtitle1" Style="font-weight:bold">Reset Password</RadzenText>
-        <RadzenText TextStyle="TextStyle.Body2">Reset a password for an existing user.</RadzenText>
-        <div class="mt-2">
-            <a href="/admin/resetpassword" class="rz-button rz-button-md rz-variant-filled rz-secondary">Reset Password</a>
-        </div>
-    </RadzenCard>
+    <a href="/admin/resetpassword" style="text-decoration:none; color:inherit">
+        <RadzenCard style="cursor:pointer">
+            <RadzenText TextStyle="TextStyle.Subtitle1" Style="font-weight:bold">Reset Password</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2">Reset a password for an existing user.</RadzenText>
+        </RadzenCard>
+    </a>
 </div>
 
