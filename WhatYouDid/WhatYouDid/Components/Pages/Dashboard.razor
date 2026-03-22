@@ -36,7 +36,7 @@
 <RadzenStack Style="max-width: 900px" Orientation="Orientation.Horizontal" Gap="16px" AlignItems="AlignItems.Start" Wrap="FlexWrap.Wrap">
         @foreach (var w in dashboard.TopWorkouts)
         {
-                <RadzenCard Style="height:150px; width:280px">
+                <RadzenCard Style="height:150px; flex:1; min-width:240px; max-width:280px">
                     <ChildContent>
                         <h5>@w.RoutineName</h5>
                         <div class="display-6">@w.Count</div>
@@ -45,7 +45,7 @@
                 </RadzenCard>
         }
 
-            <RadzenCard Style="height:150px; width:280px">
+            <RadzenCard Style="height:150px; flex:1; min-width:240px; max-width:280px">
                 <ChildContent>
                     <h6>Total Workout Duration</h6>
                     <div class="display-6">@FormatMinutes(dashboard.TotalWorkoutDuration)</div>
@@ -53,7 +53,7 @@
                 </ChildContent>
             </RadzenCard>
 
-            <RadzenCard Style="height:150px; width:280px">
+            <RadzenCard Style="height:150px; flex:1; min-width:240px; max-width:280px">
                 <ChildContent>
                     <h6>Total Reps Completed</h6>
                     <div class="display-6">@dashboard.TotalReps</div>
@@ -61,7 +61,7 @@
                 </ChildContent>
             </RadzenCard>
 
-            <RadzenCard Style="height:150px; width:280px">
+            <RadzenCard Style="height:150px; flex:1; min-width:240px; max-width:280px">
                 <ChildContent>
                     <h6>Longest Workout</h6>
                     @if (dashboard.LongestWorkoutRoutineName is not null && dashboard.LongestWorkoutDuration.HasValue)
