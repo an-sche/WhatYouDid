@@ -36,23 +36,24 @@
 	@if (WorkoutDto.ExerciseIndex < @WorkoutDto.WorkoutExercises?.Count)
 	{
 		// This is where i put the information for them to fill out!
-		<RadzenDropDown Class="rz-m-2"
-			Value="@WorkoutDto.WorkoutExercises[WorkoutDto.ExerciseIndex].ExerciseName"
-			Data="@ExerciseNames"
-			Change="@OnDropdownValueChanged"
-			Style="width: calc(100% - 1rem)" />
-
 		var workoutExercise = WorkoutDto.WorkoutExercises[WorkoutDto.ExerciseIndex];
 		bool hasLastValues = (workoutExercise.HasReps || workoutExercise.HasWeights || workoutExercise.HasDurations)
 			&& ((workoutExercise.LastReps?.Any(r => r != null) == true) ||
 			(workoutExercise.LastWeights?.Any(w => w != null) == true) ||
 			(workoutExercise.LastDurations?.Any(d => d != null) == true));
 
-		@if (hasLastValues)
-		{
-			<RadzenButton Class="rz-m-2" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small"
-				Icon="history" Click="OnAutofillLastTime" />
-		}
+		<RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.NoWrap" Gap="8px" Class="rz-m-2">
+			<RadzenDropDown
+				Value="@WorkoutDto.WorkoutExercises[WorkoutDto.ExerciseIndex].ExerciseName"
+				Data="@ExerciseNames"
+				Change="@OnDropdownValueChanged"
+				Style="flex:1; min-width:0" />
+			@if (hasLastValues)
+			{
+				<RadzenButton ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small"
+					Icon="history" Click="OnAutofillLastTime" />
+			}
+		</RadzenStack>
 
 		<RadzenStack @key="@workoutExercise.ExerciseName"
 			Orientation="Orientation.Vertical"
