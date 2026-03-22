@@ -35,15 +35,14 @@
 
 				<RadzenCard Variant="Variant.Outlined" class="rz-mb-4" data-exercise-card="@_exerciseKeys[i]">
 					<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center" class="rz-mb-2">
-						<RadzenText TextStyle="TextStyle.Subtitle2">Exercise @e.Sequence</RadzenText>
+						<RadzenText TextStyle="TextStyle.Subtitle2">@e.Sequence.</RadzenText>
 						<RadzenStack Orientation="Orientation.Horizontal" Gap="4px">
 							<RadzenButton Click=@(() => MoveExerciseUp(e)) Icon="arrow_upward" Variant="Variant.Outlined" ButtonStyle="ButtonStyle.Dark" Size="ButtonSize.Medium" Disabled="@(i == 0)" />
 							<RadzenButton Click=@(() => MoveExerciseDown(e)) Icon="arrow_downward" Variant="Variant.Outlined" ButtonStyle="ButtonStyle.Dark" Size="ButtonSize.Medium" Disabled="@(i == routine.Exercises.Count - 1)" />
 							<RadzenButton Click=@(() => RemoveExercise(e)) Icon="delete" Variant="Variant.Outlined" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Medium" />
 						</RadzenStack>
 					</RadzenStack>
-
-					<RadzenFormField AllowFloatingLabel="false" Text="Exercise Name" Style="width: 100%">
+					<RadzenFormField AllowFloatingLabel="false" Text="Exercise Name" Style="width: 100%" class="rz-mb-2">
 						<ChildContent>
 							<RadzenTextBox Name="@($"ExerciseName_{i}")" @bind-Value=e.Name />
 						</ChildContent>
