@@ -13,7 +13,11 @@ public class ApplicationDbContext(
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.Entity<Workout>()
-            .HasQueryFilter(w => w.ApplicationUserId == _tenant && !w.IsDeleted);
+            .HasQueryFilter(w => w.ApplicationUserId == _tenant && !w.IsDeleted)
+            .HasIndex(w => new { w.ApplicationUserId, w.StartTime })
+            .IsDescending(false, true)
+            .HasFilter("[IsDeleted] = 0")
+            .HasDatabaseName("IX_Workouts_User_StartTime");
 
         builder.Entity<Routine>()
             .HasQueryFilter(r => r.CreateUserId == _tenant || r.IsPublic);
