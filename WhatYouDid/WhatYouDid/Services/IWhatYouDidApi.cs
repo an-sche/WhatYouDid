@@ -17,7 +17,7 @@ public interface IWhatYouDidApi
     Task<Routine?> GetRoutineAsync(int routineId);
     Task<bool> AddRoutineAsync(CreateRoutineDto routine);
     Task<Routine> UpdateRoutineAsync(Routine routine);
-    void DeleteRoutineAsync(int routineId);
+    Task DeleteRoutineAsync(int routineId);
     Task<WorkoutDto?> GetStartWorkoutDtoAsync(int routineId);
     Task<WorkoutDto?> GetCompletedWorkoutDtoAsync(Guid workoutId);
 

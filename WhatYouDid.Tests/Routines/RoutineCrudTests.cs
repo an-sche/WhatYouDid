@@ -116,9 +116,7 @@ public class RoutineCrudTests(DatabaseFixture fixture)
         var routines = await api.GetUserRoutinesAsync();
         var routine = routines.First(r => r.Name == $"Temp Routine {id}");
 
-        api.DeleteRoutineAsync(routine.RoutineId);
-        // Give the fire-and-forget a moment to complete
-        await Task.Delay(500);
+        await api.DeleteRoutineAsync(routine.RoutineId);
 
         var routinesAfter = await api.GetUserRoutinesAsync();
         Assert.DoesNotContain(routinesAfter, r => r.RoutineId == routine.RoutineId);

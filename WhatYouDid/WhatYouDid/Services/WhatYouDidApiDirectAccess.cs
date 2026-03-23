@@ -38,7 +38,7 @@ public class WhatYouDidApiDirectAccess(
         return true;
     }
 
-    public async void DeleteRoutineAsync(int routineId)
+    public async Task DeleteRoutineAsync(int routineId)
     {
         using var db = await dbFactory.CreateDbContextAsync();
 
