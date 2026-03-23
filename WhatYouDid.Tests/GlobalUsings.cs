@@ -1,5 +1,9 @@
 global using Xunit;
 global using Microsoft.EntityFrameworkCore;
+global using Microsoft.Extensions.Logging;
+global using Microsoft.Extensions.Hosting;
+global using Microsoft.Extensions.Configuration;
+global using Microsoft.AspNetCore.TestHost;
 global using WhatYouDid.Services;
 global using WhatYouDid.Data;
 global using WhatYouDid.Tests.Infrastructure;
