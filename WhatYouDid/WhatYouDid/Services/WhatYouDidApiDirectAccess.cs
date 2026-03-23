@@ -156,7 +156,6 @@ public class WhatYouDidApiDirectAccess(
             foreach (var exerciseDto in workoutDto.WorkoutExercises) {
                 var exercise = new WorkoutExercise() {
                     Workout = workout,
-                    ApplicationUserId = tenantService.Tenant,
                     ExerciseId = exerciseDto.ExerciseId,
                     ExerciseName = exerciseDto.ExerciseName,
                 };

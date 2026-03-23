@@ -112,7 +112,6 @@ internal sealed class DevDataSeeder(
                     WorkoutId = workout.WorkoutId,
                     ExerciseId = e.ExerciseId,
                     ExerciseName = e.Name,
-                    ApplicationUserId = user.Id,
                     Reps = e.HasReps ? Enumerable.Range(0, e.Sets).Select(_ => (int?)Random.Shared.Next(6, 13)).ToList() : null,
                     Weights = e.HasWeight ? Enumerable.Range(0, e.Sets).Select(_ => (int?)(Random.Shared.Next(4, 12) * 5)).ToList() : null,
                     Durations = null,
