@@ -139,10 +139,12 @@ public class ApiWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLi
     /// Creates an HttpClient pre-loaded with the X-Test-UserId header so every
     /// request is authenticated as <paramref name="userId"/>.
     /// </summary>
-    public HttpClient CreateAuthenticatedClient(string userId)
+    public HttpClient CreateAuthenticatedClient(string userId, string? roles = null)
     {
         var client = CreateClient();
         client.DefaultRequestHeaders.Add(TestAuthHandler.UserIdHeader, userId);
+        if (roles is not null)
+            client.DefaultRequestHeaders.Add(TestAuthHandler.RolesHeader, roles);
         return client;
     }
 

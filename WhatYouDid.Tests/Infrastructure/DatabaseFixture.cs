@@ -27,18 +27,22 @@ public class DatabaseFixture : IAsyncLifetime
         // Set up DI for Identity (UserManager, RoleManager) used by helper methods
         var services = new ServiceCollection();
         services.AddLogging();
+        services.AddDataProtection();
         services.AddScoped<ITenantService, TestTenantService>();
         services.AddDbContext<ApplicationDbContext>(opts =>
             opts.UseSqlServer(_container.GetConnectionString()));
         services.AddIdentityCore<ApplicationUser>()
             .AddRoles<IdentityRole>()
-            .AddEntityFrameworkStores<ApplicationDbContext>();
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddDefaultTokenProviders();
 
         _serviceProvider = services.BuildServiceProvider();
     }
 
     public async Task<ApplicationUser> CreateUserAsync(string email, string password)
         => await UserHelper.CreateUserAsync(_serviceProvider, email, password);
+
+    public IServiceScope CreateScope() => _serviceProvider.CreateScope();
 
     /// <summary>
     /// Returns a fresh <see cref="ApplicationDbContext"/> scoped to the given userId.
