@@ -13,7 +13,6 @@ public interface IWhatYouDidApi
     Task<int> GetWorkoutsCountAsync(string? search = null);
     Task<List<Workout>> GetWorkoutsAsync(int startIndex, int count, string? search = null);
 
-    Task<List<Routine>> GetRoutinesAsync();
     Task<Routine?> GetRoutineAsync(int routineId);
     Task<bool> AddRoutineAsync(CreateRoutineDto routine);
     Task<Routine> UpdateRoutineAsync(Routine routine);

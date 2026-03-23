@@ -64,12 +64,6 @@ public class WhatYouDidApiDirectAccess(
             .FirstOrDefaultAsync(x => x.RoutineId == routineId);
     }
 
-    public async Task<List<Routine>> GetRoutinesAsync()
-    {
-        using var db = await dbFactory.CreateDbContextAsync();
-        return await db.Routines.ToListAsync();
-    }
-
     public async Task<List<Routine>> GetUserRoutinesAsync()
     {
         using var db = await dbFactory.CreateDbContextAsync();

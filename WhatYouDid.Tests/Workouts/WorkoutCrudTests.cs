@@ -151,6 +151,176 @@ public class WorkoutCrudTests(DatabaseFixture fixture)
     }
 
     [Fact]
+    public async Task GetWorkoutsCountAsync_ReturnsCorrectCount()
+    {
+        var id = Guid.NewGuid().ToString("N")[..8];
+        var user = await fixture.CreateUserAsync($"workout-count-{id}@test.com", "Test1234!");
+
+        var tenantService = new TestTenantService();
+        tenantService.SetTenant(user.Id);
+        var api = fixture.CreateApiForTenant(tenantService);
+
+        var (routineId, _) = await SetupRoutineAsync(api, $"Count Routine {id}");
+
+        for (int i = 0; i < 3; i++)
+            await api.SaveWorkoutAsync(new WorkoutDto
+            {
+                WorkoutId = Guid.NewGuid(),
+                RoutineId = routineId,
+                RoutineName = $"Count Routine {id}",
+                StartTime = DateTime.Now.AddHours(-(i + 1)),
+                WorkoutExercises = []
+            });
+
+        var count = await api.GetWorkoutsCountAsync();
+
+        Assert.Equal(3, count);
+    }
+
+    [Fact]
+    public async Task GetWorkoutsAsync_Pagination_RespectsStartIndexAndCount()
+    {
+        var id = Guid.NewGuid().ToString("N")[..8];
+        var user = await fixture.CreateUserAsync($"workout-page-{id}@test.com", "Test1234!");
+
+        var tenantService = new TestTenantService();
+        tenantService.SetTenant(user.Id);
+        var api = fixture.CreateApiForTenant(tenantService);
+
+        var (routineId, _) = await SetupRoutineAsync(api, $"Page Routine {id}");
+
+        for (int i = 0; i < 5; i++)
+            await api.SaveWorkoutAsync(new WorkoutDto
+            {
+                WorkoutId = Guid.NewGuid(),
+                RoutineId = routineId,
+                RoutineName = $"Page Routine {id}",
+                StartTime = DateTime.Now.AddHours(-(i + 1)),
+                WorkoutExercises = []
+            });
+
+        var page1 = await api.GetWorkoutsAsync(0, 2, $"Page Routine {id}");
+        var page2 = await api.GetWorkoutsAsync(2, 2, $"Page Routine {id}");
+        var page3 = await api.GetWorkoutsAsync(4, 2, $"Page Routine {id}");
+
+        Assert.Equal(2, page1.Count);
+        Assert.Equal(2, page2.Count);
+        Assert.Single(page3);
+        // Pages should not overlap
+        Assert.Empty(page1.Select(w => w.WorkoutId).Intersect(page2.Select(w => w.WorkoutId)));
+    }
+
+    [Fact]
+    public async Task GetCompletedWorkoutDtoAsync_ReturnsWorkoutWithExercises()
+    {
+        var id = Guid.NewGuid().ToString("N")[..8];
+        var user = await fixture.CreateUserAsync($"workout-completed-{id}@test.com", "Test1234!");
+
+        var tenantService = new TestTenantService();
+        tenantService.SetTenant(user.Id);
+        var api = fixture.CreateApiForTenant(tenantService);
+
+        var (routineId, exerciseId) = await SetupRoutineAsync(api, $"Completed Routine {id}");
+        var workoutId = Guid.NewGuid();
+
+        await api.SaveWorkoutAsync(new WorkoutDto
+        {
+            WorkoutId = workoutId,
+            RoutineId = routineId,
+            RoutineName = $"Completed Routine {id}",
+            StartTime = DateTime.Now.AddHours(-1),
+            WorkoutExercises =
+            [
+                new WorkoutExerciseDto
+                {
+                    Sequence = 1,
+                    ExerciseId = exerciseId,
+                    ExerciseName = "Bench Press",
+                    Sets = 3,
+                    HasReps = true,
+                    HasWeights = true,
+                    HasDurations = false,
+                    Reps = [10, 8, 6],
+                    Weights = [135, 145, 155],
+                    Durations = []
+                }
+            ]
+        });
+
+        var dto = await api.GetCompletedWorkoutDtoAsync(workoutId);
+
+        Assert.NotNull(dto);
+        Assert.Equal(workoutId, dto.WorkoutId);
+        Assert.Equal($"Completed Routine {id}", dto.RoutineName);
+        Assert.NotNull(dto.WorkoutExercises);
+        Assert.Single(dto.WorkoutExercises);
+
+        var exercise = dto.WorkoutExercises[0];
+        Assert.Equal(exerciseId, exercise.ExerciseId);
+        Assert.Equal([10, 8, 6], exercise.Reps);
+        Assert.Equal([135, 145, 155], exercise.Weights);
+    }
+
+    [Fact]
+    public async Task UpdateWorkoutExerciseAsync_UpdatesExerciseData()
+    {
+        var id = Guid.NewGuid().ToString("N")[..8];
+        var user = await fixture.CreateUserAsync($"workout-update-{id}@test.com", "Test1234!");
+
+        var tenantService = new TestTenantService();
+        tenantService.SetTenant(user.Id);
+        var api = fixture.CreateApiForTenant(tenantService);
+
+        var (routineId, exerciseId) = await SetupRoutineAsync(api, $"Update Routine {id}");
+        var workoutId = Guid.NewGuid();
+
+        await api.SaveWorkoutAsync(new WorkoutDto
+        {
+            WorkoutId = workoutId,
+            RoutineId = routineId,
+            RoutineName = $"Update Routine {id}",
+            StartTime = DateTime.Now.AddHours(-1),
+            WorkoutExercises =
+            [
+                new WorkoutExerciseDto
+                {
+                    Sequence = 1,
+                    ExerciseId = exerciseId,
+                    ExerciseName = "Bench Press",
+                    Sets = 3,
+                    HasReps = true,
+                    HasWeights = true,
+                    HasDurations = false,
+                    Reps = [5, 5, 5],
+                    Weights = [100, 100, 100],
+                    Durations = []
+                }
+            ]
+        });
+
+        var updated = await api.UpdateWorkoutExerciseAsync(workoutId, new WorkoutExerciseDto
+        {
+            Sequence = 1,
+            ExerciseId = exerciseId,
+            ExerciseName = "Bench Press",
+            Sets = 3,
+            HasReps = true,
+            HasWeights = true,
+            HasDurations = false,
+            Reps = [10, 8, 6],
+            Weights = [135, 145, 155],
+            Durations = []
+        });
+
+        Assert.True(updated);
+
+        var dto = await api.GetCompletedWorkoutDtoAsync(workoutId);
+        var exercise = dto!.WorkoutExercises!.First(e => e.ExerciseId == exerciseId);
+        Assert.Equal([10, 8, 6], exercise.Reps);
+        Assert.Equal([135, 145, 155], exercise.Weights);
+    }
+
+    [Fact]
     public async Task GetStartWorkoutDtoAsync_ReturnsLastWorkoutsRepsForEachExercise()
     {
         var id = Guid.NewGuid().ToString("N")[..8];

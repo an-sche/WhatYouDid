@@ -151,6 +151,53 @@ public class DashboardTests(DatabaseFixture fixture)
     }
 
     [Fact]
+    public async Task TotalWorkoutDuration_SumsMinutesCorrectly()
+    {
+        var id = Guid.NewGuid().ToString("N")[..8];
+        var user = await fixture.CreateUserAsync($"dash-dur-{id}@test.com", "Test1234!");
+
+        // Insert workouts with controlled start/end times directly — SaveWorkoutAsync
+        // always sets EndTime = DateTime.Now so duration is non-deterministic via the API.
+        var anchor = new DateTime(2024, 6, 1, 12, 0, 0, DateTimeKind.Local);
+        using (var setupDb = fixture.CreateDbContextForTenant(user.Id))
+        {
+            setupDb.Workouts.AddRange(
+                new Workout { WorkoutId = Guid.NewGuid(), ApplicationUserId = user.Id, RoutineName = $"Dur A {id}", StartTime = anchor.AddHours(-2),  EndTime = anchor.AddMinutes(-90) }, // 30 min
+                new Workout { WorkoutId = Guid.NewGuid(), ApplicationUserId = user.Id, RoutineName = $"Dur B {id}", StartTime = anchor.AddHours(-5),  EndTime = anchor.AddMinutes(-210) } // 90 min
+            );
+            await setupDb.SaveChangesAsync();
+        }
+
+        using var db = fixture.CreateDbContextForTenant(user.Id);
+        var dto = await new DashboardService(db).GetDashboardForUserAsync();
+
+        Assert.Equal(120, dto.TotalWorkoutDuration); // 30 + 90
+    }
+
+    [Fact]
+    public async Task LongestWorkout_IdentifiesCorrectWorkout()
+    {
+        var id = Guid.NewGuid().ToString("N")[..8];
+        var user = await fixture.CreateUserAsync($"dash-long-{id}@test.com", "Test1234!");
+
+        var anchor = new DateTime(2024, 6, 1, 12, 0, 0, DateTimeKind.Local);
+        using (var setupDb = fixture.CreateDbContextForTenant(user.Id))
+        {
+            setupDb.Workouts.AddRange(
+                new Workout { WorkoutId = Guid.NewGuid(), ApplicationUserId = user.Id, RoutineName = $"Short {id}", StartTime = anchor.AddHours(-2),  EndTime = anchor.AddMinutes(-90) }, // 30 min
+                new Workout { WorkoutId = Guid.NewGuid(), ApplicationUserId = user.Id, RoutineName = $"Long {id}",  StartTime = anchor.AddHours(-5),  EndTime = anchor.AddMinutes(-210) } // 90 min
+            );
+            await setupDb.SaveChangesAsync();
+        }
+
+        using var db = fixture.CreateDbContextForTenant(user.Id);
+        var dto = await new DashboardService(db).GetDashboardForUserAsync();
+
+        Assert.Equal($"Long {id}", dto.LongestWorkoutRoutineName);
+        Assert.Equal(90, dto.LongestWorkoutDuration);
+    }
+
+    [Fact]
     public async Task UserA_DashboardMetrics_DoNotInclude_UserB_Workouts()
     {
         var id = Guid.NewGuid().ToString("N")[..8];

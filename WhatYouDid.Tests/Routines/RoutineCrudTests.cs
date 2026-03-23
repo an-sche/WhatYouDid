@@ -87,6 +87,36 @@ public class RoutineCrudTests(DatabaseFixture fixture)
     }
 
     [Fact]
+    public async Task GetExercisesAsync_ReturnsExercisesForRoutine()
+    {
+        var id = Guid.NewGuid().ToString("N")[..8];
+        var user = await fixture.CreateUserAsync($"routine-exs-{id}@test.com", "Test1234!");
+
+        var tenantService = new TestTenantService();
+        tenantService.SetTenant(user.Id);
+        var api = fixture.CreateApiForTenant(tenantService);
+
+        await api.AddRoutineAsync(new CreateRoutineDto
+        {
+            Name = $"Two Ex Routine {id}",
+            Exercises =
+            [
+                new CreateExerciseDto { Name = "Squat",      Sequence = 1, Sets = 4, HasReps = true,  HasWeight = true,  HasDuration = false },
+                new CreateExerciseDto { Name = "Deadlift",   Sequence = 2, Sets = 3, HasReps = true,  HasWeight = true,  HasDuration = false },
+            ]
+        });
+
+        var routines = await api.GetUserRoutinesAsync();
+        var routineId = routines.First(r => r.Name == $"Two Ex Routine {id}").RoutineId;
+
+        var exercises = await api.GetExercisesAsync(routineId);
+
+        Assert.Equal(2, exercises.Count);
+        Assert.Contains(exercises, e => e.Name == "Squat");
+        Assert.Contains(exercises, e => e.Name == "Deadlift");
+    }
+
+    [Fact]
     public async Task DeleteRoutineAsync_RemovesRoutine()
     {
         var id = Guid.NewGuid().ToString("N")[..8];
