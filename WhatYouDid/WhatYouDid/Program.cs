@@ -117,7 +117,14 @@ else
         var connection = db.Database.GetDbConnection();
         var databaseName = connection.Database;
         var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-        var backupFile = Path.Combine(backupPath, $"{databaseName}_{timestamp}.bak");
+
+        static string MigName(string? migrationId) =>
+            migrationId is null ? "init"
+            : migrationId.Contains('_') ? migrationId[(migrationId.IndexOf('_') + 1)..] : migrationId;
+
+        var currMig = MigName(db.Database.GetAppliedMigrations().LastOrDefault());
+        var tgtMig = MigName(db.Database.GetPendingMigrations().Last());
+        var backupFile = Path.Combine(backupPath, $"{databaseName}_{timestamp}_curr-{currMig}_to-{tgtMig}.bak");
 
         connection.Open();
         try
