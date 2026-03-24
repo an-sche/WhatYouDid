@@ -22,18 +22,26 @@ WhatYouDid is a Blazor + SQL project for logging workouts. The repository contai
 
 # Configuration
 
-
 Quick local setup
 1. Install prerequisites: .NET 10 SDK
-2. Install SQL and create a database. Put that database in `appsettings` under `DevelopmentConnection`
+2. Install SQL and create a database. Put that database in `appsettings` under `DevelopmentConnection` (Can also use container)
 3. Apply migrations to your local database `dotnet ef database update`
-4. In UserSecrets: configure the "Admins" section to include your email address for admin access. This is required for accessing admin features in the application.
+5. Run the application `f5` or `dotnet run`
+
+In development mode, the app automatically seeds two test users on first run:
+
+| Email | Password | Role |
+|---|---|---|
+| `admin@test.com` | `Admin1234!` | Admin |
+| `test@test.com` | `Test1234!` | User |
+
+Both users are seeded with workout history. The admin account also requires `admin@test.com` to be present in the `Admins` config (already set in `appsettings.Development.json`).
+
 ```
 "Admins" : [
-  "your@email.here"
+  "admin@test.here"
 ]
 ```
-5. Run the application `f5` or `dotnet run`
 
 # Information
 
