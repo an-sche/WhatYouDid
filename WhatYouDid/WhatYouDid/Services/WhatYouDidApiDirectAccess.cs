@@ -38,18 +38,6 @@ public class WhatYouDidApiDirectAccess(
         return true;
     }
 
-    public async Task DeleteRoutineAsync(int routineId)
-    {
-        using var db = await dbFactory.CreateDbContextAsync();
-
-        var result = await db.Routines.FirstOrDefaultAsync(x => x.RoutineId == routineId);
-        if (result is null)
-            return;
-
-        db.Routines.Remove(result);
-        await db.SaveChangesAsync();
-    }
-
     public async Task<List<Exercise>> GetExercisesAsync(int routineId)
     {
         using var db = await dbFactory.CreateDbContextAsync();
@@ -210,11 +198,6 @@ public class WhatYouDidApiDirectAccess(
         workout.DeletedDt = DateTime.UtcNow;
         await db.SaveChangesAsync();
         return true;
-    }
-
-    public Task<Routine> UpdateRoutineAsync(Routine routine)
-    {
-        throw new NotImplementedException();
     }
 
     public async Task<WorkoutDto?> GetCompletedWorkoutDtoAsync(Guid workoutId)

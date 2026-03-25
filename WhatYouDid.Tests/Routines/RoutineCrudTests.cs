@@ -116,39 +116,4 @@ public class RoutineCrudTests(DatabaseFixture fixture)
         Assert.Contains(exercises, e => e.Name == "Deadlift");
     }
 
-    [Fact]
-    public async Task DeleteRoutineAsync_RemovesRoutine()
-    {
-        var id = Guid.NewGuid().ToString("N")[..8];
-        var user = await fixture.CreateUserAsync($"routine-del-{id}@test.com", "Test1234!");
-
-        var tenantService = new TestTenantService();
-        tenantService.SetTenant(user.Id);
-        var api = fixture.CreateApiForTenant(tenantService);
-
-        await api.AddRoutineAsync(new CreateRoutineDto
-        {
-            Name = $"Temp Routine {id}",
-            Exercises =
-            [
-                new CreateExerciseDto
-                {
-                    Name = "Lunge",
-                    Sequence = 1,
-                    Sets = 3,
-                    HasReps = true,
-                    HasWeight = false,
-                    HasDuration = false
-                }
-            ]
-        });
-
-        var routines = await api.GetUserRoutinesAsync();
-        var routine = routines.First(r => r.Name == $"Temp Routine {id}");
-
-        await api.DeleteRoutineAsync(routine.RoutineId);
-
-        var routinesAfter = await api.GetUserRoutinesAsync();
-        Assert.DoesNotContain(routinesAfter, r => r.RoutineId == routine.RoutineId);
-    }
 }

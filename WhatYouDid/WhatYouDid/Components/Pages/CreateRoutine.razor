@@ -15,7 +15,7 @@
 
 <div style="width: 560px; max-width: 100%">
 		<hr />
-		<EditForm Model=@routine OnValidSubmit="OnValidSubmit" OnInvalidSubmit="OnInvalidSubmit" FormName="EditRoutine" Context="EditRoutine">
+		<EditForm Model=@routine OnValidSubmit="OnValidSubmit" OnInvalidSubmit="OnInvalidSubmit" FormName="CreateRoutine" Context="CreateRoutine">
 
 			<DataAnnotationsValidator />
 			<ValidationSummary />
@@ -104,9 +104,6 @@
 	private string? errorMessage = null;
 	private List<string> _exerciseKeys = [Guid.NewGuid().ToString("N")];
 	private Dictionary<string, double>? _flipPositions;
-
-	[Parameter]
-	public int? Id { get; set; }
 
 	CreateRoutineDto routine = new() {
 		Name = string.Empty,
