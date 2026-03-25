@@ -11,7 +11,6 @@
 @inject DialogService DialogService
 @inject NavigationManager Navigation
 @inject HttpClient Http
-@inject IJSRuntime JS
 
 @if (WorkoutDto is null) {
 	if (Loaded)
@@ -199,8 +198,6 @@
 
 	private bool AlreadyAsked = false; // Field to know if we need to check browser storage
 	private string SlidingClass = "slide-from-right";
-	private bool _shouldFocusFirst = true;
-
 	protected override async Task OnInitializedAsync()
 	{
 		if (authenticationState is null)
@@ -223,12 +220,6 @@
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
-		if (_shouldFocusFirst)
-		{
-			_shouldFocusFirst = false;
-			await JS.InvokeVoidAsync("eval", "setTimeout(() => document.querySelector('#exercise-stack input')?.focus(), 350)");
-		}
-
 		if (!AlreadyAsked && WorkoutDto != null)
 		{
 			AlreadyAsked = true;
@@ -282,7 +273,6 @@
 			? "slide-from-left"
 			: "slide-from-right";
 
-		_shouldFocusFirst = true;
 		WorkoutDto.ExerciseIndex = newIndex;
 	}
 
@@ -306,7 +296,6 @@
 		if (WorkoutDto is null) return;
 
 		SlidingClass = "slide-from-left";
-		_shouldFocusFirst = true;
 
 		if (WorkoutDto.ExerciseIndex > 0)
 			WorkoutDto.ExerciseIndex--;
@@ -319,7 +308,6 @@
 		if (WorkoutDto is null) return;
 
 		SlidingClass = "slide-from-right";
-		_shouldFocusFirst = true;
 
 		if (WorkoutDto.ExerciseIndex < WorkoutDto.WorkoutExercises?.Count)
 			WorkoutDto.ExerciseIndex++;
