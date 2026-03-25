@@ -228,21 +228,8 @@
 
 			if (browserDto != null)
 			{
-				// Ask the user if they wanna do that one
-				var startNew = await DialogService.Confirm("You have an unfinished workout.\n\nContinue previous workout or start new?", "Confirm",
-					new ConfirmOptions() { OkButtonText = "Start New", CancelButtonText = "Continue previous" }) ?? false;
-
-				if (startNew)
-				{
-					// Start a new one
-					await BrowserStorage.SetAsync(WorkoutDto.GetBrowserStorageId, WorkoutDto);
-				}
-				else
-				{
-					// Continue the old one
-					WorkoutDto = browserDto;
-					await InvokeAsync(StateHasChanged);
-				}
+				WorkoutDto = browserDto;
+				await InvokeAsync(StateHasChanged);
 			}
 
 		}

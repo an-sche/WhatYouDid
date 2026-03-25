@@ -175,26 +175,25 @@ public class DashboardTests(DatabaseFixture fixture)
     }
 
     [Fact]
-    public async Task LongestWorkout_IdentifiesCorrectWorkout()
+    public async Task TotalWorkouts_CountsCorrectly()
     {
         var id = Guid.NewGuid().ToString("N")[..8];
-        var user = await fixture.CreateUserAsync($"dash-long-{id}@test.com", "Test1234!");
+        var user = await fixture.CreateUserAsync($"dash-count-{id}@test.com", "Test1234!");
 
-        var anchor = new DateTime(2024, 6, 1, 12, 0, 0, DateTimeKind.Local);
-        using (var setupDb = fixture.CreateDbContextForTenant(user.Id))
-        {
-            setupDb.Workouts.AddRange(
-                new Workout { WorkoutId = Guid.NewGuid(), ApplicationUserId = user.Id, RoutineName = $"Short {id}", StartTime = anchor.AddHours(-2),  EndTime = anchor.AddMinutes(-90) }, // 30 min
-                new Workout { WorkoutId = Guid.NewGuid(), ApplicationUserId = user.Id, RoutineName = $"Long {id}",  StartTime = anchor.AddHours(-5),  EndTime = anchor.AddMinutes(-210) } // 90 min
-            );
-            await setupDb.SaveChangesAsync();
-        }
+        var tenantService = new TestTenantService();
+        tenantService.SetTenant(user.Id);
+        var api = fixture.CreateApiForTenant(tenantService);
+
+        var (routineId, exerciseId) = await SetupRoutineAsync(api, $"Count Routine {id}");
+
+        await api.SaveWorkoutAsync(BuildWorkout(routineId, $"Count Routine {id}", exerciseId, DateTime.Now.AddHours(-1), []));
+        await api.SaveWorkoutAsync(BuildWorkout(routineId, $"Count Routine {id}", exerciseId, DateTime.Now.AddHours(-2), []));
+        await api.SaveWorkoutAsync(BuildWorkout(routineId, $"Count Routine {id}", exerciseId, DateTime.Now.AddHours(-3), []));
 
         using var db = fixture.CreateDbContextForTenant(user.Id);
         var dto = await new DashboardService(db).GetDashboardForUserAsync();
 
-        Assert.Equal($"Long {id}", dto.LongestWorkoutRoutineName);
-        Assert.Equal(90, dto.LongestWorkoutDuration);
+        Assert.Equal(3, dto.TotalWorkouts);
     }
 
     [Fact]

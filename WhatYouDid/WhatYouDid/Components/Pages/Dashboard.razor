@@ -63,16 +63,9 @@
 
             <RadzenCard Style="height:150px; flex:1; min-width:240px; max-width:280px">
                 <ChildContent>
-                    <h6>Longest Workout</h6>
-                    @if (dashboard.LongestWorkoutRoutineName is not null && dashboard.LongestWorkoutDuration.HasValue)
-                    {
-                        <div class="fw-bold">@dashboard.LongestWorkoutRoutineName</div>
-                        <div>@(dashboard.LongestWorkoutDate?.ToString("yyyy-MM-dd")) — @FormatMinutes(dashboard.LongestWorkoutDuration)</div>
-                    }
-                    else
-                    {
-                        <div class="text-muted">No completed workouts</div>
-                    }
+                    <h6>Total Workouts</h6>
+                    <div class="display-6">@dashboard.TotalWorkouts</div>
+                    <div class="text-muted">workouts completed</div>
                 </ChildContent>
             </RadzenCard>
 </RadzenStack>

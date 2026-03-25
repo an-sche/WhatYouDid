@@ -55,22 +55,7 @@ public class DashboardService(
             .SelectMany(we => we.Reps!)
             .SumAsync(r => r);
 
-        // Longest Workout
-        var longestWorkout = await workoutsQuery
-            .Where(x => x.EndTime != null)
-            .Where(x => x.EndTime > x.StartTime)
-            .OrderByDescending(w => EF.Functions.DateDiffMinute(w.StartTime, w.EndTime))
-            .Select(x => new
-            {
-                StartDate = x.StartTime,
-                WorkoutName = x.RoutineName,
-                DurationMinutes = EF.Functions.DateDiffMinute(x.StartTime, x.EndTime),
-            })
-            .FirstOrDefaultAsync();
-
-        dto.LongestWorkoutDate = longestWorkout?.StartDate;
-        dto.LongestWorkoutRoutineName = longestWorkout?.WorkoutName;
-        dto.LongestWorkoutDuration = longestWorkout?.DurationMinutes;
+        dto.TotalWorkouts = await workoutsQuery.CountAsync();
 
         return dto;
     }
