@@ -26,7 +26,7 @@ public class ApplicationDbContext(
             .HasQueryFilter(w => w.Routine!.CreateUserId == _tenant || w.Routine!.IsPublic);
 
         builder.Entity<WorkoutExercise>()
-            .HasQueryFilter(we => we.Workout.ApplicationUserId == _tenant);
+            .HasQueryFilter(we => we.Workout.ApplicationUserId == _tenant && !we.Workout.IsDeleted);
 
         base.OnModelCreating(builder);
     }
