@@ -1,6 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace WhatYouDid.Data;
+
+[Index(nameof(RoutineId), nameof(Sequence), IsUnique = true)]
 
 /// <summary>
 /// Describes a step in a Routine, such as chin-ups, curls, push-ups
