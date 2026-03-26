@@ -23,7 +23,7 @@ public class ApplicationDbContext(
             .HasQueryFilter(r => r.CreateUserId == _tenant || r.IsPublic);
 
         builder.Entity<Exercise>()
-            .HasQueryFilter(w => w.ApplicationUserId == _tenant || w.Routine!.IsPublic);
+            .HasQueryFilter(w => w.Routine!.CreateUserId == _tenant || w.Routine!.IsPublic);
 
         builder.Entity<WorkoutExercise>()
             .HasQueryFilter(we => we.Workout.ApplicationUserId == _tenant);

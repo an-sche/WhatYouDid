@@ -41,6 +41,4 @@ public class Exercise
     [Required]
 	public int? RoutineId { get; set; } = null;
 
-    public string? ApplicationUserId { get; set; }
-    public ApplicationUser? ApplicationUser { get; set; }
 }

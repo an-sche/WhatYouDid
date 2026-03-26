@@ -55,7 +55,6 @@ public class WorkoutExerciseTenantTests(DatabaseFixture fixture)
                         Sequence = 1,
                         Sets = 3,
                         HasReps = true,
-                        ApplicationUserId = userA.Id
                     }
                 ]
             };

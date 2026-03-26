@@ -80,7 +80,6 @@ public class RoutineTenantTests(DatabaseFixture fixture)
                         Name = "Pull Up",
                         Sequence = 1,
                         Sets = 3,
-                        ApplicationUserId = userA.Id
                     }
                 ]
             });
@@ -139,7 +138,6 @@ public class RoutineTenantTests(DatabaseFixture fixture)
                         Name = "Bicep Curl",
                         Sequence = 1,
                         Sets = 3,
-                        ApplicationUserId = userA.Id
                     }
                 ]
             };

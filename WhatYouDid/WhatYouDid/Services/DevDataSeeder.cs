@@ -60,10 +60,10 @@ internal sealed class DevDataSeeder(
                 IsPublic = true,
                 Exercises =
                 [
-                    new Exercise { Name = "Squat",       Sequence = 1, Sets = 3, HasReps = true, HasWeight = true, ApplicationUserId = adminUser.Id },
-                    new Exercise { Name = "Bench Press", Sequence = 2, Sets = 3, HasReps = true, HasWeight = true, ApplicationUserId = adminUser.Id },
-                    new Exercise { Name = "Deadlift",    Sequence = 3, Sets = 3, HasReps = true, HasWeight = true, ApplicationUserId = adminUser.Id },
-                    new Exercise { Name = "Pull-Up",     Sequence = 4, Sets = 3, HasReps = true,                   ApplicationUserId = adminUser.Id },
+                    new Exercise { Name = "Squat",       Sequence = 1, Sets = 3, HasReps = true, HasWeight = true },
+                    new Exercise { Name = "Bench Press", Sequence = 2, Sets = 3, HasReps = true, HasWeight = true },
+                    new Exercise { Name = "Deadlift",    Sequence = 3, Sets = 3, HasReps = true, HasWeight = true },
+                    new Exercise { Name = "Pull-Up",     Sequence = 4, Sets = 3, HasReps = true                   },
                 ]
             };
 
@@ -75,10 +75,10 @@ internal sealed class DevDataSeeder(
                 IsPublic = false,
                 Exercises =
                 [
-                    new Exercise { Name = "Bench Press",     Sequence = 1, Sets = 4, HasReps = true, HasWeight = true, ApplicationUserId = adminUser.Id },
-                    new Exercise { Name = "Overhead Press",  Sequence = 2, Sets = 3, HasReps = true, HasWeight = true, ApplicationUserId = adminUser.Id },
-                    new Exercise { Name = "Tricep Pushdown", Sequence = 3, Sets = 3, HasReps = true, HasWeight = true, ApplicationUserId = adminUser.Id },
-                    new Exercise { Name = "Lateral Raise",   Sequence = 4, Sets = 3, HasReps = true, HasWeight = true, ApplicationUserId = adminUser.Id },
+                    new Exercise { Name = "Bench Press",     Sequence = 1, Sets = 4, HasReps = true, HasWeight = true },
+                    new Exercise { Name = "Overhead Press",  Sequence = 2, Sets = 3, HasReps = true, HasWeight = true },
+                    new Exercise { Name = "Tricep Pushdown", Sequence = 3, Sets = 3, HasReps = true, HasWeight = true },
+                    new Exercise { Name = "Lateral Raise",   Sequence = 4, Sets = 3, HasReps = true, HasWeight = true },
                 ]
             };
 
@@ -89,10 +89,10 @@ internal sealed class DevDataSeeder(
                 IsPublic = false,
                 Exercises =
                 [
-                    new Exercise { Name = "Deadlift",    Sequence = 1, Sets = 3, HasReps = true, HasWeight = true, ApplicationUserId = adminUser.Id },
-                    new Exercise { Name = "Barbell Row", Sequence = 2, Sets = 4, HasReps = true, HasWeight = true, ApplicationUserId = adminUser.Id },
-                    new Exercise { Name = "Pull-Up",     Sequence = 3, Sets = 3, HasReps = true,                   ApplicationUserId = adminUser.Id },
-                    new Exercise { Name = "Bicep Curl",  Sequence = 4, Sets = 3, HasReps = true, HasWeight = true, ApplicationUserId = adminUser.Id },
+                    new Exercise { Name = "Deadlift",    Sequence = 1, Sets = 3, HasReps = true, HasWeight = true },
+                    new Exercise { Name = "Barbell Row", Sequence = 2, Sets = 4, HasReps = true, HasWeight = true },
+                    new Exercise { Name = "Pull-Up",     Sequence = 3, Sets = 3, HasReps = true                   },
+                    new Exercise { Name = "Bicep Curl",  Sequence = 4, Sets = 3, HasReps = true, HasWeight = true },
                 ]
             };
 
@@ -104,10 +104,10 @@ internal sealed class DevDataSeeder(
                 IsPublic = false,
                 Exercises =
                 [
-                    new Exercise { Name = "Squat",             Sequence = 1, Sets = 4, HasReps = true, HasWeight = true, ApplicationUserId = testUser.Id },
-                    new Exercise { Name = "Romanian Deadlift", Sequence = 2, Sets = 3, HasReps = true, HasWeight = true, ApplicationUserId = testUser.Id },
-                    new Exercise { Name = "Leg Press",         Sequence = 3, Sets = 3, HasReps = true, HasWeight = true, ApplicationUserId = testUser.Id },
-                    new Exercise { Name = "Calf Raise",        Sequence = 4, Sets = 4, HasReps = true, HasWeight = true, ApplicationUserId = testUser.Id },
+                    new Exercise { Name = "Squat",             Sequence = 1, Sets = 4, HasReps = true, HasWeight = true },
+                    new Exercise { Name = "Romanian Deadlift", Sequence = 2, Sets = 3, HasReps = true, HasWeight = true },
+                    new Exercise { Name = "Leg Press",         Sequence = 3, Sets = 3, HasReps = true, HasWeight = true },
+                    new Exercise { Name = "Calf Raise",        Sequence = 4, Sets = 4, HasReps = true, HasWeight = true },
                 ]
             };
 
@@ -118,10 +118,10 @@ internal sealed class DevDataSeeder(
                 IsPublic = false,
                 Exercises =
                 [
-                    new Exercise { Name = "Treadmill Run", Sequence = 1, Sets = 1, HasDuration = true,                   ApplicationUserId = testUser.Id },
-                    new Exercise { Name = "Plank",         Sequence = 2, Sets = 3, HasDuration = true,                   ApplicationUserId = testUser.Id },
-                    new Exercise { Name = "Sit-Up",        Sequence = 3, Sets = 3, HasReps = true,                       ApplicationUserId = testUser.Id },
-                    new Exercise { Name = "Leg Raise",     Sequence = 4, Sets = 3, HasReps = true,                       ApplicationUserId = testUser.Id },
+                    new Exercise { Name = "Treadmill Run", Sequence = 1, Sets = 1, HasDuration = true },
+                    new Exercise { Name = "Plank",         Sequence = 2, Sets = 3, HasDuration = true },
+                    new Exercise { Name = "Sit-Up",        Sequence = 3, Sets = 3, HasReps = true     },
+                    new Exercise { Name = "Leg Raise",     Sequence = 4, Sets = 3, HasReps = true     },
                 ]
             };
 

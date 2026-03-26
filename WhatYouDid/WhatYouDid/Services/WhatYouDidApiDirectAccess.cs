@@ -29,7 +29,6 @@ public class WhatYouDidApiDirectAccess(
                 HasReps = e.HasReps,
                 HasWeight = e.HasWeight,
                 HasDuration = e.HasDuration,
-                ApplicationUserId = tenantService.Tenant,
             }).ToList()
         };
 

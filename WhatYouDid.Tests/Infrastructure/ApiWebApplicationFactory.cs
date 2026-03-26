@@ -126,7 +126,6 @@ public class ApiWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLi
                     Sets = 3,
                     HasReps = true,
                     HasWeight = true,
-                    ApplicationUserId = userId
                 }
             ]
         };
