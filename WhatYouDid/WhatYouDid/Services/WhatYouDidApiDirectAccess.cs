@@ -63,7 +63,7 @@ public class WhatYouDidApiDirectAccess(
         var query = db.Workouts.AsQueryable();
         if (!string.IsNullOrWhiteSpace(search))
             query = query.Where(x => x.RoutineName.Contains(search));
-        return await query.CountAsync();
+        return await query.Where(x => x.EndTime != null).CountAsync();
     }
 
     public async Task<List<Workout>> GetWorkoutsAsync(int startIndex, int count, string? search = null)
@@ -73,7 +73,8 @@ public class WhatYouDidApiDirectAccess(
         if (!string.IsNullOrWhiteSpace(search))
             query = query.Where(x => x.RoutineName.Contains(search));
         return await query
-            .OrderByDescending(x => x.StartTime)
+            .Where(x => x.EndTime != null)
+            .OrderByDescending(x => x.EndTime)
             .Skip(startIndex)
             .Take(count)
             .ToListAsync();
@@ -134,7 +135,7 @@ public class WhatYouDidApiDirectAccess(
             RoutineId = workoutDto.RoutineId,
             RoutineName = workoutDto.RoutineName,
             StartTime = workoutDto.StartTime,
-            EndTime = DateTime.Now,
+            EndTime = DateTimeOffset.Now,
         };
 
         var exercises = new List<WorkoutExercise>();
@@ -194,7 +195,7 @@ public class WhatYouDidApiDirectAccess(
         if (workout is null) return false;
 
         workout.IsDeleted = true;
-        workout.DeletedDt = DateTime.UtcNow;
+        workout.DeletedDt = DateTimeOffset.Now;
         await db.SaveChangesAsync();
         return true;
     }

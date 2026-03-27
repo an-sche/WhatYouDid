@@ -19,9 +19,9 @@ public class Workout
     [MaxLength(50)]
     public required string RoutineName { get; set; } 
 
-    public required DateTime StartTime { get; set; } = DateTime.Now;
-    public DateTime? EndTime { get; set;}
+    public required DateTimeOffset StartTime { get; set; } = DateTimeOffset.Now;
+    public DateTimeOffset? EndTime { get; set;}
 
     public bool IsDeleted { get; set; } = false;
-    public DateTime? DeletedDt { get; set; }
+    public DateTimeOffset? DeletedDt { get; set; }
 }

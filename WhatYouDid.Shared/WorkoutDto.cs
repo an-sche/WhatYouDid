@@ -15,7 +15,7 @@ public class WorkoutDto
     public required int RoutineId { get; init; }
     public required string RoutineName { get; set; }
 
-    public DateTime StartTime { get; set; } = DateTime.Now;
+    public DateTimeOffset StartTime { get; set; } = DateTimeOffset.Now;
 
     public List<WorkoutExerciseDto>? WorkoutExercises { get; set; }
     public int ExerciseIndex { get; set; } = 0;

@@ -9,6 +9,11 @@
             <RadzenText TextStyle="TextStyle.Body1" Style="margin: 0; font-weight: 600">@Workout.RoutineName</RadzenText>
             <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0; color: var(--rz-text-secondary-color)">
                 @Workout.StartTime.ToString("MMM d, yyyy h:mm tt")
+                @if (Workout.EndTime is { } endTime)
+                {
+                    var duration = endTime - Workout.StartTime;
+                    <text> (@((int)duration.TotalHours > 0 ? $"{(int)duration.TotalHours}h {duration.Minutes}m" : $"{duration.Minutes}m"))</text>
+                }
             </RadzenText>
         </RadzenStack>
         <RadzenStack Orientation="Orientation.Horizontal" Gap="8px">
