@@ -211,6 +211,7 @@
 		Loaded = true;
 		if (WorkoutDto is not null)
 		{
+			WorkoutDto.StartTime = DateTimeOffset.Now;
 			ExerciseNames = WorkoutDto.WorkoutExercises?
 				.Select(w => $"{w.Sequence}: {w.ExerciseName}").ToArray() ?? new string[0];
 		}
@@ -312,16 +313,21 @@
 
 		try
 		{
+			WorkoutDto.EndTime = DateTimeOffset.Now;
 			var response = await Http.PostAsJsonAsync("api/workouts", WorkoutDto);
 
-			response.EnsureSuccessStatusCode();
+			if (!response.IsSuccessStatusCode)
+			{
+				await DialogService.Alert("Your workout could not be saved. Please try again.", "Error");
+				return;
+			}
+
 			try
 			{
 				await BrowserStorage.DeleteAsync(WorkoutDto.GetBrowserStorageId);
 			}
 			catch { }
 
-			// Send the user to the Workouts page...
 			Navigation.NavigateTo("/workouts", forceLoad: true);
 		}
 		catch

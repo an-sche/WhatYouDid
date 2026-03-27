@@ -74,7 +74,7 @@ public class WorkoutCrudTests(DatabaseFixture fixture)
     }
 
     [Fact]
-    public async Task GetWorkoutsAsync_OrderedByStartTimeDescending()
+    public async Task GetWorkoutsAsync_OrderedByEndTimeDescending()
     {
         var id = Guid.NewGuid().ToString("N")[..8];
         var user = await fixture.CreateUserAsync($"workout-order-{id}@test.com", "Test1234!");
@@ -87,9 +87,9 @@ public class WorkoutCrudTests(DatabaseFixture fixture)
 
         var times = new[]
         {
-            DateTime.Now.AddHours(-3),
-            DateTime.Now.AddHours(-1),
-            DateTime.Now.AddHours(-2)
+            DateTimeOffset.Now.AddHours(-3),
+            DateTimeOffset.Now.AddHours(-1),
+            DateTimeOffset.Now.AddHours(-2)
         };
 
         foreach (var t in times)
@@ -100,6 +100,7 @@ public class WorkoutCrudTests(DatabaseFixture fixture)
                 RoutineId = routineId,
                 RoutineName = $"Order Routine {id}",
                 StartTime = t,
+                EndTime = t.AddMinutes(45),
                 WorkoutExercises = []
             });
         }
@@ -109,7 +110,7 @@ public class WorkoutCrudTests(DatabaseFixture fixture)
 
         Assert.Equal(3, mine.Count);
         for (int i = 0; i < mine.Count - 1; i++)
-            Assert.True(mine[i].StartTime >= mine[i + 1].StartTime);
+            Assert.True(mine[i].EndTime >= mine[i + 1].EndTime);
     }
 
     [Fact]
@@ -392,5 +393,28 @@ public class WorkoutCrudTests(DatabaseFixture fixture)
         Assert.NotNull(exercise.LastReps);
         Assert.Equal([10, 8, 6], exercise.LastReps);
         Assert.Equal([135, 145, 155], exercise.LastWeights);
+    }
+
+    [Fact]
+    public async Task SaveWorkoutAsync_EndTimeBeforeStartTime_Throws()
+    {
+        var id = Guid.NewGuid().ToString("N")[..8];
+        var user = await fixture.CreateUserAsync($"workout-endtime-{id}@test.com", "Test1234!");
+
+        var tenantService = new TestTenantService();
+        tenantService.SetTenant(user.Id);
+        var api = fixture.CreateApiForTenant(tenantService);
+
+        var (routineId, _) = await SetupRoutineAsync(api, $"EndTime Routine {id}");
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => api.SaveWorkoutAsync(new WorkoutDto
+        {
+            WorkoutId = Guid.NewGuid(),
+            RoutineId = routineId,
+            RoutineName = $"EndTime Routine {id}",
+            StartTime = DateTimeOffset.Now,
+            EndTime = DateTimeOffset.Now.AddHours(-1),
+            WorkoutExercises = []
+        }));
     }
 }

@@ -135,8 +135,12 @@ public class WhatYouDidApiDirectAccess(
             RoutineId = workoutDto.RoutineId,
             RoutineName = workoutDto.RoutineName,
             StartTime = workoutDto.StartTime,
-            EndTime = DateTimeOffset.Now,
+            EndTime = workoutDto.EndTime,
         };
+        workout.EndTime ??= DateTimeOffset.Now;
+
+        if (workout.EndTime < workout.StartTime)
+            throw new InvalidOperationException("EndTime cannot be before StartTime.");
 
         var exercises = new List<WorkoutExercise>();
 

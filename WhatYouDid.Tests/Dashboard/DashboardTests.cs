@@ -38,6 +38,7 @@ public class DashboardTests(DatabaseFixture fixture)
             RoutineId = routineId,
             RoutineName = routineName,
             StartTime = startTime,
+            EndTime = startTime.AddHours(1),
             WorkoutExercises =
             [
                 new WorkoutExerciseDto

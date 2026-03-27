@@ -116,6 +116,29 @@ public class WasmApiTests(ApiWebApplicationFactory factory)
     }
 
     [Fact]
+    public async Task SaveWorkout_Authenticated_EndTimeBeforeStartTime_ReturnsError()
+    {
+        var id = Guid.NewGuid().ToString("N")[..8];
+        var user = await factory.CreateUserAsync($"wasm-endtime-{id}@test.com", "Test1234!");
+        var routineId = await factory.CreateRoutineAsync(user.Id, $"EndTime Day {id}");
+        var client = factory.CreateAuthenticatedClient(user.Id);
+
+        var dto = new WorkoutDto
+        {
+            WorkoutId = Guid.NewGuid(),
+            RoutineId = routineId,
+            RoutineName = $"EndTime Day {id}",
+            StartTime = DateTimeOffset.Now,
+            EndTime = DateTimeOffset.Now.AddHours(-1),
+            WorkoutExercises = []
+        };
+
+        var response = await client.PostAsJsonAsync("/api/workouts", dto);
+
+        Assert.False(response.IsSuccessStatusCode);
+    }
+
+    [Fact]
     public async Task SaveWorkout_Authenticated_WorkoutIsPersisted()
     {
         var id = Guid.NewGuid().ToString("N")[..8];
