@@ -106,9 +106,9 @@ public class WhatYouDidApiDirectAccess(
                             ExerciseName = exercise.Name,
                             Sets = exercise.Sets,
 
-                            LastDurations = (pastExercise != null && pastExercise.Durations != null) ? pastExercise.Durations.ToArray() : null,
-                            LastReps = (pastExercise != null && pastExercise.Reps != null) ? pastExercise.Reps.ToArray() : null,
-                            LastWeights = (pastExercise != null && pastExercise.Weights != null) ? pastExercise.Weights.ToArray() : null,
+                            LastDurations = pastExercise != null ? pastExercise.Sets.OrderBy(s => s.SetNumber).Select(s => s.Duration).ToArray() : null,
+                            LastReps      = pastExercise != null ? pastExercise.Sets.OrderBy(s => s.SetNumber).Select(s => s.Reps).ToArray()     : null,
+                            LastWeights   = pastExercise != null ? pastExercise.Sets.OrderBy(s => s.SetNumber).Select(s => s.Weight).ToArray()   : null,
 
                             HasReps = exercise.HasReps,
                             HasDurations = exercise.HasDuration,
@@ -150,16 +150,13 @@ public class WhatYouDidApiDirectAccess(
                     Workout = workout,
                     ExerciseId = exerciseDto.ExerciseId,
                     ExerciseName = exerciseDto.ExerciseName,
+                    Sets = Enumerable.Range(0, exerciseDto.Sets).Select(i => new WorkoutExerciseSet {
+                        SetNumber = i + 1,
+                        Reps      = exerciseDto.HasReps      ? exerciseDto.Reps.ElementAtOrDefault(i)      : null,
+                        Weight    = exerciseDto.HasWeights   ? exerciseDto.Weights.ElementAtOrDefault(i)   : null,
+                        Duration  = exerciseDto.HasDurations ? exerciseDto.Durations.ElementAtOrDefault(i) : null,
+                    }).ToList(),
                 };
-                if (exerciseDto.HasReps) {
-                    exercise.Reps = exerciseDto.Reps.ToList();
-                }
-                if (exerciseDto.HasWeights) {
-                    exercise.Weights = exerciseDto.Weights.ToList();
-                }
-                if (exerciseDto.HasDurations) {
-                    exercise.Durations = exerciseDto.Durations.ToList();
-                }
                 exercises.Add(exercise);
             }
         }
@@ -176,16 +173,18 @@ public class WhatYouDidApiDirectAccess(
         using var db = await dbFactory.CreateDbContextAsync();
 
         var entity = await db.WorkoutExercises
+            .Include(we => we.Sets)
             .FirstOrDefaultAsync(x => x.WorkoutId == workoutId && x.ExerciseId == exerciseDto.ExerciseId);
 
         if (entity is null) return false;
 
-        if (exerciseDto.HasReps)
-            entity.Reps = exerciseDto.Reps.ToList();
-        if (exerciseDto.HasWeights)
-            entity.Weights = exerciseDto.Weights.ToList();
-        if (exerciseDto.HasDurations)
-            entity.Durations = exerciseDto.Durations.ToList();
+        db.WorkoutExerciseSets.RemoveRange(entity.Sets);
+        entity.Sets = Enumerable.Range(0, exerciseDto.Sets).Select(i => new WorkoutExerciseSet {
+            SetNumber = i + 1,
+            Reps      = exerciseDto.HasReps      ? exerciseDto.Reps.ElementAtOrDefault(i)      : null,
+            Weight    = exerciseDto.HasWeights   ? exerciseDto.Weights.ElementAtOrDefault(i)   : null,
+            Duration  = exerciseDto.HasDurations ? exerciseDto.Durations.ElementAtOrDefault(i) : null,
+        }).ToList();
 
         await db.SaveChangesAsync();
         return true;
@@ -208,28 +207,30 @@ public class WhatYouDidApiDirectAccess(
     {
         using var db = await dbFactory.CreateDbContextAsync();
 
-        var workoutExercises = await (
-            from we in db.WorkoutExercises
+        var weEntities = await (
+            from we in db.WorkoutExercises.Include(x => x.Sets)
             where we.WorkoutId == workoutId
             join ex in db.Exercises.IgnoreQueryFilters()
                 on we.ExerciseId equals ex.ExerciseId into exJoin
             from ex in exJoin.DefaultIfEmpty()
-            select new WorkoutExerciseDto
-            {
-                Sequence = ex != null ? ex.Sequence : 0,
-                ExerciseId = we.ExerciseId ?? 0,
-                ExerciseName = we.ExerciseName,
-                Sets = ex != null ? ex.Sets : 0,
-
-                HasReps = ex != null && ex.HasReps,
-                HasWeights = ex != null && ex.HasWeight,
-                HasDurations = ex != null && ex.HasDuration,
-
-                Reps = we.Reps.ToArray(),
-                Weights = we.Weights.ToArray(),
-                Durations = we.Durations.ToArray(),
-            })
+            select new { we, ex })
             .ToListAsync();
+
+        var workoutExercises = weEntities.Select(row => new WorkoutExerciseDto
+        {
+            Sequence     = row.ex != null ? row.ex.Sequence : 0,
+            ExerciseId   = row.we.ExerciseId ?? 0,
+            ExerciseName = row.we.ExerciseName,
+            Sets         = row.ex != null ? row.ex.Sets : 0,
+
+            HasReps      = row.ex != null && row.ex.HasReps,
+            HasWeights   = row.ex != null && row.ex.HasWeight,
+            HasDurations = row.ex != null && row.ex.HasDuration,
+
+            Reps      = row.we.Sets.OrderBy(s => s.SetNumber).Select(s => s.Reps).ToArray(),
+            Weights   = row.we.Sets.OrderBy(s => s.SetNumber).Select(s => s.Weight).ToArray(),
+            Durations = row.we.Sets.OrderBy(s => s.SetNumber).Select(s => s.Duration).ToArray(),
+        }).ToList();
 
         var workout = await db.Workouts
             .Where(x => x.WorkoutId == workoutId)

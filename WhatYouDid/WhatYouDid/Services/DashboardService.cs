@@ -51,9 +51,10 @@ public class DashboardService(
             .SumAsync(w => EF.Functions.DateDiffMinute(w.StartTime, w.EndTime));
 
         // Total Reps Completed
-        dto.TotalReps = await workoutExercisesQuery
-            .SelectMany(we => we.Reps!)
-            .SumAsync(r => r);
+        dto.TotalReps = await db.WorkoutExercises
+            .Where(we => year == 0 || we.Workout.StartTime.Year == year)
+            .SelectMany(we => we.Sets)
+            .SumAsync(s => (int?)s.Reps) ?? 0;
 
         dto.TotalWorkouts = await workoutsQuery.CountAsync();
 

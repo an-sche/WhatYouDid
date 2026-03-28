@@ -28,6 +28,9 @@ public class ApplicationDbContext(
         builder.Entity<WorkoutExercise>()
             .HasQueryFilter(we => we.Workout.ApplicationUserId == _tenant && !we.Workout.IsDeleted);
 
+        builder.Entity<WorkoutExerciseSet>()
+            .HasQueryFilter(wes => wes.WorkoutExercise.Workout.ApplicationUserId == _tenant && !wes.WorkoutExercise.Workout.IsDeleted);
+
         base.OnModelCreating(builder);
     }
 
@@ -38,4 +41,6 @@ public class ApplicationDbContext(
     public DbSet<Exercise> Exercises { get; set; }
 
     public DbSet<WorkoutExercise> WorkoutExercises { get; set; }
+
+    public DbSet<WorkoutExerciseSet> WorkoutExerciseSets { get; set; }
 }

@@ -22,7 +22,5 @@ public class WorkoutExercise
     [MinLength(3), MaxLength(50)]
     public required string ExerciseName { get; set; }
 
-    public ICollection<int?>? Reps { get; set; }
-    public ICollection<int?>? Weights { get; set; }
-    public ICollection<int?>? Durations { get; set; }
+    public ICollection<WorkoutExerciseSet> Sets { get; set; } = [];
 }

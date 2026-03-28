@@ -170,13 +170,15 @@ internal sealed class DevDataSeeder(
                 WorkoutId = workout.WorkoutId,
                 ExerciseId = e.ExerciseId,
                 ExerciseName = e.Name,
-                Reps = e.HasReps ? Enumerable.Range(0, e.Sets).Select(_ => (int?)Random.Shared.Next(6, 13)).ToList() : null,
-                Weights = e.HasWeight ? Enumerable.Range(0, e.Sets).Select(_ => (int?)(Random.Shared.Next(4, 12) * 5)).ToList() : null,
-                Durations = e.HasDuration ? Enumerable.Range(0, e.Sets).Select(_ => (int?)Random.Shared.Next(30, 120)).ToList() : null,
+                Sets = Enumerable.Range(1, e.Sets).Select(setNum => new WorkoutExerciseSet {
+                    SetNumber = setNum,
+                    Reps      = e.HasReps     ? Random.Shared.Next(6, 13)          : null,
+                    Weight    = e.HasWeight   ? (Random.Shared.Next(4, 12) * 5)   : null,
+                    Duration  = e.HasDuration ? Random.Shared.Next(30, 120)        : null,
+                }).ToList(),
             }).ToList();
 
             db.Workouts.Add(workout);
-            db.WorkoutExercises.AddRange(workout.WorkoutExercise);
 
             routineIndex++;
             workoutDay = workoutDay.AddDays(Random.Shared.Next(1, 3));
