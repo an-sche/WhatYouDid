@@ -84,49 +84,78 @@ public class WhatYouDidApiDirectAccess(
     {
         using var db = await dbFactory.CreateDbContextAsync();
 
-        return await
-                (from routine in db.Routines.AsNoTracking()
-                where routine.RoutineId == routineId
-                select new WorkoutDto()
+        var routine = await db.Routines.AsNoTracking()
+            .Include(r => r.Exercises)
+            .FirstOrDefaultAsync(r => r.RoutineId == routineId);
+
+        if (routine is null) return null;
+
+        var lastWorkoutId = await db.Workouts.AsNoTracking()
+            .Where(w => w.RoutineId == routineId && w.EndTime != null)
+            .OrderByDescending(w => w.EndTime)
+            .Select(w => (Guid?)w.WorkoutId)
+            .FirstOrDefaultAsync();
+
+        var lastSets = lastWorkoutId is not null
+            ? await db.WorkoutExerciseSets.AsNoTracking()
+                .Where(s => s.WorkoutExercise.WorkoutId == lastWorkoutId)
+                .Select(s => new
                 {
-                    WorkoutId = Guid.CreateVersion7(),
+                    s.WorkoutExercise.ExerciseId,
+                    s.SetNumber,
+                    s.Reps,
+                    s.Weight,
+                    s.Duration,
+                    s.AlternateReps,
+                    s.AlternateWeight,
+                    s.AlternateDuration,
+                    s.Note,
+                })
+                .ToListAsync()
+            : [];
 
-                    RoutineId = routineId,
-                    RoutineName = routine.Name,
+        var lastSetsByExerciseId = lastSets
+            .GroupBy(s => s.ExerciseId ?? 0)
+            .ToDictionary(g => g.Key, g => g.OrderBy(s => s.SetNumber).ToList());
 
-                    WorkoutExercises =
-                        (from exercise in routine.Exercises
-                        join pastExercise in db.WorkoutExercises on exercise.ExerciseId equals pastExercise.ExerciseId into pastExercises
-                        from pastExercise in pastExercises
-                                                .OrderByDescending(x => x.Workout.StartTime).Take(1).DefaultIfEmpty()
-                        select new WorkoutExerciseDto() {
+        return new WorkoutDto
+        {
+            WorkoutId = Guid.CreateVersion7(),
+            RoutineId = routineId,
+            RoutineName = routine.Name,
+            WorkoutExercises = routine.Exercises.Select(exercise =>
+            {
+                lastSetsByExerciseId.TryGetValue(exercise.ExerciseId, out var orderedSets);
 
-                            Sequence = exercise.Sequence,
-                            ExerciseId = exercise.ExerciseId,
-                            ExerciseName = exercise.Name,
-                            Sets = exercise.Sets,
+                return new WorkoutExerciseDto
+                {
+                    Sequence     = exercise.Sequence,
+                    ExerciseId   = exercise.ExerciseId,
+                    ExerciseName = exercise.Name,
+                    Sets         = exercise.Sets,
 
-                            LastDurations = pastExercise != null ? pastExercise.Sets.OrderBy(s => s.SetNumber).Select(s => s.Duration).ToArray() : null,
-                            LastReps      = pastExercise != null ? pastExercise.Sets.OrderBy(s => s.SetNumber).Select(s => s.Reps).ToArray()     : null,
-                            LastWeights   = pastExercise != null ? pastExercise.Sets.OrderBy(s => s.SetNumber).Select(s => s.Weight).ToArray()   : null,
-                            LastAlternateDurations = pastExercise != null ? pastExercise.Sets.OrderBy(s => s.SetNumber).Select(s => s.AlternateDuration).ToArray() : null,
-                            LastAlternateReps      = pastExercise != null ? pastExercise.Sets.OrderBy(s => s.SetNumber).Select(s => s.AlternateReps).ToArray()     : null,
-                            LastAlternateWeights   = pastExercise != null ? pastExercise.Sets.OrderBy(s => s.SetNumber).Select(s => s.AlternateWeight).ToArray()   : null,
-                            LastNotes              = pastExercise != null ? pastExercise.Sets.OrderBy(s => s.SetNumber).Select(s => s.Note).ToArray()              : null,
+                    HasReps      = exercise.HasReps,
+                    HasDurations = exercise.HasDuration,
+                    HasWeights   = exercise.HasWeight,
 
-                            HasReps = exercise.HasReps,
-                            HasDurations = exercise.HasDuration,
-                            HasWeights = exercise.HasWeight,
+                    LastReps               = orderedSets?.Select(s => s.Reps).ToArray(),
+                    LastWeights            = orderedSets?.Select(s => s.Weight).ToArray(),
+                    LastDurations          = orderedSets?.Select(s => s.Duration).ToArray(),
+                    LastAlternateReps      = orderedSets?.Select(s => s.AlternateReps).ToArray(),
+                    LastAlternateWeights   = orderedSets?.Select(s => s.AlternateWeight).ToArray(),
+                    LastAlternateDurations = orderedSets?.Select(s => s.AlternateDuration).ToArray(),
+                    LastNotes              = orderedSets?.Select(s => s.Note).ToArray(),
 
-                            Reps = new int?[exercise.Sets],
-                            Durations = new int?[exercise.Sets],
-                            Weights = new int?[exercise.Sets],
-                            AlternateReps = new int?[exercise.Sets],
-                            AlternateDurations = new int?[exercise.Sets],
-                            AlternateWeights = new int?[exercise.Sets],
-                            Notes = pastExercise != null ? pastExercise.Sets.OrderBy(s => s.SetNumber).Select(s => s.Note).ToArray() : new string?[exercise.Sets],
-                        }).ToList()
-                }).FirstOrDefaultAsync();
+                    Reps               = new int?[exercise.Sets],
+                    Weights            = new int?[exercise.Sets],
+                    Durations          = new int?[exercise.Sets],
+                    AlternateReps      = new int?[exercise.Sets],
+                    AlternateWeights   = new int?[exercise.Sets],
+                    AlternateDurations = new int?[exercise.Sets],
+                    Notes              = orderedSets?.Select(s => s.Note).ToArray() ?? new string?[exercise.Sets],
+                };
+            }).ToList()
+        };
     }
 
     public async Task<bool> SaveWorkoutAsync(WorkoutDto workoutDto)
