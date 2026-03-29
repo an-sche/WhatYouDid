@@ -396,6 +396,302 @@ public class WorkoutCrudTests(DatabaseFixture fixture)
     }
 
     [Fact]
+    public async Task SaveWorkoutAsync_PersistsAlternateSetData()
+    {
+        var id = Guid.NewGuid().ToString("N")[..8];
+        var user = await fixture.CreateUserAsync($"workout-alt-{id}@test.com", "Test1234!");
+
+        var tenantService = new TestTenantService();
+        tenantService.SetTenant(user.Id);
+        var api = fixture.CreateApiForTenant(tenantService);
+
+        var (routineId, exerciseId) = await SetupRoutineAsync(api, $"Alt Data Routine {id}");
+        var workoutId = Guid.NewGuid();
+
+        await api.SaveWorkoutAsync(new WorkoutDto
+        {
+            WorkoutId = workoutId,
+            RoutineId = routineId,
+            RoutineName = $"Alt Data Routine {id}",
+            StartTime = DateTime.Now.AddHours(-1),
+            WorkoutExercises =
+            [
+                new WorkoutExerciseDto
+                {
+                    Sequence = 1,
+                    ExerciseId = exerciseId,
+                    ExerciseName = "Bench Press",
+                    Sets = 3,
+                    HasReps = true,
+                    HasWeights = true,
+                    HasDurations = false,
+                    Reps = [10, 5, 8],
+                    Weights = [135, 135, 135],
+                    Durations = [],
+                    AlternateReps = [null, 5, null],
+                    AlternateWeights = [null, 100, null],
+                    Notes = [null, "from knees", null],
+                }
+            ]
+        });
+
+        var dto = await api.GetCompletedWorkoutDtoAsync(workoutId);
+
+        Assert.NotNull(dto);
+        var exercise = dto.WorkoutExercises![0];
+
+        // Set 0 should have no alternate data
+        Assert.Null(exercise.AlternateReps[0]);
+        Assert.Null(exercise.AlternateWeights[0]);
+        Assert.Null(exercise.Notes[0]);
+
+        // Set 1 should have alternate data
+        Assert.Equal(5, exercise.AlternateReps[1]);
+        Assert.Equal(100, exercise.AlternateWeights[1]);
+        Assert.Equal("from knees", exercise.Notes[1]);
+
+        // Set 2 should have no alternate data
+        Assert.Null(exercise.AlternateReps[2]);
+    }
+
+    [Fact]
+    public async Task GetStartWorkoutDtoAsync_PopulatesLastAlternateValues()
+    {
+        var id = Guid.NewGuid().ToString("N")[..8];
+        var user = await fixture.CreateUserAsync($"workout-lastalt-{id}@test.com", "Test1234!");
+
+        var tenantService = new TestTenantService();
+        tenantService.SetTenant(user.Id);
+        var api = fixture.CreateApiForTenant(tenantService);
+
+        var (routineId, exerciseId) = await SetupRoutineAsync(api, $"Last Alt Routine {id}");
+
+        await api.SaveWorkoutAsync(new WorkoutDto
+        {
+            WorkoutId = Guid.NewGuid(),
+            RoutineId = routineId,
+            RoutineName = $"Last Alt Routine {id}",
+            StartTime = DateTime.Now.AddDays(-1),
+            WorkoutExercises =
+            [
+                new WorkoutExerciseDto
+                {
+                    Sequence = 1,
+                    ExerciseId = exerciseId,
+                    ExerciseName = "Bench Press",
+                    Sets = 3,
+                    HasReps = true,
+                    HasWeights = true,
+                    HasDurations = false,
+                    Reps = [10, 5, 8],
+                    Weights = [135, 135, 135],
+                    Durations = [],
+                    AlternateReps = [null, 5, null],
+                    AlternateWeights = [null, 100, null],
+                    Notes = [null, "from knees", null],
+                }
+            ]
+        });
+
+        var dto = await api.GetStartWorkoutDtoAsync(routineId);
+
+        Assert.NotNull(dto);
+        var exercise = dto.WorkoutExercises?.FirstOrDefault(e => e.ExerciseId == exerciseId);
+        Assert.NotNull(exercise);
+
+        Assert.NotNull(exercise.LastAlternateReps);
+        Assert.Null(exercise.LastAlternateReps[0]);
+        Assert.Equal(5, exercise.LastAlternateReps[1]);
+        Assert.Null(exercise.LastAlternateReps[2]);
+
+        Assert.NotNull(exercise.LastAlternateWeights);
+        Assert.Equal(100, exercise.LastAlternateWeights[1]);
+
+        Assert.NotNull(exercise.LastNotes);
+        Assert.Equal("from knees", exercise.LastNotes[1]);
+    }
+
+    [Fact]
+    public async Task UpdateWorkoutExerciseAsync_PersistsAlternateSetData()
+    {
+        var id = Guid.NewGuid().ToString("N")[..8];
+        var user = await fixture.CreateUserAsync($"workout-upd-alt-{id}@test.com", "Test1234!");
+
+        var tenantService = new TestTenantService();
+        tenantService.SetTenant(user.Id);
+        var api = fixture.CreateApiForTenant(tenantService);
+
+        var (routineId, exerciseId) = await SetupRoutineAsync(api, $"Update Alt Routine {id}");
+        var workoutId = Guid.NewGuid();
+
+        await api.SaveWorkoutAsync(new WorkoutDto
+        {
+            WorkoutId = workoutId,
+            RoutineId = routineId,
+            RoutineName = $"Update Alt Routine {id}",
+            StartTime = DateTime.Now.AddHours(-1),
+            WorkoutExercises =
+            [
+                new WorkoutExerciseDto
+                {
+                    Sequence = 1,
+                    ExerciseId = exerciseId,
+                    ExerciseName = "Bench Press",
+                    Sets = 3,
+                    HasReps = true,
+                    HasWeights = true,
+                    HasDurations = false,
+                    Reps = [10, 5, 8],
+                    Weights = [135, 135, 135],
+                    Durations = [],
+                    AlternateReps = [null, 5, null],
+                    AlternateWeights = [null, 100, null],
+                    Notes = [null, "from knees", null],
+                }
+            ]
+        });
+
+        await api.UpdateWorkoutExerciseAsync(workoutId, new WorkoutExerciseDto
+        {
+            Sequence = 1,
+            ExerciseId = exerciseId,
+            ExerciseName = "Bench Press",
+            Sets = 3,
+            HasReps = true,
+            HasWeights = true,
+            HasDurations = false,
+            Reps = [10, 5, 8],
+            Weights = [135, 135, 135],
+            Durations = [],
+            AlternateReps = [null, 7, null],
+            AlternateWeights = [null, 110, null],
+            Notes = [null, "assisted", null],
+        });
+
+        var dto = await api.GetCompletedWorkoutDtoAsync(workoutId);
+        var exercise = dto!.WorkoutExercises![0];
+
+        Assert.Equal(7, exercise.AlternateReps[1]);
+        Assert.Equal(110, exercise.AlternateWeights[1]);
+        Assert.Equal("assisted", exercise.Notes[1]);
+        Assert.Null(exercise.AlternateReps[0]);
+        Assert.Null(exercise.Notes[0]);
+    }
+
+    [Fact]
+    public async Task GetStartWorkoutDtoAsync_PrePopulatesNotesFromLastWorkout()
+    {
+        var id = Guid.NewGuid().ToString("N")[..8];
+        var user = await fixture.CreateUserAsync($"workout-notes-prepop-{id}@test.com", "Test1234!");
+
+        var tenantService = new TestTenantService();
+        tenantService.SetTenant(user.Id);
+        var api = fixture.CreateApiForTenant(tenantService);
+
+        var (routineId, exerciseId) = await SetupRoutineAsync(api, $"Notes Prepop Routine {id}");
+
+        await api.SaveWorkoutAsync(new WorkoutDto
+        {
+            WorkoutId = Guid.NewGuid(),
+            RoutineId = routineId,
+            RoutineName = $"Notes Prepop Routine {id}",
+            StartTime = DateTime.Now.AddDays(-1),
+            WorkoutExercises =
+            [
+                new WorkoutExerciseDto
+                {
+                    Sequence = 1,
+                    ExerciseId = exerciseId,
+                    ExerciseName = "Bench Press",
+                    Sets = 3,
+                    HasReps = true,
+                    HasWeights = true,
+                    HasDurations = false,
+                    Reps = [10, 5, 8],
+                    Weights = [135, 135, 135],
+                    Durations = [],
+                    Notes = [null, "from knees", null],
+                }
+            ]
+        });
+
+        var dto = await api.GetStartWorkoutDtoAsync(routineId);
+        var exercise = dto!.WorkoutExercises!.First(e => e.ExerciseId == exerciseId);
+
+        // Notes should be pre-populated from last workout, not just available via LastNotes
+        Assert.Null(exercise.Notes[0]);
+        Assert.Equal("from knees", exercise.Notes[1]);
+        Assert.Null(exercise.Notes[2]);
+    }
+
+    [Fact]
+    public async Task SaveWorkoutAsync_PersistsAlternateDurations()
+    {
+        var id = Guid.NewGuid().ToString("N")[..8];
+        var user = await fixture.CreateUserAsync($"workout-alt-dur-{id}@test.com", "Test1234!");
+
+        var tenantService = new TestTenantService();
+        tenantService.SetTenant(user.Id);
+        var api = fixture.CreateApiForTenant(tenantService);
+
+        await api.AddRoutineAsync(new CreateRoutineDto
+        {
+            Name = $"Duration Routine {id}",
+            Exercises =
+            [
+                new CreateExerciseDto
+                {
+                    Name = "Plank",
+                    Sequence = 1,
+                    Sets = 3,
+                    HasReps = false,
+                    HasWeight = false,
+                    HasDuration = true
+                }
+            ]
+        });
+        var routines = await api.GetUserRoutinesAsync();
+        var routineId = routines.First(r => r.Name == $"Duration Routine {id}").RoutineId;
+        var full = await api.GetRoutineAsync(routineId);
+        var exerciseId = full!.Exercises[0].ExerciseId;
+
+        var workoutId = Guid.NewGuid();
+        await api.SaveWorkoutAsync(new WorkoutDto
+        {
+            WorkoutId = workoutId,
+            RoutineId = routineId,
+            RoutineName = $"Duration Routine {id}",
+            StartTime = DateTime.Now.AddHours(-1),
+            WorkoutExercises =
+            [
+                new WorkoutExerciseDto
+                {
+                    Sequence = 1,
+                    ExerciseId = exerciseId,
+                    ExerciseName = "Plank",
+                    Sets = 3,
+                    HasReps = false,
+                    HasWeights = false,
+                    HasDurations = true,
+                    Reps = [],
+                    Weights = [],
+                    Durations = [60, 45, 30],
+                    AlternateDurations = [null, 20, null],
+                    Notes = [null, "on knees", null],
+                }
+            ]
+        });
+
+        var dto = await api.GetCompletedWorkoutDtoAsync(workoutId);
+        var exercise = dto!.WorkoutExercises![0];
+
+        Assert.Null(exercise.AlternateDurations[0]);
+        Assert.Equal(20, exercise.AlternateDurations[1]);
+        Assert.Null(exercise.AlternateDurations[2]);
+        Assert.Equal("on knees", exercise.Notes[1]);
+    }
+
+    [Fact]
     public async Task SaveWorkoutAsync_EndTimeBeforeStartTime_Throws()
     {
         var id = Guid.NewGuid().ToString("N")[..8];

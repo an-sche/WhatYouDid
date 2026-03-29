@@ -31,7 +31,7 @@ public class DashboardTests(DatabaseFixture fixture)
     }
 
     private static WorkoutDto BuildWorkout(int routineId, string routineName, int exerciseId,
-        DateTime startTime, int[] reps) =>
+        DateTime startTime, int[] reps, int?[]? alternateReps = null) =>
         new()
         {
             WorkoutId = Guid.NewGuid(),
@@ -52,7 +52,8 @@ public class DashboardTests(DatabaseFixture fixture)
                     HasDurations = false,
                     Reps = reps.Select(r => (int?)r).ToArray(),
                     Weights = [],
-                    Durations = []
+                    Durations = [],
+                    AlternateReps = alternateReps ?? [],
                 }
             ]
         };
@@ -140,15 +141,15 @@ public class DashboardTests(DatabaseFixture fixture)
 
         var (routineId, exerciseId) = await SetupRoutineAsync(api, $"Reps Routine {id}");
 
-        // Reps: [10, 8, 6] = 24 total
+        // Reps: [10, 8, 6] = 24, AlternateReps: [5, null, 3] = 8 — total should be 32
         await api.SaveWorkoutAsync(BuildWorkout(routineId, $"Reps Routine {id}", exerciseId,
-            DateTime.Now.AddHours(-1), [10, 8, 6]));
+            DateTime.Now.AddHours(-1), [10, 8, 6], [5, null, 3]));
 
         using var db = fixture.CreateDbContextForTenant(user.Id);
         var dashboardService = new DashboardService(db);
         var dto = await dashboardService.GetDashboardForUserAsync();
 
-        Assert.Equal(24, dto.TotalReps);
+        Assert.Equal(32, dto.TotalReps);
     }
 
     [Fact]

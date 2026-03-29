@@ -29,18 +29,22 @@ public class WorkoutExerciseDto
         get {
             StringBuilder line = new();
             for (int i = 0; i < Sets; i++) {
-                if (HasReps) { 
-                    line.Append("R: ");
-                    if (Reps.Length > i) line.Append((Reps[i]?.ToString() ?? "--") + "  ");
+                if (HasReps) {
+                    string val = Reps.Length > i ? (Reps[i]?.ToString() ?? "--") : "--";
+                    if (AlternateReps.Length > i && AlternateReps[i] != null) val += "+" + AlternateReps[i];
+                    line.Append("R: " + val + "  ");
                 }
                 if (HasWeights) {
-                    line.Append("W: ");
-                    if (Weights.Length > i) line.Append((Weights[i]?.ToString() ?? "--") + "  ");
-                } 
+                    string val = Weights.Length > i ? (Weights[i]?.ToString() ?? "--") : "--";
+                    if (AlternateWeights.Length > i && AlternateWeights[i] != null) val += "+" + AlternateWeights[i];
+                    line.Append("W: " + val + "  ");
+                }
                 if (HasDurations) {
-                    line.Append("D: ");
-                    if (Durations.Length > i) line.Append((Durations[i]?.ToString() ?? "--") + "  ");
-                } 
+                    string val = Durations.Length > i ? (Durations[i]?.ToString() ?? "--") : "--";
+                    if (AlternateDurations.Length > i && AlternateDurations[i] != null) val += "+" + AlternateDurations[i];
+                    line.Append("D: " + val + "  ");
+                }
+                if (Notes.Length > i && Notes[i] != null) line.Append($"({Notes[i]})  ");
                 line.Append(Environment.NewLine);
             }
             return line.ToString();
@@ -60,8 +64,16 @@ public class WorkoutExerciseDto
     public int?[]? LastReps { get; set; } = [];
     public int?[]? LastWeights { get; set; } = [];
     public int?[]? LastDurations { get; set; } = [];
+    public int?[]? LastAlternateReps { get; set; } = [];
+    public int?[]? LastAlternateWeights { get; set; } = [];
+    public int?[]? LastAlternateDurations { get; set; } = [];
+    public string?[]? LastNotes { get; set; } = [];
 
     public int?[] Reps { get; init; } = [];
     public int?[] Weights { get; init; } = [];
     public int?[] Durations { get; init; } = [];
+    public int?[] AlternateReps { get; init; } = [];
+    public int?[] AlternateWeights { get; init; } = [];
+    public int?[] AlternateDurations { get; init; } = [];
+    public string?[] Notes { get; init; } = [];
 }

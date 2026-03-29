@@ -64,8 +64,16 @@
 			{
 				var index = i; // capture the loop variable
 				<RadzenCard Variant="Variant.Outlined">
-					<RadzenText TextStyle="TextStyle.Caption">Set: @(index + 1)</RadzenText>
+					<RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+						<RadzenText TextStyle="TextStyle.Caption">Set: @(index + 1)</RadzenText>
+						<RadzenButton Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Light"
+							Icon="@(IsAlternateExpanded(WorkoutDto.ExerciseIndex, index) || HasAnyAlternateData(workoutExercise, index) || HasAnyLastAlternateData(workoutExercise, index) ? "remove" : "add")"
+							Text="Alt"
+							Disabled="@HasAnyLastAlternateData(workoutExercise, index)"
+							Click="@(() => ToggleAlternate(WorkoutDto.ExerciseIndex, index))" />
+					</RadzenStack>
 
+					<RadzenStack Orientation="Orientation.Vertical" Gap="4px">
 					@if (workoutExercise.HasReps)
 					{
 						int? repGoal = null;
@@ -74,7 +82,7 @@
 							repGoal = @workoutExercise.LastReps[index];
 						}
 						<WorkoutFormField FormFieldType="WorkoutFormField.WorkoutFormFieldType.Reps"
-						@bind-EnterValue="@workoutExercise.Reps[index]" 
+						@bind-EnterValue="@workoutExercise.Reps[index]"
 						Goal="@repGoal" />
 					}
 
@@ -101,6 +109,47 @@
 						<WorkoutFormField FormFieldType="WorkoutFormField.WorkoutFormFieldType.Duration"
 						@bind-EnterValue="@workoutExercise.Durations[index]"
 						Goal="@durationGoal" />
+					}
+					</RadzenStack>
+
+		@if (IsAlternateExpanded(WorkoutDto.ExerciseIndex, index) || HasAnyAlternateData(workoutExercise, index) || HasAnyLastAlternateData(workoutExercise, index))
+					{
+						<RadzenStack Orientation="Orientation.Vertical" Gap="4px" Style="border-left: 2px solid var(--rz-color-secondary-light); padding-left: 8px; margin-top: 4px">
+							@if (workoutExercise.HasReps)
+							{
+								int? altRepGoal = workoutExercise.LastAlternateReps != null && workoutExercise.LastAlternateReps.Length > index ? workoutExercise.LastAlternateReps[index] : null;
+								<WorkoutFormField FormFieldType="WorkoutFormField.WorkoutFormFieldType.Reps"
+									TitlePrefix="Alt"
+									@bind-EnterValue="@workoutExercise.AlternateReps[index]"
+									Goal="@altRepGoal" />
+							}
+							@if (workoutExercise.HasWeights)
+							{
+								int? altWeightGoal = workoutExercise.LastAlternateWeights != null && workoutExercise.LastAlternateWeights.Length > index ? workoutExercise.LastAlternateWeights[index] : null;
+								<WorkoutFormField FormFieldType="WorkoutFormField.WorkoutFormFieldType.Weight"
+									TitlePrefix="Alt"
+									@bind-EnterValue="@workoutExercise.AlternateWeights[index]"
+									Goal="@altWeightGoal" />
+							}
+							@if (workoutExercise.HasDurations)
+							{
+								int? altDurationGoal = workoutExercise.LastAlternateDurations != null && workoutExercise.LastAlternateDurations.Length > index ? workoutExercise.LastAlternateDurations[index] : null;
+								<WorkoutFormField FormFieldType="WorkoutFormField.WorkoutFormFieldType.Duration"
+									TitlePrefix="Alt"
+									@bind-EnterValue="@workoutExercise.AlternateDurations[index]"
+									Goal="@altDurationGoal" />
+							}
+							<RadzenFormField AllowFloatingLabel="false" Text="Note" Style="width: 100%">
+								<RadzenTextBox @bind-Value="@workoutExercise.Notes[index]" />
+							</RadzenFormField>
+							@{
+								string? lastNote = workoutExercise.LastNotes != null && workoutExercise.LastNotes.Length > index ? workoutExercise.LastNotes[index] : null;
+							}
+							@if (lastNote != null)
+							{
+								<RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-secondary-color)">Last: @lastNote</RadzenText>
+							}
+						</RadzenStack>
 					}
 				</RadzenCard>
 			}
@@ -198,6 +247,33 @@
 
 	private bool AlreadyAsked = false; // Field to know if we need to check browser storage
 	private string SlidingClass = "slide-from-right";
+	private HashSet<(int exerciseIndex, int setIndex)> _expandedAlternates = new();
+
+	private bool IsAlternateExpanded(int exerciseIndex, int setIndex)
+		=> _expandedAlternates.Contains((exerciseIndex, setIndex));
+
+	private void ToggleAlternate(int exerciseIndex, int setIndex)
+	{
+		var key = (exerciseIndex, setIndex);
+		if (!_expandedAlternates.Remove(key))
+			_expandedAlternates.Add(key);
+	}
+
+	private bool HasAnyAlternateData(WorkoutExerciseDto exercise, int setIndex)
+	{
+		return (exercise.AlternateReps.Length > setIndex && exercise.AlternateReps[setIndex] != null)
+			|| (exercise.AlternateWeights.Length > setIndex && exercise.AlternateWeights[setIndex] != null)
+			|| (exercise.AlternateDurations.Length > setIndex && exercise.AlternateDurations[setIndex] != null)
+			|| (exercise.Notes.Length > setIndex && !string.IsNullOrEmpty(exercise.Notes[setIndex]));
+	}
+
+	private bool HasAnyLastAlternateData(WorkoutExerciseDto exercise, int setIndex)
+	{
+		return (exercise.LastAlternateReps != null && exercise.LastAlternateReps.Length > setIndex && exercise.LastAlternateReps[setIndex] != null)
+			|| (exercise.LastAlternateWeights != null && exercise.LastAlternateWeights.Length > setIndex && exercise.LastAlternateWeights[setIndex] != null)
+			|| (exercise.LastAlternateDurations != null && exercise.LastAlternateDurations.Length > setIndex && exercise.LastAlternateDurations[setIndex] != null)
+			|| (exercise.LastNotes != null && exercise.LastNotes.Length > setIndex && !string.IsNullOrEmpty(exercise.LastNotes[setIndex]));
+	}
 	protected override async Task OnInitializedAsync()
 	{
 		if (authenticationState is null)
@@ -276,6 +352,18 @@
 				ex.Weights[i] = ex.LastWeights[i];
 			if (ex.HasDurations && ex.LastDurations != null && ex.LastDurations.Length > i)
 				ex.Durations[i] = ex.LastDurations[i];
+
+			if (ex.HasReps && ex.LastAlternateReps != null && ex.LastAlternateReps.Length > i)
+				ex.AlternateReps[i] = ex.LastAlternateReps[i];
+			if (ex.HasWeights && ex.LastAlternateWeights != null && ex.LastAlternateWeights.Length > i)
+				ex.AlternateWeights[i] = ex.LastAlternateWeights[i];
+			if (ex.HasDurations && ex.LastAlternateDurations != null && ex.LastAlternateDurations.Length > i)
+				ex.AlternateDurations[i] = ex.LastAlternateDurations[i];
+			if (ex.LastNotes != null && ex.LastNotes.Length > i)
+				ex.Notes[i] = ex.LastNotes[i];
+
+			if (HasAnyAlternateData(ex, i))
+				_expandedAlternates.Add((WorkoutDto.ExerciseIndex, i));
 		}
 	}
 

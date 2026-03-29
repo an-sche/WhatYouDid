@@ -109,6 +109,10 @@ public class WhatYouDidApiDirectAccess(
                             LastDurations = pastExercise != null ? pastExercise.Sets.OrderBy(s => s.SetNumber).Select(s => s.Duration).ToArray() : null,
                             LastReps      = pastExercise != null ? pastExercise.Sets.OrderBy(s => s.SetNumber).Select(s => s.Reps).ToArray()     : null,
                             LastWeights   = pastExercise != null ? pastExercise.Sets.OrderBy(s => s.SetNumber).Select(s => s.Weight).ToArray()   : null,
+                            LastAlternateDurations = pastExercise != null ? pastExercise.Sets.OrderBy(s => s.SetNumber).Select(s => s.AlternateDuration).ToArray() : null,
+                            LastAlternateReps      = pastExercise != null ? pastExercise.Sets.OrderBy(s => s.SetNumber).Select(s => s.AlternateReps).ToArray()     : null,
+                            LastAlternateWeights   = pastExercise != null ? pastExercise.Sets.OrderBy(s => s.SetNumber).Select(s => s.AlternateWeight).ToArray()   : null,
+                            LastNotes              = pastExercise != null ? pastExercise.Sets.OrderBy(s => s.SetNumber).Select(s => s.Note).ToArray()              : null,
 
                             HasReps = exercise.HasReps,
                             HasDurations = exercise.HasDuration,
@@ -117,6 +121,10 @@ public class WhatYouDidApiDirectAccess(
                             Reps = new int?[exercise.Sets],
                             Durations = new int?[exercise.Sets],
                             Weights = new int?[exercise.Sets],
+                            AlternateReps = new int?[exercise.Sets],
+                            AlternateDurations = new int?[exercise.Sets],
+                            AlternateWeights = new int?[exercise.Sets],
+                            Notes = pastExercise != null ? pastExercise.Sets.OrderBy(s => s.SetNumber).Select(s => s.Note).ToArray() : new string?[exercise.Sets],
                         }).ToList()
                 }).FirstOrDefaultAsync();
     }
@@ -151,10 +159,14 @@ public class WhatYouDidApiDirectAccess(
                     ExerciseId = exerciseDto.ExerciseId,
                     ExerciseName = exerciseDto.ExerciseName,
                     Sets = Enumerable.Range(0, exerciseDto.Sets).Select(i => new WorkoutExerciseSet {
-                        SetNumber = i + 1,
-                        Reps      = exerciseDto.HasReps      ? exerciseDto.Reps.ElementAtOrDefault(i)      : null,
-                        Weight    = exerciseDto.HasWeights   ? exerciseDto.Weights.ElementAtOrDefault(i)   : null,
-                        Duration  = exerciseDto.HasDurations ? exerciseDto.Durations.ElementAtOrDefault(i) : null,
+                        SetNumber         = i + 1,
+                        Reps              = exerciseDto.HasReps      ? exerciseDto.Reps.ElementAtOrDefault(i)              : null,
+                        Weight            = exerciseDto.HasWeights   ? exerciseDto.Weights.ElementAtOrDefault(i)           : null,
+                        Duration          = exerciseDto.HasDurations ? exerciseDto.Durations.ElementAtOrDefault(i)         : null,
+                        AlternateReps     = exerciseDto.HasReps      ? exerciseDto.AlternateReps.ElementAtOrDefault(i)     : null,
+                        AlternateWeight   = exerciseDto.HasWeights   ? exerciseDto.AlternateWeights.ElementAtOrDefault(i)  : null,
+                        AlternateDuration = exerciseDto.HasDurations ? exerciseDto.AlternateDurations.ElementAtOrDefault(i): null,
+                        Note              = exerciseDto.Notes.ElementAtOrDefault(i),
                     }).ToList(),
                 };
                 exercises.Add(exercise);
@@ -180,10 +192,14 @@ public class WhatYouDidApiDirectAccess(
 
         db.WorkoutExerciseSets.RemoveRange(entity.Sets);
         entity.Sets = Enumerable.Range(0, exerciseDto.Sets).Select(i => new WorkoutExerciseSet {
-            SetNumber = i + 1,
-            Reps      = exerciseDto.HasReps      ? exerciseDto.Reps.ElementAtOrDefault(i)      : null,
-            Weight    = exerciseDto.HasWeights   ? exerciseDto.Weights.ElementAtOrDefault(i)   : null,
-            Duration  = exerciseDto.HasDurations ? exerciseDto.Durations.ElementAtOrDefault(i) : null,
+            SetNumber         = i + 1,
+            Reps              = exerciseDto.HasReps      ? exerciseDto.Reps.ElementAtOrDefault(i)              : null,
+            Weight            = exerciseDto.HasWeights   ? exerciseDto.Weights.ElementAtOrDefault(i)           : null,
+            Duration          = exerciseDto.HasDurations ? exerciseDto.Durations.ElementAtOrDefault(i)         : null,
+            AlternateReps     = exerciseDto.HasReps      ? exerciseDto.AlternateReps.ElementAtOrDefault(i)     : null,
+            AlternateWeight   = exerciseDto.HasWeights   ? exerciseDto.AlternateWeights.ElementAtOrDefault(i)  : null,
+            AlternateDuration = exerciseDto.HasDurations ? exerciseDto.AlternateDurations.ElementAtOrDefault(i): null,
+            Note              = exerciseDto.Notes.ElementAtOrDefault(i),
         }).ToList();
 
         await db.SaveChangesAsync();
@@ -227,9 +243,13 @@ public class WhatYouDidApiDirectAccess(
             HasWeights   = row.ex != null && row.ex.HasWeight,
             HasDurations = row.ex != null && row.ex.HasDuration,
 
-            Reps      = row.we.Sets.OrderBy(s => s.SetNumber).Select(s => s.Reps).ToArray(),
-            Weights   = row.we.Sets.OrderBy(s => s.SetNumber).Select(s => s.Weight).ToArray(),
-            Durations = row.we.Sets.OrderBy(s => s.SetNumber).Select(s => s.Duration).ToArray(),
+            Reps               = row.we.Sets.OrderBy(s => s.SetNumber).Select(s => s.Reps).ToArray(),
+            Weights            = row.we.Sets.OrderBy(s => s.SetNumber).Select(s => s.Weight).ToArray(),
+            Durations          = row.we.Sets.OrderBy(s => s.SetNumber).Select(s => s.Duration).ToArray(),
+            AlternateReps      = row.we.Sets.OrderBy(s => s.SetNumber).Select(s => s.AlternateReps).ToArray(),
+            AlternateWeights   = row.we.Sets.OrderBy(s => s.SetNumber).Select(s => s.AlternateWeight).ToArray(),
+            AlternateDurations = row.we.Sets.OrderBy(s => s.SetNumber).Select(s => s.AlternateDuration).ToArray(),
+            Notes              = row.we.Sets.OrderBy(s => s.SetNumber).Select(s => s.Note).ToArray(),
         }).ToList();
 
         var workout = await db.Workouts

@@ -16,4 +16,10 @@ public class WorkoutExerciseSet
     public int? Reps { get; set; }
     public int? Weight { get; set; }
     public int? Duration { get; set; }
+
+    public int? AlternateReps { get; set; }
+    public int? AlternateWeight { get; set; }
+    public int? AlternateDuration { get; set; }
+    [MaxLength(20)]
+    public string? Note { get; set; }
 }

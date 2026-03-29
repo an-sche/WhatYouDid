@@ -106,6 +106,81 @@ public class WorkoutExerciseTenantTests(DatabaseFixture fixture)
     }
 
     [Fact]
+    public async Task GetStartWorkoutDtoAsync_LastAlternateData_OnlyFromCurrentUser()
+    {
+        var id = Guid.NewGuid().ToString("N")[..8];
+        var userA = await fixture.CreateUserAsync($"we-alt-a-{id}@test.com", "Test1234!");
+        var userB = await fixture.CreateUserAsync($"we-alt-b-{id}@test.com", "Test1234!");
+
+        // Use a public routine so both users can see it
+        int routineId;
+        int exerciseId;
+        using (var db = fixture.CreateDbContextForTenant(userA.Id))
+        {
+            var routine = new WhatYouDid.Data.Routine
+            {
+                Name = $"Shared Alt Routine {id}",
+                CreateUserId = userA.Id,
+                IsPublic = true,
+                Exercises =
+                [
+                    new WhatYouDid.Data.Exercise
+                    {
+                        Name = "Deadlift",
+                        Sequence = 1,
+                        Sets = 3,
+                        HasReps = true,
+                    }
+                ]
+            };
+            db.Routines.Add(routine);
+            await db.SaveChangesAsync();
+            routineId = routine.RoutineId;
+            exerciseId = routine.Exercises[0].ExerciseId;
+        }
+
+        var tenantService = new TestTenantService();
+        var api = fixture.CreateApiForTenant(tenantService);
+
+        // User A saves a workout with alternate reps
+        tenantService.SetTenant(userA.Id);
+        await api.SaveWorkoutAsync(new WorkoutDto
+        {
+            WorkoutId = Guid.NewGuid(),
+            RoutineId = routineId,
+            RoutineName = $"Shared Alt Routine {id}",
+            StartTime = DateTime.Now.AddHours(-1),
+            WorkoutExercises =
+            [
+                new WorkoutExerciseDto
+                {
+                    Sequence = 1,
+                    ExerciseId = exerciseId,
+                    ExerciseName = "Deadlift",
+                    Sets = 3,
+                    HasReps = true,
+                    HasWeights = false,
+                    HasDurations = false,
+                    Reps = [10, 5, 8],
+                    Weights = [],
+                    Durations = [],
+                    AlternateReps = [null, 5, null],
+                    Notes = [null, "from knees", null],
+                }
+            ]
+        });
+
+        // User B calls GetStartWorkoutDtoAsync — should NOT see User A's alternate data
+        tenantService.SetTenant(userB.Id);
+        var dto = await api.GetStartWorkoutDtoAsync(routineId);
+
+        var exercise = dto!.WorkoutExercises!.First(e => e.ExerciseId == exerciseId);
+
+        Assert.True(exercise.LastAlternateReps is null || exercise.LastAlternateReps.All(r => r == null));
+        Assert.True(exercise.LastNotes is null || exercise.LastNotes.All(n => n == null));
+    }
+
+    [Fact]
     public async Task UpdateWorkoutExerciseAsync_CannotUpdate_OtherUsersExercise()
     {
         var id = Guid.NewGuid().ToString("N")[..8];

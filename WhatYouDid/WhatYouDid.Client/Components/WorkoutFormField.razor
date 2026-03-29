@@ -34,6 +34,9 @@
 	public WorkoutFormFieldType FormFieldType { get; set; }
 
 	[Parameter]
+	public string? TitlePrefix { get; set; }
+
+	[Parameter]
 	public int? Goal { get; set; } = null;
 
 	[Parameter]
@@ -65,13 +68,14 @@
 	{
 		get
 		{
-			return FormFieldType switch
+			var title = FormFieldType switch
 			{
 				WorkoutFormFieldType.Reps => "Reps",
 				WorkoutFormFieldType.Weight => "Weight",
-				WorkoutFormFieldType.Duration => "Duration1",
+				WorkoutFormFieldType.Duration => "Duration",
 				_ => ""
 			};
+			return string.IsNullOrEmpty(TitlePrefix) ? title : $"{TitlePrefix} {title}";
 		}
 	}
 
