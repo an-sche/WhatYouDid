@@ -43,16 +43,16 @@
                             @if (editingExercise == exercise)
                             {
                                 <RadzenStack Orientation="Orientation.Horizontal" Gap="4px">
-                                    <RadzenButton Text="Save" IsBusy="saving"
+                                    <RadzenButton Text="Save" Icon="save" IsBusy="saving"
                                                   Click="() => SaveExerciseEdit(exercise)"
                                                   ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
-                                    <RadzenButton Text="Cancel" Click="CancelExerciseEdit"
+                                    <RadzenButton Text="Cancel" Icon="close" Click="CancelExerciseEdit"
                                                   ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" />
                                 </RadzenStack>
                             }
                             else
                             {
-                                <RadzenButton Text="Edit" Click="() => { editingExercise = exercise; _expandedAlts.Clear(); }"
+                                <RadzenButton Text="Edit" Icon="edit" Click="() => { editingExercise = exercise; _expandedAlts.Clear(); }"
                                               ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small"
                                               Disabled="saving" />
                             }
