@@ -179,8 +179,7 @@ app.MapRazorComponents<App>()
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
 
-// Map minimal API endpoints used by the WASM client
-app.MapRoutineEndpoints();
+// Map minimal API endpoints
 app.MapRoutineApiEndpoints();
 app.MapWorkoutEndpoints();
 app.MapDashboardEndpoints();

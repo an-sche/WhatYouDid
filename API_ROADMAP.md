@@ -22,4 +22,3 @@ Blazor server app continues using cookie auth. Mobile/web clients use JWT.
 - Create a top-level `MapApiEndpoints()` extension that calls into all endpoint groups
 - Use `MapGroup("/api")` to apply shared auth policy and prefix once
 - Add OpenAPI/Swagger (built-in .NET 9 OpenAPI or Swashbuckle) for discoverability
-- Consolidate/remove `WasmEndpointExtensions` into the new structure
