@@ -6,6 +6,7 @@
     <UserSecretsId>aspnet-WhatYouDid-b2efa323-41da-4c96-b652-a4d47ef57401</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Scalar.AspNetCore" Version="2.13.17" />
     <ProjectReference Include="..\..\WhatYouDid.Shared\WhatYouDid.Shared.csproj" />
     <ProjectReference Include="..\WhatYouDid.Client\WhatYouDid.Client.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.3" />

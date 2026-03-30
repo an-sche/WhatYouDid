@@ -8,6 +8,7 @@ using WhatYouDid.Client.Pages;
 using WhatYouDid.Components;
 using WhatYouDid.Components.Account;
 using WhatYouDid.Data;
+using Scalar.AspNetCore;
 using WhatYouDid.EndpointExtensions;
 using WhatYouDid.Middleware;
 using WhatYouDid.Services;
@@ -97,6 +98,7 @@ if (app.Environment.IsDevelopment())
     app.UseWebAssemblyDebugging();
     app.UseMigrationsEndPoint();
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 else
 {
