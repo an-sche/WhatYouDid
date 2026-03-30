@@ -1,0 +1,26 @@
+using WhatYouDid.Data;
+using WhatYouDid.Services;
+using WhatYouDid.Shared;
+
+namespace WhatYouDid.Tests.Infrastructure;
+
+/// <summary>
+/// Combines RoutineService and WorkoutService for use in integration tests
+/// that need to set up routines and record workouts in the same test.
+/// </summary>
+public class TestApi(RoutineService routineService, WorkoutService workoutService)
+    : IRoutineService, IWorkoutService
+{
+    public Task<bool> AddRoutineAsync(CreateRoutineDto routine) => routineService.AddRoutineAsync(routine);
+    public Task<List<Exercise>> GetExercisesAsync(int routineId) => routineService.GetExercisesAsync(routineId);
+    public Task<Routine?> GetRoutineAsync(int routineId) => routineService.GetRoutineAsync(routineId);
+    public Task<List<Routine>> GetUserRoutinesAsync() => routineService.GetUserRoutinesAsync();
+
+    public Task<WorkoutDto?> GetStartWorkoutDtoAsync(int routineId) => workoutService.GetStartWorkoutDtoAsync(routineId);
+    public Task<WorkoutDto?> GetCompletedWorkoutDtoAsync(Guid workoutId) => workoutService.GetCompletedWorkoutDtoAsync(workoutId);
+    public Task<bool> SaveWorkoutAsync(WorkoutDto workout) => workoutService.SaveWorkoutAsync(workout);
+    public Task<bool> UpdateWorkoutExerciseAsync(Guid workoutId, WorkoutExerciseDto exercise) => workoutService.UpdateWorkoutExerciseAsync(workoutId, exercise);
+    public Task<bool> DeleteWorkoutAsync(Guid workoutId) => workoutService.DeleteWorkoutAsync(workoutId);
+    public Task<int> GetWorkoutsCountAsync(string? search = null) => workoutService.GetWorkoutsCountAsync(search);
+    public Task<List<Workout>> GetWorkoutsAsync(int startIndex, int count, string? search = null) => workoutService.GetWorkoutsAsync(startIndex, count, search);
+}

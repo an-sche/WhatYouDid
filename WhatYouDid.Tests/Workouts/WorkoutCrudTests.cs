@@ -6,7 +6,7 @@ namespace WhatYouDid.Tests.Workouts;
 public class WorkoutCrudTests(DatabaseFixture fixture)
 {
     private async Task<(int routineId, int exerciseId)> SetupRoutineAsync(
-        WhatYouDidApiDirectAccess api, string name)
+        TestApi api, string name)
     {
         await api.AddRoutineAsync(new CreateRoutineDto
         {

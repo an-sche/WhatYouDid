@@ -6,7 +6,7 @@ namespace WhatYouDid.Tests.Dashboard;
 public class DashboardTests(DatabaseFixture fixture)
 {
     private static async Task<(int routineId, int exerciseId)> SetupRoutineAsync(
-        WhatYouDidApiDirectAccess api, string name)
+        TestApi api, string name)
     {
         await api.AddRoutineAsync(new CreateRoutineDto
         {

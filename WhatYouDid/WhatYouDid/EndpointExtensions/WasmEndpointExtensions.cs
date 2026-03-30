@@ -9,7 +9,7 @@ public static class WasmEndpointExtensions
     {
         app.MapGet("/api/workouts/start/{routineId}", async (
             int routineId,
-            IWhatYouDidApi service) =>
+            IWorkoutService service) =>
         {
             return await service.GetStartWorkoutDtoAsync(routineId);
         })
@@ -17,7 +17,7 @@ public static class WasmEndpointExtensions
 
         app.MapPost("/api/workouts", async (
             WorkoutDto dto,
-            IWhatYouDidApi service) =>
+            IWorkoutService service) =>
         {
             try
             {

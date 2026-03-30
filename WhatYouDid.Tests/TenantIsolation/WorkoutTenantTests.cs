@@ -6,7 +6,7 @@ namespace WhatYouDid.Tests.TenantIsolation;
 public class WorkoutTenantTests(DatabaseFixture fixture)
 {
     private async Task<(int routineId, int exerciseId)> CreateRoutineAsync(
-        WhatYouDidApiDirectAccess api, string routineName)
+        TestApi api, string routineName)
     {
         await api.AddRoutineAsync(new CreateRoutineDto
         {

@@ -56,13 +56,13 @@ public class DatabaseFixture : IAsyncLifetime
     }
 
     /// <summary>
-    /// Returns a <see cref="WhatYouDidApiDirectAccess"/> wired to the given tenant service.
+    /// Returns a <see cref="TestApi"/> wired to the given tenant service.
     /// Switch tenants between calls by calling <see cref="TestTenantService.SetTenant"/>.
     /// </summary>
-    public WhatYouDidApiDirectAccess CreateApiForTenant(TestTenantService tenantService)
+    public TestApi CreateApiForTenant(TestTenantService tenantService)
     {
         var factory = new TestDbContextFactory(DbContextOptions, tenantService);
-        return new WhatYouDidApiDirectAccess(factory, tenantService);
+        return new TestApi(new RoutineService(factory, tenantService), new WorkoutService(factory, tenantService));
     }
 
     public async Task DisposeAsync()
