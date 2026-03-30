@@ -76,6 +76,8 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 builder.Services.AddTransient<IWhatYouDidApi, WhatYouDidApiDirectAccess>();
+builder.Services.AddTransient<IRoutineService, WhatYouDidApiDirectAccess>();
+builder.Services.AddTransient<IWorkoutService, WhatYouDidApiDirectAccess>();
 builder.Services.AddScoped<IBrowserStorage, ServerBrowserStorage>();
 builder.Services.AddHostedService<AdminRoleSeeder>();
 builder.Services.AddHostedService<DevDataSeeder>();

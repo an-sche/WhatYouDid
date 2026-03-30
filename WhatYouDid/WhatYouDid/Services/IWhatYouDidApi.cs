@@ -1,24 +1,8 @@
-﻿using WhatYouDid.Data;
-using WhatYouDid.Shared;
-
 namespace WhatYouDid.Services;
 
-public interface IWhatYouDidApi
+// Retained for backward compatibility. Step 2 will migrate Blazor components
+// to inject IRoutineService or IWorkoutService directly, after which this
+// interface and WhatYouDidApiDirectAccess's explicit listing of it can be removed.
+public interface IWhatYouDidApi : IRoutineService, IWorkoutService
 {
-    // All methods assume the current tenant has been resolved in the scoped
-    // DbContext (via ITenantService). No caller should pass user id.
-
-    Task<List<Routine>> GetUserRoutinesAsync();
-    Task<List<Exercise>> GetExercisesAsync(int routineId);
-    Task<int> GetWorkoutsCountAsync(string? search = null);
-    Task<List<Workout>> GetWorkoutsAsync(int startIndex, int count, string? search = null);
-
-    Task<Routine?> GetRoutineAsync(int routineId);
-    Task<bool> AddRoutineAsync(CreateRoutineDto routine);
-    Task<WorkoutDto?> GetStartWorkoutDtoAsync(int routineId);
-    Task<WorkoutDto?> GetCompletedWorkoutDtoAsync(Guid workoutId);
-
-    Task<bool> SaveWorkoutAsync(WorkoutDto workout);
-    Task<bool> UpdateWorkoutExerciseAsync(Guid workoutId, WorkoutExerciseDto exercise);
-    Task<bool> DeleteWorkoutAsync(Guid workoutId);
 }

@@ -4,7 +4,7 @@
 @using WhatYouDid.Shared
 @attribute [Authorize]
 @rendermode InteractiveServer
-@inject IWhatYouDidApi Api
+@inject IWorkoutService WorkoutService
 @inject DialogService DialogService
 
 <PageTitle>Workout History</PageTitle>
@@ -45,8 +45,8 @@ else
     private async Task LoadPage()
     {
         var currentPage = pager?.CurrentPage ?? 0;
-        totalWorkouts = await Api.GetWorkoutsCountAsync(searchText);
-        workouts = await Api.GetWorkoutsAsync(currentPage * pageSize, pageSize, searchText);
+        totalWorkouts = await WorkoutService.GetWorkoutsCountAsync(searchText);
+        workouts = await WorkoutService.GetWorkoutsAsync(currentPage * pageSize, pageSize, searchText);
     }
 
     private async Task OnSearchInput(ChangeEventArgs args)
@@ -59,14 +59,14 @@ else
         {
             await Task.Delay(300, token);
             if (pager is not null) await pager.FirstPage();
-            totalWorkouts = await Api.GetWorkoutsCountAsync(searchText);
-            workouts = await Api.GetWorkoutsAsync(0, pageSize, searchText);
+            totalWorkouts = await WorkoutService.GetWorkoutsCountAsync(searchText);
+            workouts = await WorkoutService.GetWorkoutsAsync(0, pageSize, searchText);
         }
         catch (TaskCanceledException) { }
     }
 
     private async Task OnPageChanged(PagerEventArgs args)
     {
-        workouts = await Api.GetWorkoutsAsync(args.Skip, args.Top, searchText);
+        workouts = await WorkoutService.GetWorkoutsAsync(args.Skip, args.Top, searchText);
     }
 }

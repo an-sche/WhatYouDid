@@ -1,4 +1,4 @@
-@inject IWhatYouDidApi Api
+@inject IWorkoutService WorkoutService
 @inject DialogService DialogService
 @using WhatYouDid.Shared
 
@@ -159,7 +159,7 @@
     {
         expanded = !expanded;
         if (expanded && detail is null)
-            detail = await Api.GetCompletedWorkoutDtoAsync(Workout.WorkoutId);
+            detail = await WorkoutService.GetCompletedWorkoutDtoAsync(Workout.WorkoutId);
     }
 
     async Task SaveExerciseEdit(WorkoutExerciseDto exercise)
@@ -169,7 +169,7 @@
         StateHasChanged();
         try
         {
-            await Api.UpdateWorkoutExerciseAsync(detail.WorkoutId, exercise);
+            await WorkoutService.UpdateWorkoutExerciseAsync(detail.WorkoutId, exercise);
             editingExercise = null;
         }
         finally
@@ -183,7 +183,7 @@
         editingExercise = null;
         _expandedAlts.Clear();
         if (detail is not null)
-            detail = await Api.GetCompletedWorkoutDtoAsync(detail.WorkoutId);
+            detail = await WorkoutService.GetCompletedWorkoutDtoAsync(detail.WorkoutId);
     }
 
     async Task DeleteWorkout()
@@ -195,7 +195,7 @@
 
         if (confirmed != true) return;
 
-        await Api.DeleteWorkoutAsync(Workout.WorkoutId);
+        await WorkoutService.DeleteWorkoutAsync(Workout.WorkoutId);
         await OnDeleted.InvokeAsync();
     }
 }

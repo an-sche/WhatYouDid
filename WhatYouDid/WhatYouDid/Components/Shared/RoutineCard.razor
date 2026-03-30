@@ -1,4 +1,4 @@
-@inject IWhatYouDidApi Api
+@inject IRoutineService RoutineService
 @inject NavigationManager Navigation
 
 <RadzenCard class="routine-card">
@@ -57,7 +57,7 @@
     {
         expanded = !expanded;
         if (expanded && exercises is null)
-            exercises = await Api.GetExercisesAsync(RoutineId);
+            exercises = await RoutineService.GetExercisesAsync(RoutineId);
     }
 
     void StartWorkout() => Navigation.NavigateTo($"workout/{RoutineId}");

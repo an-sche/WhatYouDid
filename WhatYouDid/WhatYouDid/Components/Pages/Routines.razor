@@ -7,7 +7,7 @@
 
 @attribute [Authorize]
 @rendermode InteractiveServer
-@inject IWhatYouDidApi Api
+@inject IRoutineService RoutineService
 @inject UserManager<ApplicationUser> UserManager
 @inject NavigationManager Navigation
 
@@ -34,6 +34,6 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        routines = await Api.GetUserRoutinesAsync();
+        routines = await RoutineService.GetUserRoutinesAsync();
     }
 }

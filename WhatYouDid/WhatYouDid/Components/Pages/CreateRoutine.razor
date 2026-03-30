@@ -4,7 +4,7 @@
 @using WhatYouDid.Shared
 @attribute [Authorize]
 @rendermode InteractiveServer
-@inject IWhatYouDidApi Api
+@inject IRoutineService RoutineService
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 @inject IBrowserStorage BrowserStorage
@@ -140,7 +140,7 @@
 				return;
 			}
 
-			var success = await Api.AddRoutineAsync(routine);
+			var success = await RoutineService.AddRoutineAsync(routine);
 			if (!success)
 			{
 				errorMessage = "Failed to create routine. Please try again.";

@@ -7,7 +7,7 @@ namespace WhatYouDid.Services;
 public class WhatYouDidApiDirectAccess(
     IDbContextFactory<ApplicationDbContext> dbFactory,
     ITenantService tenantService
-) : IWhatYouDidApi
+) : IWhatYouDidApi, IRoutineService, IWorkoutService
 {
     public async Task<bool> AddRoutineAsync(CreateRoutineDto dto)
     {
