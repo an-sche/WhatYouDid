@@ -4,14 +4,15 @@ namespace WhatYouDid.EndpointExtensions;
 
 public static class DashboardEndpointExtensions
 {
-    public static WebApplication MapDashboardEndpoints(this WebApplication app)
+    public static IEndpointRouteBuilder MapDashboardEndpoints(this IEndpointRouteBuilder routes)
     {
-        app.MapGet("/api/dashboard", async (IDashboardService service, int? year = null) =>
+        var group = routes.MapGroup("/dashboard");
+
+        group.MapGet("", async (IDashboardService service, int? year = null) =>
         {
             return await service.GetDashboardForUserAsync(year);
-        })
-        .RequireAuthorization();
+        });
 
-        return app;
+        return routes;
     }
 }

@@ -7,24 +7,25 @@ public static class AdminEndpointExtensions
     record CreateUserRequest(string Email, string Password);
     record ResetPasswordRequest(string NewPassword);
 
-    public static WebApplication MapAdminEndpoints(this WebApplication app)
+    public static IEndpointRouteBuilder MapAdminEndpoints(this IEndpointRouteBuilder routes)
     {
-        app.MapGet("/api/admin/users", async (IAdminService service) =>
+        var group = routes.MapGroup("/admin")
+            .RequireAuthorization(policy => policy.RequireRole("Admin"));
+
+        group.MapGet("/users", async (IAdminService service) =>
         {
             return await service.GetUsersAsync();
-        })
-        .RequireAuthorization(policy => policy.RequireRole("Admin"));
+        });
 
-        app.MapPost("/api/admin/users", async (CreateUserRequest request, IAdminService service) =>
+        group.MapPost("/users", async (CreateUserRequest request, IAdminService service) =>
         {
             var result = await service.CreateUserAsync(request.Email, request.Password);
             if (result.Succeeded)
                 return Results.Created();
             return Results.BadRequest(result.Errors.Select(e => e.Description));
-        })
-        .RequireAuthorization(policy => policy.RequireRole("Admin"));
+        });
 
-        app.MapPost("/api/admin/users/{userId}/reset-password", async (
+        group.MapPost("/users/{userId}/reset-password", async (
             string userId,
             ResetPasswordRequest request,
             IAdminService service) =>
@@ -36,9 +37,8 @@ public static class AdminEndpointExtensions
             if (firstError?.Code == "UserNotFound")
                 return Results.NotFound();
             return Results.BadRequest(result.Errors.Select(e => e.Description));
-        })
-        .RequireAuthorization(policy => policy.RequireRole("Admin"));
+        });
 
-        return app;
+        return routes;
     }
 }

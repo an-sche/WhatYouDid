@@ -5,16 +5,17 @@ namespace WhatYouDid.EndpointExtensions;
 
 public static class RoutineEndpointExtensions
 {
-    public static WebApplication MapRoutineApiEndpoints(this WebApplication app)
+    public static IEndpointRouteBuilder MapRoutineApiEndpoints(this IEndpointRouteBuilder routes)
     {
-        app.MapGet("/api/routines", async (IRoutineService service) =>
+        var group = routes.MapGroup("/routines");
+
+        group.MapGet("", async (IRoutineService service) =>
         {
             var routines = await service.GetUserRoutinesAsync();
             return routines.Select(r => new RoutineDto { RoutineId = r.RoutineId, Name = r.Name });
-        })
-        .RequireAuthorization();
+        });
 
-        app.MapGet("/api/routines/{routineId:int}", async (int routineId, IRoutineService service) =>
+        group.MapGet("/{routineId:int}", async (int routineId, IRoutineService service) =>
         {
             var routine = await service.GetRoutineAsync(routineId);
             if (routine is null) return Results.NotFound();
@@ -35,10 +36,9 @@ public static class RoutineEndpointExtensions
                 }).ToList()
             };
             return Results.Ok(dto);
-        })
-        .RequireAuthorization();
+        });
 
-        app.MapGet("/api/routines/{routineId:int}/exercises", async (int routineId, IRoutineService service) =>
+        group.MapGet("/{routineId:int}/exercises", async (int routineId, IRoutineService service) =>
         {
             var exercises = await service.GetExercisesAsync(routineId);
             return exercises.Select(e => new ExerciseDto
@@ -52,10 +52,9 @@ public static class RoutineEndpointExtensions
                 HasWeight = e.HasWeight,
                 HasDuration = e.HasDuration,
             });
-        })
-        .RequireAuthorization();
+        });
 
-        app.MapPost("/api/routines", async (CreateRoutineDto dto, IRoutineService service) =>
+        group.MapPost("", async (CreateRoutineDto dto, IRoutineService service) =>
         {
             try
             {
@@ -66,9 +65,8 @@ public static class RoutineEndpointExtensions
             {
                 return Results.Problem("Failed to create routine.");
             }
-        })
-        .RequireAuthorization();
+        });
 
-        return app;
+        return routes;
     }
 }

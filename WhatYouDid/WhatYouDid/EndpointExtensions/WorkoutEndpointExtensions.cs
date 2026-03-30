@@ -5,9 +5,11 @@ namespace WhatYouDid.EndpointExtensions;
 
 public static class WorkoutEndpointExtensions
 {
-    public static WebApplication MapWorkoutEndpoints(this WebApplication app)
+    public static IEndpointRouteBuilder MapWorkoutEndpoints(this IEndpointRouteBuilder routes)
     {
-        app.MapGet("/api/workouts", async (
+        var group = routes.MapGroup("/workouts");
+
+        group.MapGet("", async (
             IWorkoutService service,
             int startIndex = 0,
             int count = 10,
@@ -22,23 +24,20 @@ public static class WorkoutEndpointExtensions
                 StartTime = w.StartTime,
                 EndTime = w.EndTime,
             });
-        })
-        .RequireAuthorization();
+        });
 
-        app.MapGet("/api/workouts/count", async (IWorkoutService service, string? search = null) =>
+        group.MapGet("/count", async (IWorkoutService service, string? search = null) =>
         {
             return await service.GetWorkoutsCountAsync(search);
-        })
-        .RequireAuthorization();
+        });
 
-        app.MapGet("/api/workouts/{workoutId:guid}", async (Guid workoutId, IWorkoutService service) =>
+        group.MapGet("/{workoutId:guid}", async (Guid workoutId, IWorkoutService service) =>
         {
             var dto = await service.GetCompletedWorkoutDtoAsync(workoutId);
             return dto is null ? Results.NotFound() : Results.Ok(dto);
-        })
-        .RequireAuthorization();
+        });
 
-        app.MapPatch("/api/workouts/{workoutId:guid}/exercises/{exerciseId:int}", async (
+        group.MapPatch("/{workoutId:guid}/exercises/{exerciseId:int}", async (
             Guid workoutId,
             int exerciseId,
             WorkoutExerciseDto exercise,
@@ -46,25 +45,22 @@ public static class WorkoutEndpointExtensions
         {
             var updated = await service.UpdateWorkoutExerciseAsync(workoutId, exercise);
             return updated ? Results.Ok() : Results.NotFound();
-        })
-        .RequireAuthorization();
+        });
 
-        app.MapDelete("/api/workouts/{workoutId:guid}", async (Guid workoutId, IWorkoutService service) =>
+        group.MapDelete("/{workoutId:guid}", async (Guid workoutId, IWorkoutService service) =>
         {
             var deleted = await service.DeleteWorkoutAsync(workoutId);
             return deleted ? Results.NoContent() : Results.NotFound();
-        })
-        .RequireAuthorization();
+        });
 
-        app.MapGet("/api/workouts/start/{routineId}", async (
+        group.MapGet("/start/{routineId}", async (
             int routineId,
             IWorkoutService service) =>
         {
             return await service.GetStartWorkoutDtoAsync(routineId);
-        })
-        .RequireAuthorization();
+        });
 
-        app.MapPost("/api/workouts", async (
+        group.MapPost("", async (
             WorkoutDto dto,
             IWorkoutService service) =>
         {
@@ -77,9 +73,8 @@ public static class WorkoutEndpointExtensions
             {
                 return Results.Problem("Failed to create workout");
             }
-        })
-        .RequireAuthorization();
+        });
 
-        return app;
+        return routes;
     }
 }

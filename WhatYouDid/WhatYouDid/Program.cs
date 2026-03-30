@@ -74,6 +74,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
+builder.Services.AddOpenApi();
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 builder.Services.AddTransient<IRoutineService, RoutineService>();
 builder.Services.AddTransient<IWorkoutService, WorkoutService>();
@@ -95,6 +96,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseWebAssemblyDebugging();
     app.UseMigrationsEndPoint();
+    app.MapOpenApi();
 }
 else
 {
@@ -179,10 +181,6 @@ app.MapRazorComponents<App>()
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
 
-// Map minimal API endpoints
-app.MapRoutineApiEndpoints();
-app.MapWorkoutEndpoints();
-app.MapDashboardEndpoints();
-app.MapAdminEndpoints();
+app.MapApiEndpoints();
 
 app.Run();
