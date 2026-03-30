@@ -52,18 +52,19 @@ internal sealed class DevDataSeeder(
             }
             logger.LogInformation("Created test user {Email}.", TestEmail);
 
-            // --- Public routine (owned by admin) ---
-            var fullBodyRoutine = new Routine
+            // --- Public routine (owned by admin, visible to all) ---
+            // Covers Reps, Weight, AND Duration so every Leg Day workout hits all three.
+            var legDay = new Routine
             {
-                Name = "Full Body Starter",
+                Name = "Leg Day",
                 CreateUserId = adminUser.Id,
                 IsPublic = true,
                 Exercises =
                 [
-                    new Exercise { Name = "Squat",       Sequence = 1, Sets = 3, HasReps = true, HasWeight = true },
-                    new Exercise { Name = "Bench Press", Sequence = 2, Sets = 3, HasReps = true, HasWeight = true },
-                    new Exercise { Name = "Deadlift",    Sequence = 3, Sets = 3, HasReps = true, HasWeight = true },
-                    new Exercise { Name = "Pull-Up",     Sequence = 4, Sets = 3, HasReps = true                   },
+                    new Exercise { Name = "Squat",             Sequence = 1, Sets = 4, HasReps = true, HasWeight = true },
+                    new Exercise { Name = "Romanian Deadlift", Sequence = 2, Sets = 3, HasReps = true, HasWeight = true },
+                    new Exercise { Name = "Wall Sit",          Sequence = 3, Sets = 3, HasDuration = true               },
+                    new Exercise { Name = "Calf Raise",        Sequence = 4, Sets = 4, HasReps = true, HasWeight = true },
                 ]
             };
 
@@ -97,42 +98,43 @@ internal sealed class DevDataSeeder(
             };
 
             // --- Test user private routines ---
-            var testLeg = new Routine
+            var testPilates = new Routine
             {
-                Name = "Leg Day",
+                Name = "Pilates",
                 CreateUserId = testUser.Id,
                 IsPublic = false,
                 Exercises =
                 [
-                    new Exercise { Name = "Squat",             Sequence = 1, Sets = 4, HasReps = true, HasWeight = true },
-                    new Exercise { Name = "Romanian Deadlift", Sequence = 2, Sets = 3, HasReps = true, HasWeight = true },
-                    new Exercise { Name = "Leg Press",         Sequence = 3, Sets = 3, HasReps = true, HasWeight = true },
-                    new Exercise { Name = "Calf Raise",        Sequence = 4, Sets = 4, HasReps = true, HasWeight = true },
+                    new Exercise { Name = "Hundred",           Sequence = 1, Sets = 1, HasDuration = true },
+                    new Exercise { Name = "Roll Down",         Sequence = 2, Sets = 3, HasReps = true     },
+                    new Exercise { Name = "Single Leg Circle", Sequence = 3, Sets = 3, HasReps = true     },
+                    new Exercise { Name = "Plank",             Sequence = 4, Sets = 3, HasDuration = true },
                 ]
             };
 
-            var testCardio = new Routine
+            var testYoga = new Routine
             {
-                Name = "Cardio & Core",
+                Name = "Yoga",
                 CreateUserId = testUser.Id,
                 IsPublic = false,
                 Exercises =
                 [
-                    new Exercise { Name = "Treadmill Run", Sequence = 1, Sets = 1, HasDuration = true },
-                    new Exercise { Name = "Plank",         Sequence = 2, Sets = 3, HasDuration = true },
-                    new Exercise { Name = "Sit-Up",        Sequence = 3, Sets = 3, HasReps = true     },
-                    new Exercise { Name = "Leg Raise",     Sequence = 4, Sets = 3, HasReps = true     },
+                    new Exercise { Name = "Sun Salutation", Sequence = 1, Sets = 3, HasReps = true     },
+                    new Exercise { Name = "Warrior I",      Sequence = 2, Sets = 1, HasDuration = true },
+                    new Exercise { Name = "Tree Pose",      Sequence = 3, Sets = 1, HasDuration = true },
+                    new Exercise { Name = "Child's Pose",   Sequence = 4, Sets = 1, HasDuration = true },
                 ]
             };
 
-            db.Routines.AddRange(fullBodyRoutine, adminPush, adminPull, testLeg, testCardio);
+            db.Routines.AddRange(legDay, adminPush, adminPull, testPilates, testYoga);
             await db.SaveChangesAsync(cancellationToken);
 
             // --- Seed workout history ---
+            // Both users complete the public Leg Day alongside their private routines.
             var now = DateTime.Now;
 
-            SeedWorkoutHistory(db, adminUser.Id, [adminPush, adminPull, fullBodyRoutine], startDaysAgo: 27, now);
-            SeedWorkoutHistory(db, testUser.Id, [testLeg, testCardio, fullBodyRoutine], startDaysAgo: 27, now);
+            SeedWorkoutHistory(db, adminUser.Id, [legDay, adminPush, adminPull], startDaysAgo: 27, now);
+            SeedWorkoutHistory(db, testUser.Id, [legDay, testPilates, testYoga], startDaysAgo: 27, now);
 
             await db.SaveChangesAsync(cancellationToken);
             logger.LogInformation("Dev data seeding complete.");
