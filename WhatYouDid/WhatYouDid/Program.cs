@@ -77,6 +77,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 builder.Services.AddTransient<IRoutineService, RoutineService>();
 builder.Services.AddTransient<IWorkoutService, WorkoutService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IBrowserStorage, ServerBrowserStorage>();
 builder.Services.AddHostedService<AdminRoleSeeder>();
 builder.Services.AddHostedService<DevDataSeeder>();
@@ -152,6 +153,7 @@ else
 }
 
 app.UseHttpsRedirection();
+// app.UseAuthentication();
 
 // Resolve tenant from authenticated user on each HTTP request so the
 // scoped ITenantService has the correct tenant id before EF DbContext
@@ -178,5 +180,9 @@ app.MapAdditionalIdentityEndpoints();
 
 // Map minimal API endpoints used by the WASM client
 app.MapRoutineEndpoints();
+app.MapRoutineApiEndpoints();
+app.MapWorkoutEndpoints();
+app.MapDashboardEndpoints();
+app.MapAdminEndpoints();
 
 app.Run();

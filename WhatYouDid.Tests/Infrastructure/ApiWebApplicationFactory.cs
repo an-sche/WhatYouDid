@@ -135,6 +135,34 @@ public class ApiWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLi
     }
 
     /// <summary>
+    /// Inserts a completed workout directly into the DB, scoped to <paramref name="userId"/>.
+    /// Returns the WorkoutId.
+    /// </summary>
+    public async Task<Guid> SaveWorkoutAsync(string userId, int routineId, string routineName)
+    {
+        var tenantService = new TestTenantService();
+        tenantService.SetTenant(userId);
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseSqlServer(_connectionString)
+            .Options;
+        await using var db = new ApplicationDbContext(options, tenantService);
+
+        var workoutId = Guid.NewGuid();
+        var workout = new Workout
+        {
+            WorkoutId = workoutId,
+            ApplicationUserId = userId,
+            RoutineId = routineId,
+            RoutineName = routineName,
+            StartTime = DateTimeOffset.Now.AddHours(-1),
+            EndTime = DateTimeOffset.Now,
+        };
+        db.Workouts.Add(workout);
+        await db.SaveChangesAsync();
+        return workoutId;
+    }
+
+    /// <summary>
     /// Creates an HttpClient pre-loaded with the X-Test-UserId header so every
     /// request is authenticated as <paramref name="userId"/>.
     /// </summary>

@@ -1,6 +1,7 @@
 @page "/dashboard"
 @using WhatYouDid.Shared
 @using System.Net.Http.Json
+@attribute [Authorize]
 @rendermode InteractiveServer
 
 @inject IDashboardService Service
