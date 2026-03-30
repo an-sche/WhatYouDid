@@ -153,7 +153,8 @@ else
 }
 
 app.UseHttpsRedirection();
-// app.UseAuthentication();
+app.UseAuthentication();
+app.UseAuthorization();
 
 // Resolve tenant from authenticated user on each HTTP request so the
 // scoped ITenantService has the correct tenant id before EF DbContext
