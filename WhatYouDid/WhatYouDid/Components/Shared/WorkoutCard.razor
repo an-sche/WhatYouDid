@@ -2,140 +2,136 @@
 @inject DialogService DialogService
 @using WhatYouDid.Shared
 
-<RadzenCard Style="margin-bottom: 8px">
-    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center"
-                 @onclick="ToggleExpanded" Style="cursor:pointer">
-        <RadzenStack Gap="2px">
-            <RadzenText TextStyle="TextStyle.Body1" Style="margin: 0; font-weight: 600">@Workout.RoutineName</RadzenText>
-            <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0; color: var(--rz-text-secondary-color)">
-                @Workout.StartTime.ToString("MMM d, yyyy h:mm tt")
-                @if (Workout.EndTime is { } endTime)
-                {
-                    var duration = endTime - Workout.StartTime;
-                    <text> (@((int)duration.TotalHours > 0 ? $"{(int)duration.TotalHours}h {duration.Minutes}m" : $"{duration.Minutes}m"))</text>
-                }
-            </RadzenText>
-        </RadzenStack>
-        <RadzenStack Orientation="Orientation.Horizontal" Gap="8px">
-            <RadzenIcon Icon="@(expanded ? "expand_less" : "expand_more")" Style="color: var(--rz-primary); font-size: 1.75rem" />
+<RadzenPanel AllowCollapse="true" @bind-Collapsed="collapsed" Style="margin-bottom: 8px"
+             Expand="LoadDetail">
+    <HeaderTemplate>
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween"
+                     AlignItems="AlignItems.Center" Style="width: 100%; cursor: pointer"
+                     @onclick="ToggleCollapsed">
+            <RadzenStack Gap="2px">
+                <RadzenText TextStyle="TextStyle.Body1" Style="margin: 0; font-weight: 600">@Workout.RoutineName</RadzenText>
+                <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0; color: var(--rz-text-secondary-color)">
+                    @Workout.StartTime.ToString("MMM d, yyyy h:mm tt")
+                    @if (Workout.EndTime is { } endTime)
+                    {
+                        var duration = endTime - Workout.StartTime;
+                        <text> (@((int)duration.TotalHours > 0 ? $"{(int)duration.TotalHours}h {duration.Minutes}m" : $"{duration.Minutes}m"))</text>
+                    }
+                </RadzenText>
+            </RadzenStack>
             <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text"
                           Size="ButtonSize.Medium" Click="DeleteWorkout" @onclick:stopPropagation="true"
                           Style="font-size: 1.75rem" />
         </RadzenStack>
-    </RadzenStack>
+    </HeaderTemplate>
 
-    @if (expanded)
+    <ChildContent>
+    @if (detail is not null)
     {
         <RadzenStack Gap="0" Style="margin-top: 12px">
-            @if (detail is null)
+            @foreach (var exercise in detail.WorkoutExercises ?? [])
             {
-                <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" />
-            }
-            else
-            {
-                @foreach (var exercise in detail.WorkoutExercises ?? [])
-                {
-                    <RadzenStack Gap="6px" Style="padding: 10px 0; border-top: 1px solid var(--rz-border-disabled-color)">
-                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
-                            <RadzenText TextStyle="TextStyle.Body2" Style="margin: 0; font-weight: 600">
-                                @exercise.Sequence. @exercise.ExerciseName
-                            </RadzenText>
-                            @if (editingExercise == exercise)
-                            {
-                                <RadzenStack Orientation="Orientation.Horizontal" Gap="4px">
-                                    <RadzenButton Text="Save" Icon="save" IsBusy="saving"
-                                                  Click="() => SaveExerciseEdit(exercise)"
-                                                  ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
-                                    <RadzenButton Text="Cancel" Icon="close" Click="CancelExerciseEdit"
-                                                  ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" />
-                                </RadzenStack>
-                            }
-                            else
-                            {
-                                <RadzenButton Text="Edit" Icon="edit" Click="() => { editingExercise = exercise; _expandedAlts.Clear(); }"
-                                              ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small"
-                                              Disabled="saving" />
-                            }
-                        </RadzenStack>
-
+                <RadzenStack Gap="6px" Style="padding: 10px 0; border-top: 1px solid var(--rz-border-disabled-color)">
+                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+                        <RadzenText TextStyle="TextStyle.Body2" Style="margin: 0; font-weight: 600">
+                            @exercise.Sequence. @exercise.ExerciseName
+                        </RadzenText>
                         @if (editingExercise == exercise)
                         {
-                            @for (int i = 0; i < exercise.Sets; i++)
-                            {
-                                var setIndex = i;
-                                <RadzenStack Gap="4px">
-                                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="6px" Style="flex-wrap: wrap">
-                                        <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0; min-width: 40px">Set @(setIndex + 1)</RadzenText>
-                                        @if (exercise.HasReps)
-                                        {
-                                            <RadzenNumeric TValue="int?" @bind-Value="exercise.Reps[setIndex]" Style="width: 65px" />
-                                            <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0">reps</RadzenText>
-                                        }
-                                        @if (exercise.HasWeights)
-                                        {
-                                            <RadzenNumeric TValue="int?" @bind-Value="exercise.Weights[setIndex]" Style="width: 65px" />
-                                            <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0">lbs</RadzenText>
-                                        }
-                                        @if (exercise.HasDurations)
-                                        {
-                                            <RadzenNumeric TValue="int?" @bind-Value="exercise.Durations[setIndex]" Style="width: 65px" />
-                                            <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0">sec</RadzenText>
-                                        }
-                                        <RadzenButton Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Light"
-                                            Icon="@(IsAltExpanded(setIndex) || HasAltData(exercise, setIndex) ? "remove" : "add")"
-                                            Text="Alt"
-                                            Click="@(() => ToggleAlt(setIndex))" />
-                                    </RadzenStack>
-
-                                    @if (IsAltExpanded(setIndex) || HasAltData(exercise, setIndex))
-                                    {
-                                        <RadzenStack Orientation="Orientation.Vertical" Gap="4px"
-                                            Style="border-left: 2px solid var(--rz-color-secondary-light); padding-left: 8px">
-                                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="6px" Style="flex-wrap: wrap">
-                                                <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0; min-width: 40px; color: var(--rz-text-secondary-color)">Alt</RadzenText>
-                                                @if (exercise.HasReps)
-                                                {
-                                                    <RadzenNumeric TValue="int?" @bind-Value="exercise.AlternateReps[setIndex]" Style="width: 65px" />
-                                                    <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0">reps</RadzenText>
-                                                }
-                                                @if (exercise.HasWeights)
-                                                {
-                                                    <RadzenNumeric TValue="int?" @bind-Value="exercise.AlternateWeights[setIndex]" Style="width: 65px" />
-                                                    <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0">lbs</RadzenText>
-                                                }
-                                                @if (exercise.HasDurations)
-                                                {
-                                                    <RadzenNumeric TValue="int?" @bind-Value="exercise.AlternateDurations[setIndex]" Style="width: 65px" />
-                                                    <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0">sec</RadzenText>
-                                                }
-                                            </RadzenStack>
-                                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="6px">
-                                                <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0; min-width: 40px; color: var(--rz-text-secondary-color)">Note</RadzenText>
-                                                <RadzenTextBox @bind-Value="exercise.Notes[setIndex]" Placeholder="note" Style="flex: 1" />
-                                            </RadzenStack>
-                                        </RadzenStack>
-                                    }
-                                </RadzenStack>
-                            }
+                            <RadzenStack Orientation="Orientation.Horizontal" Gap="4px">
+                                <RadzenButton Text="Save" Icon="save" IsBusy="saving"
+                                              Click="() => SaveExerciseEdit(exercise)"
+                                              ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
+                                <RadzenButton Text="Cancel" Icon="close" Click="CancelExerciseEdit"
+                                              ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" />
+                            </RadzenStack>
                         }
                         else
                         {
-                            <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0; white-space: pre-line; color: var(--rz-text-secondary-color)">
-                                @exercise.Review
-                            </RadzenText>
+                            <RadzenButton Text="Edit" Icon="edit" Click="() => { editingExercise = exercise; _expandedAlts.Clear(); }"
+                                          ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small"
+                                          Disabled="saving" />
                         }
                     </RadzenStack>
-                }
+
+                    @if (editingExercise == exercise)
+                    {
+                        @for (int i = 0; i < exercise.Sets; i++)
+                        {
+                            var setIndex = i;
+                            <RadzenStack Gap="4px">
+                                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="6px" Style="flex-wrap: wrap">
+                                    <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0; min-width: 40px">Set @(setIndex + 1)</RadzenText>
+                                    @if (exercise.HasReps)
+                                    {
+                                        <RadzenNumeric TValue="int?" @bind-Value="exercise.Reps[setIndex]" Style="width: 65px" />
+                                        <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0">reps</RadzenText>
+                                    }
+                                    @if (exercise.HasWeights)
+                                    {
+                                        <RadzenNumeric TValue="int?" @bind-Value="exercise.Weights[setIndex]" Style="width: 65px" />
+                                        <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0">lbs</RadzenText>
+                                    }
+                                    @if (exercise.HasDurations)
+                                    {
+                                        <RadzenNumeric TValue="int?" @bind-Value="exercise.Durations[setIndex]" Style="width: 65px" />
+                                        <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0">sec</RadzenText>
+                                    }
+                                    <RadzenButton Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Light"
+                                        Icon="@(IsAltExpanded(setIndex) || HasAltData(exercise, setIndex) ? "remove" : "add")"
+                                        Text="Alt"
+                                        Click="@(() => ToggleAlt(setIndex))" />
+                                </RadzenStack>
+
+                                @if (IsAltExpanded(setIndex) || HasAltData(exercise, setIndex))
+                                {
+                                    <RadzenStack Orientation="Orientation.Vertical" Gap="4px"
+                                        Style="border-left: 2px solid var(--rz-color-secondary-light); padding-left: 8px">
+                                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="6px" Style="flex-wrap: wrap">
+                                            <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0; min-width: 40px; color: var(--rz-text-secondary-color)">Alt</RadzenText>
+                                            @if (exercise.HasReps)
+                                            {
+                                                <RadzenNumeric TValue="int?" @bind-Value="exercise.AlternateReps[setIndex]" Style="width: 65px" />
+                                                <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0">reps</RadzenText>
+                                            }
+                                            @if (exercise.HasWeights)
+                                            {
+                                                <RadzenNumeric TValue="int?" @bind-Value="exercise.AlternateWeights[setIndex]" Style="width: 65px" />
+                                                <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0">lbs</RadzenText>
+                                            }
+                                            @if (exercise.HasDurations)
+                                            {
+                                                <RadzenNumeric TValue="int?" @bind-Value="exercise.AlternateDurations[setIndex]" Style="width: 65px" />
+                                                <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0">sec</RadzenText>
+                                            }
+                                        </RadzenStack>
+                                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="6px">
+                                            <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0; min-width: 40px; color: var(--rz-text-secondary-color)">Note</RadzenText>
+                                            <RadzenTextBox @bind-Value="exercise.Notes[setIndex]" Placeholder="note" Style="flex: 1" />
+                                        </RadzenStack>
+                                    </RadzenStack>
+                                }
+                            </RadzenStack>
+                        }
+                    }
+                    else
+                    {
+                        <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0; white-space: pre-line; color: var(--rz-text-secondary-color)">
+                            @exercise.Review
+                        </RadzenText>
+                    }
+                </RadzenStack>
             }
         </RadzenStack>
     }
-</RadzenCard>
+    </ChildContent>
+</RadzenPanel>
 
 @code {
     [Parameter, EditorRequired] public required Workout Workout { get; set; }
     [Parameter] public EventCallback OnDeleted { get; set; }
 
-    bool expanded = false;
+    bool collapsed = true;
     WorkoutDto? detail;
     WorkoutExerciseDto? editingExercise;
     bool saving = false;
@@ -155,10 +151,16 @@
         || (exercise.AlternateDurations.Length > setIndex && exercise.AlternateDurations[setIndex] != null)
         || (exercise.Notes.Length > setIndex && !string.IsNullOrEmpty(exercise.Notes[setIndex]));
 
-    async Task ToggleExpanded()
+    async Task ToggleCollapsed()
     {
-        expanded = !expanded;
-        if (expanded && detail is null)
+        collapsed = !collapsed;
+        if (!collapsed)
+            await LoadDetail();
+    }
+
+    async Task LoadDetail()
+    {
+        if (detail is null)
             detail = await WorkoutService.GetCompletedWorkoutDtoAsync(Workout.WorkoutId);
     }
 
