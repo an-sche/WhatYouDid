@@ -1,55 +1,79 @@
 @page "/"
+@inject NavigationManager NavigationManager
 
 <PageTitle>Home</PageTitle>
 
 <AuthorizeView>
 	<Authorized>
-		<p>Hi @context.User.Identity?.Name!</p>
-
-		<div class="home-nav-grid">
-			<a href="/routines" class="home-nav-card">
-				<RadzenIcon Icon="playlist_play" />
-				<span>Routines</span>
-			</a>
-			<a href="/createroutine" class="home-nav-card">
-				<RadzenIcon Icon="add_circle" />
-				<span>Create Routine</span>
-			</a>
-			<a href="/workouts" class="home-nav-card">
-				<RadzenIcon Icon="fitness_center" />
-				<span>Workouts</span>
-			</a>
-			<a href="/dashboard" class="home-nav-card">
-				<RadzenIcon Icon="dashboard" />
-				<span>Dashboard</span>
-			</a>
-			<a href="/Account/Manage" class="home-nav-card">
-				<RadzenIcon Icon="manage_accounts" />
-				<span>Account</span>
-			</a>
+		<RadzenRow Gap="1rem" RowGap="1rem" class="rz-mt-2 rz-mb-6">
+			<RadzenColumn Size="12">
+				<a href="/routines" class="home-nav-card home-nav-card--primary">
+					<RadzenIcon Icon="playlist_play" />
+					<span>Start Workout</span>
+					<small>Browse routines</small>
+				</a>
+			</RadzenColumn>
+			<RadzenColumn Size="6" SizeMD="4">
+				<a href="/createroutine" class="home-nav-card">
+					<RadzenIcon Icon="add_circle" IconStyle="IconStyle.Success" />
+					<span>Create Routine</span>
+				</a>
+			</RadzenColumn>
+			<RadzenColumn Size="6" SizeMD="4">
+				<a href="/workouts" class="home-nav-card">
+					<RadzenIcon Icon="fitness_center" IconStyle="IconStyle.Primary" />
+					<span>Workouts</span>
+				</a>
+			</RadzenColumn>
+			<RadzenColumn Size="6" SizeMD="4">
+				<a href="/dashboard" class="home-nav-card">
+					<RadzenIcon Icon="dashboard" IconStyle="IconStyle.Info" />
+					<span>Dashboard</span>
+				</a>
+			</RadzenColumn>
+			<RadzenColumn Size="6" SizeMD="4">
+				<a href="/Account/Manage" class="home-nav-card">
+					<RadzenIcon Icon="manage_accounts" IconStyle="IconStyle.Warning" />
+					<span>Account</span>
+				</a>
+			</RadzenColumn>
+			<RadzenColumn Size="6" SizeMD="4">
+				<form action="Account/Logout" method="post" class="home-nav-card-form">
+					<AntiforgeryToken />
+					<input type="hidden" name="ReturnUrl" value="" />
+					<button type="submit" class="home-nav-card">
+						<RadzenIcon Icon="logout" IconStyle="IconStyle.Secondary" />
+						<span>Logout</span>
+					</button>
+				</form>
+			</RadzenColumn>
 			<AuthorizeView Roles="Admin">
 				<Authorized Context="adminContext">
-					<a href="/admin" class="home-nav-card">
-						<RadzenIcon Icon="admin_panel_settings" />
-						<span>Admin</span>
-					</a>
+					<RadzenColumn Size="6" SizeMD="4">
+						<a href="/admin" class="home-nav-card">
+							<RadzenIcon Icon="admin_panel_settings" IconStyle="IconStyle.Danger" />
+							<span>Admin</span>
+						</a>
+					</RadzenColumn>
 				</Authorized>
 			</AuthorizeView>
-		</div>
+		</RadzenRow>
 	</Authorized>
 	<NotAuthorized>
-		<p>
-			<a href="/Account/Login" class="rz-button rz-button-md rz-variant-filled rz-primary rz-shade-default">Log In</a>
-		</p>
+		<RadzenStack AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center" class="rz-mt-6">
+			<a href="/Account/Login" class="home-nav-card home-nav-card--login">
+				<RadzenIcon Icon="login" IconStyle="IconStyle.Primary" />
+				<span>Log In</span>
+			</a>
+		</RadzenStack>
 	</NotAuthorized>
 </AuthorizeView>
 
 <style>
-	.home-nav-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-		gap: 1rem;
-		margin-top: 1rem;
+	.home-nav-card-form {
+		width: 100%;
+		margin: 0;
+		padding: 0;
 	}
 
 	.home-nav-card {
@@ -59,6 +83,7 @@
 		justify-content: center;
 		gap: 0.5rem;
 		padding: 1.5rem 1rem;
+		width: 100%;
 		border-radius: var(--rz-border-radius);
 		border: 1px solid var(--rz-border-disabled-color);
 		background: var(--rz-base-background-color);
@@ -66,13 +91,19 @@
 		text-decoration: none;
 		font-size: 0.95rem;
 		font-weight: 500;
+		cursor: pointer;
 		transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
 		box-shadow: var(--rz-shadow-1);
 	}
 
+	.home-nav-card small {
+		font-size: 0.75rem;
+		font-weight: 400;
+		opacity: 0.7;
+	}
+
 	.home-nav-card .rzi {
 		font-size: 2rem;
-		color: var(--rz-primary);
 	}
 
 	.home-nav-card:hover {
@@ -80,5 +111,35 @@
 		border-color: var(--rz-primary);
 		box-shadow: var(--rz-shadow-2);
 		color: var(--rz-primary-dark);
+	}
+
+	/* Login card — centered, fixed width */
+	.home-nav-card--login {
+		width: 200px;
+	}
+
+	/* Start Workout — primary hero card */
+	.home-nav-card--primary {
+		background: var(--rz-primary);
+		border-color: var(--rz-primary-dark);
+		color: var(--rz-on-primary-color, #fff);
+		box-shadow: var(--rz-shadow-3);
+		font-size: 1.1rem;
+	}
+
+	.home-nav-card--primary .rzi {
+		font-size: 2.5rem;
+		color: var(--rz-on-primary-color, #fff);
+	}
+
+	.home-nav-card--primary small {
+		opacity: 0.85;
+	}
+
+	.home-nav-card--primary:hover {
+		background: var(--rz-primary-dark);
+		border-color: var(--rz-primary-darker, var(--rz-primary-dark));
+		color: var(--rz-on-primary-color, #fff);
+		box-shadow: var(--rz-shadow-4);
 	}
 </style>
