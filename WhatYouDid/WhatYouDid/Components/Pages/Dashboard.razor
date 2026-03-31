@@ -34,42 +34,50 @@
     return;
 }
 
-<RadzenStack Style="max-width: 900px" Orientation="Orientation.Horizontal" Gap="16px" AlignItems="AlignItems.Start" Wrap="FlexWrap.Wrap">
-        @foreach (var w in dashboard.TopWorkouts)
-        {
-                <RadzenCard Style="height:150px; flex:1; min-width:240px; max-width:280px">
-                    <ChildContent>
-                        <h5>@w.RoutineName</h5>
-                        <div class="display-6">@w.Count</div>
-                        <div class="text-muted">times performed</div>
-                    </ChildContent>
-                </RadzenCard>
-        }
-
-            <RadzenCard Style="height:150px; flex:1; min-width:240px; max-width:280px">
+<RadzenRow Gap="1rem" RowGap="1rem" class="rz-mt-2 rz-mb-6">
+    @foreach (var w in dashboard.TopWorkouts)
+    {
+        <RadzenColumn Size="12" SizeSM="6" SizeMD="4">
+            <RadzenCard Style="height:150px">
                 <ChildContent>
-                    <h6>Total Workout Duration</h6>
-                    <div class="display-6">@FormatMinutes(dashboard.TotalWorkoutDuration)</div>
-                    <div class="text-muted">sum of all workouts</div>
+                    <h5>@w.RoutineName</h5>
+                    <div class="display-6">@w.Count</div>
+                    <div class="text-muted">times performed</div>
                 </ChildContent>
             </RadzenCard>
+        </RadzenColumn>
+    }
 
-            <RadzenCard Style="height:150px; flex:1; min-width:240px; max-width:280px">
-                <ChildContent>
-                    <h6>Total Reps Completed</h6>
-                    <div class="display-6">@dashboard.TotalReps</div>
-                    <div class="text-muted">count of reps</div>
-                </ChildContent>
-            </RadzenCard>
+    <RadzenColumn Size="12" SizeSM="6" SizeMD="4">
+        <RadzenCard Style="height:150px">
+            <ChildContent>
+                <h6>Total Workout Duration</h6>
+                <div class="display-6">@FormatMinutes(dashboard.TotalWorkoutDuration)</div>
+                <div class="text-muted">sum of all workouts</div>
+            </ChildContent>
+        </RadzenCard>
+    </RadzenColumn>
 
-            <RadzenCard Style="height:150px; flex:1; min-width:240px; max-width:280px">
-                <ChildContent>
-                    <h6>Total Workouts</h6>
-                    <div class="display-6">@dashboard.TotalWorkouts</div>
-                    <div class="text-muted">workouts completed</div>
-                </ChildContent>
-            </RadzenCard>
-</RadzenStack>
+    <RadzenColumn Size="12" SizeSM="6" SizeMD="4">
+        <RadzenCard Style="height:150px">
+            <ChildContent>
+                <h6>Total Reps Completed</h6>
+                <div class="display-6">@dashboard.TotalReps</div>
+                <div class="text-muted">count of reps</div>
+            </ChildContent>
+        </RadzenCard>
+    </RadzenColumn>
+
+    <RadzenColumn Size="12" SizeSM="6" SizeMD="4">
+        <RadzenCard Style="height:150px">
+            <ChildContent>
+                <h6>Total Workouts</h6>
+                <div class="display-6">@dashboard.TotalWorkouts</div>
+                <div class="text-muted">workouts completed</div>
+            </ChildContent>
+        </RadzenCard>
+    </RadzenColumn>
+</RadzenRow>
 
 @code {
     private DashboardDto? dashboard;
