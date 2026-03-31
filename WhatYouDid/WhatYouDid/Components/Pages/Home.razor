@@ -1,15 +1,41 @@
-﻿@page "/"
+@page "/"
 
 <PageTitle>Home</PageTitle>
 
 <AuthorizeView>
 	<Authorized>
-		<p>
-			Hi @context.User.Identity?.Name!
-		</p>
-		<p>
-			<a href="/routines" class="rz-button rz-button-md rz-variant-filled rz-primary rz-shade-default">Start Workout</a>
-		</p>
+		<p>Hi @context.User.Identity?.Name!</p>
+
+		<div class="home-nav-grid">
+			<a href="/routines" class="home-nav-card">
+				<RadzenIcon Icon="playlist_play" />
+				<span>Routines</span>
+			</a>
+			<a href="/createroutine" class="home-nav-card">
+				<RadzenIcon Icon="add_circle" />
+				<span>Create Routine</span>
+			</a>
+			<a href="/workouts" class="home-nav-card">
+				<RadzenIcon Icon="fitness_center" />
+				<span>Workouts</span>
+			</a>
+			<a href="/dashboard" class="home-nav-card">
+				<RadzenIcon Icon="dashboard" />
+				<span>Dashboard</span>
+			</a>
+			<a href="/Account/Manage" class="home-nav-card">
+				<RadzenIcon Icon="manage_accounts" />
+				<span>Account</span>
+			</a>
+			<AuthorizeView Roles="Admin">
+				<Authorized Context="adminContext">
+					<a href="/admin" class="home-nav-card">
+						<RadzenIcon Icon="admin_panel_settings" />
+						<span>Admin</span>
+					</a>
+				</Authorized>
+			</AuthorizeView>
+		</div>
 	</Authorized>
 	<NotAuthorized>
 		<p>
@@ -17,3 +43,42 @@
 		</p>
 	</NotAuthorized>
 </AuthorizeView>
+
+<style>
+	.home-nav-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+		gap: 1rem;
+		margin-top: 1rem;
+	}
+
+	.home-nav-card {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		padding: 1.5rem 1rem;
+		border-radius: var(--rz-border-radius);
+		border: 1px solid var(--rz-border-disabled-color);
+		background: var(--rz-base-background-color);
+		color: var(--rz-text-color);
+		text-decoration: none;
+		font-size: 0.95rem;
+		font-weight: 500;
+		transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+		box-shadow: var(--rz-shadow-1);
+	}
+
+	.home-nav-card .rzi {
+		font-size: 2rem;
+		color: var(--rz-primary);
+	}
+
+	.home-nav-card:hover {
+		background: var(--rz-primary-lighter);
+		border-color: var(--rz-primary);
+		box-shadow: var(--rz-shadow-2);
+		color: var(--rz-primary-dark);
+	}
+</style>

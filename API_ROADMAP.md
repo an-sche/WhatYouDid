@@ -16,9 +16,3 @@ Current cookie auth works for browsers but not mobile. Add token-based auth alon
 - All `/api/*` endpoints accept either cookie **or** JWT bearer
 
 Blazor server app continues using cookie auth. Mobile/web clients use JWT.
-
-### 8. Reorganize endpoint registration + add OpenAPI
-
-- Create a top-level `MapApiEndpoints()` extension that calls into all endpoint groups
-- Use `MapGroup("/api")` to apply shared auth policy and prefix once
-- Add OpenAPI/Swagger (built-in .NET 9 OpenAPI or Swashbuckle) for discoverability
