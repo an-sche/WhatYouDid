@@ -1,10 +1,11 @@
 ﻿@page "/workout/{RoutineId:int}"
 
-@using WhatYouDid.Shared
-@using Microsoft.AspNetCore.Authorization
-@using WhatYouDid.Client.Components
 @using System.Text
+@using Microsoft.AspNetCore.Authorization
 @using System.Security.Claims
+@using WhatYouDid.Client.Components	
+@using WhatYouDid.Shared
+
 @attribute [Authorize]
 @rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
 @inject IBrowserStorage BrowserStorage
@@ -13,14 +14,7 @@
 @inject HttpClient Http
 
 @if (WorkoutDto is null) {
-	if (Loaded)
-	{
-		<RadzenText TextStyle="TextStyle.H4">Invalid Permissions</RadzenText>
-	}
-	else 
-	{
-		<RadzenText TextStyle="TextStyle.H4">Loading...</RadzenText>
-	}
+	<RadzenText TextStyle="TextStyle.H4">Loading...</RadzenText>
 	return;
 }
 
@@ -236,13 +230,9 @@
 	[Parameter]
 	public int RoutineId { get; set; }
 
-	[CascadingParameter]
-	private Task<AuthenticationState>? authenticationState { get; set; }
-
 	public WorkoutDto? WorkoutDto { get; set; }
 	public string[] ExerciseNames { get; set; } = [];
 
-	public bool Loaded = false;
 	public bool Saving = false;
 
 	private bool AlreadyAsked = false; // Field to know if we need to check browser storage
@@ -276,15 +266,10 @@
 	}
 	protected override async Task OnInitializedAsync()
 	{
-		if (authenticationState is null)
-			return;
-
 		// Tenant is resolved server-side; call API without passing user id
-		// WorkoutDto = await Api.GetStartWorkoutDtoAsync(RoutineId);
 		WorkoutDto = await Http.GetFromJsonAsync<WorkoutDto>(
 			$"api/workouts/start/{RoutineId}");
 
-		Loaded = true;
 		if (WorkoutDto is not null)
 		{
 			WorkoutDto.StartTime = DateTimeOffset.Now;
