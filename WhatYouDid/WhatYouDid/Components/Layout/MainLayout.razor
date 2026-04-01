@@ -2,26 +2,31 @@
 @inject NavigationManager NavigationManager
 
 @{
-    // The workout page uses pure WASM — skip the InteractiveServer RadzenComponents
+    // The workout page uses pure WASM — skip the InteractiveServer MudBlazor providers
     // so no SignalR circuit is created, preventing reconnect prompts on mobile.
     var isWorkoutPage = NavigationManager.ToBaseRelativePath(NavigationManager.Uri)
         .StartsWith("workout/", StringComparison.OrdinalIgnoreCase);
 }
 
+<MudThemeProvider Theme="_theme" />
+
+@if (!isWorkoutPage)
+{
+    <MudPopoverProvider @rendermode="InteractiveServer" />
+    <MudDialogProvider @rendermode="InteractiveServer" />
+    <MudSnackbarProvider @rendermode="InteractiveServer" />
+}
+else
+{
+    <MudPopoverProvider @rendermode="InteractiveWebAssembly" />
+    <MudDialogProvider @rendermode="InteractiveWebAssembly" />
+    <MudSnackbarProvider @rendermode="InteractiveWebAssembly" />
+}
+
 <div class="page">
-
-    @if (!isWorkoutPage)
-    {
-        <RadzenComponents @rendermode="InteractiveServer" />
-    }
-    else
-    {
-        <RadzenComponents @rendermode="InteractiveWebAssembly" />
-    }
-
     <header class="top-bar">
-        <a href="/" class="top-bar-brand">
-            <RadzenButton Icon="home" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" />
+        <a href="/" class="top-bar-brand" data-enhance-nav="@(isWorkoutPage ? "false" : null)">
+            <MudIconButton Icon="@Icons.Material.Filled.Home" Size="Size.Small" />
             <span>What You Did</span>
         </a>
     </header>
@@ -38,3 +43,14 @@
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+
+@code {
+    private MudTheme _theme = new MudTheme
+    {
+        PaletteLight = new PaletteLight
+        {
+            Primary = "#1b6ec2",
+            Secondary = "#3a0647",
+        }
+    };
+}

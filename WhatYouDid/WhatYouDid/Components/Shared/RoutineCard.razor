@@ -1,50 +1,54 @@
 @inject IRoutineService RoutineService
 @inject NavigationManager Navigation
 
-<RadzenCard class="routine-card">
-    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center"
-                 @onclick="ToggleExpanded" Style="cursor:pointer">
-        <RadzenText TextStyle="TextStyle.H6" Style="margin: 0">@Name</RadzenText>
-        <RadzenStack Orientation="Orientation.Horizontal" Gap="8px" AlignItems="AlignItems.Center">
-            <RadzenIcon Icon="@(expanded ? "expand_less" : "expand_more")" Style="color: var(--rz-secondary); font-size: 1.75rem" />
-            <RadzenButton Text="Start"
-                          Icon="play_arrow"
-                          ButtonStyle="ButtonStyle.Primary"
-                          Size="ButtonSize.Medium"
-                          Click="StartWorkout"
-                          @onclick:stopPropagation="true" />
-        </RadzenStack>
-    </RadzenStack>
+<MudCard Class="routine-card">
+    <MudCardContent>
+        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center"
+                  @onclick="ToggleExpanded" Style="cursor:pointer">
+            <MudText Typo="Typo.h6" Style="margin: 0">@Name</MudText>
+            <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+                <MudIcon Icon="@(expanded ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)"
+                         Style="color: var(--mud-palette-secondary); font-size: 1.75rem" />
+                <span @onclick:stopPropagation="true">
+                    <MudButton StartIcon="@Icons.Material.Filled.PlayArrow"
+                               Color="Color.Primary"
+                               Size="Size.Medium"
+                               Variant="Variant.Filled"
+                               OnClick="StartWorkout">Start</MudButton>
+                </span>
+            </MudStack>
+        </MudStack>
 
-    @if (expanded)
-    {
-        <RadzenStack Gap="4px" Style="margin-top: 12px">
-            @if (exercises is null)
-            {
-                <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" />
-            }
-            else
-            {
-                @foreach (var exercise in exercises)
+        @if (expanded)
+        {
+            <MudStack Spacing="1" Style="margin-top: 12px">
+                @if (exercises is null)
                 {
-                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="8px" Style="padding: 6px 0; border-top: 1px solid var(--rz-border-disabled-color)">
-                        <RadzenText Style="flex: 1; margin: 0">@exercise.Sequence. @exercise.Name</RadzenText>
-                        <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0; color: var(--rz-text-secondary-color)">@exercise.Sets set@(exercise.Sets != 1 ? "s" : "")</RadzenText>
-                        <RadzenStack Orientation="Orientation.Horizontal" Gap="2px">
-                            <RadzenIcon Icon="123" Style="@(exercise.HasReps ? "opacity: 1.0; font-size: 1rem" : "opacity: 0.15; font-size: 1rem")" />
-                            <RadzenIcon Icon="fitness_center" Style="@(exercise.HasWeight ? "opacity: 1.0; font-size: 1rem" : "opacity: 0.15; font-size: 1rem")" />
-                            <RadzenIcon Icon="timer" Style="@(exercise.HasDuration ? "opacity: 1.0; font-size: 1rem" : "opacity: 0.15; font-size: 1rem")" />
-                        </RadzenStack>
-                    </RadzenStack>
+                    <MudProgressLinear Indeterminate="true" />
                 }
-            }
-        </RadzenStack>
-    }
-</RadzenCard>
+                else
+                {
+                    @foreach (var exercise in exercises)
+                    {
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Style="padding: 6px 0; border-top: 1px solid var(--mud-palette-divider)">
+                            <MudText Style="flex: 1; margin: 0">@exercise.Sequence. @exercise.Name</MudText>
+                            <MudText Typo="Typo.caption" Style="margin: 0; color: var(--mud-palette-text-secondary)">@exercise.Sets set@(exercise.Sets != 1 ? "s" : "")</MudText>
+                            <MudStack Row="true" Spacing="0">
+                                <MudIcon Icon="@Icons.Material.Filled._123" Style="@(exercise.HasReps ? "opacity: 1.0; font-size: 1rem" : "opacity: 0.15; font-size: 1rem")" />
+                                <MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Style="@(exercise.HasWeight ? "opacity: 1.0; font-size: 1rem" : "opacity: 0.15; font-size: 1rem")" />
+                                <MudIcon Icon="@Icons.Material.Filled.Timer" Style="@(exercise.HasDuration ? "opacity: 1.0; font-size: 1rem" : "opacity: 0.15; font-size: 1rem")" />
+                            </MudStack>
+                        </MudStack>
+                    }
+                }
+            </MudStack>
+        }
+    </MudCardContent>
+</MudCard>
 
 @code {
 
-    [Parameter, EditorRequired] 
+    [Parameter, EditorRequired]
     public required string Name { get; set; }
 
     [Parameter, EditorRequired]

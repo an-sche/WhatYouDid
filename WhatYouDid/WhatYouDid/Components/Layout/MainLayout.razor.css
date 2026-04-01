@@ -33,14 +33,14 @@ main {
     color: rgba(255, 255, 255, 0.8);
 }
 
-.top-bar-brand ::deep .rz-button {
+.top-bar-brand ::deep .mud-icon-button {
     background: transparent;
     border: 1px solid rgba(255, 255, 255, 0.4);
     color: white;
     box-shadow: none;
 }
 
-.top-bar-brand ::deep .rz-button:hover {
+.top-bar-brand ::deep .mud-icon-button:hover {
     background: rgba(255, 255, 255, 0.1);
     border-color: rgba(255, 255, 255, 0.7);
 }

@@ -5,18 +5,19 @@
 @attribute [Authorize]
 @rendermode InteractiveServer
 @inject IWorkoutService WorkoutService
-@inject DialogService DialogService
 
 <PageTitle>Workout History</PageTitle>
-<RadzenText TextStyle="TextStyle.H4">Workouts</RadzenText>
+<MudText Typo="Typo.h4">Workouts</MudText>
 
-<RadzenTextBox Placeholder="Search workouts..." @bind-Value="searchText" @oninput="OnSearchInput" Style="width: 100%; margin-bottom: 12px;" />
+<MudTextField Placeholder="Search workouts..." @bind-Value="searchText" @oninput="OnSearchInput" FullWidth="true" Variant="Variant.Outlined" Class="mb-3" />
 
 @if (workouts is null)
 {
-    <RadzenCard Style="margin-bottom: 8px">
-        <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" />
-    </RadzenCard>
+    <MudCard Class="mb-2">
+        <MudCardContent>
+            <MudProgressLinear Indeterminate="true" />
+        </MudCardContent>
+    </MudCard>
 }
 else
 {
@@ -25,17 +26,21 @@ else
         <WorkoutCard @key="workout.WorkoutId" Workout="@workout" OnDeleted="LoadPage" />
     }
 
-    <RadzenPager @ref="pager" Count="totalWorkouts" PageSize="pageSize" PageNumbersCount="5" PageChanged="OnPageChanged" />
+    <div class="d-flex justify-content-center mt-2">
+        <MudPagination Count="@totalPages" Selected="currentPage" SelectedChanged="OnPageChanged" />
+    </div>
 }
 
 @code {
 
-    RadzenPager? pager;
     List<Workout>? workouts;
     int totalWorkouts;
+    int currentPage = 1;
     const int pageSize = 10;
     string? searchText;
     CancellationTokenSource? _debounce;
+
+    private int totalPages => (int)Math.Ceiling(totalWorkouts / (double)pageSize);
 
     protected override async Task OnInitializedAsync()
     {
@@ -44,9 +49,8 @@ else
 
     private async Task LoadPage()
     {
-        var currentPage = pager?.CurrentPage ?? 0;
         totalWorkouts = await WorkoutService.GetWorkoutsCountAsync(searchText);
-        workouts = await WorkoutService.GetWorkoutsAsync(currentPage * pageSize, pageSize, searchText);
+        workouts = await WorkoutService.GetWorkoutsAsync((currentPage - 1) * pageSize, pageSize, searchText);
     }
 
     private async Task OnSearchInput(ChangeEventArgs args)
@@ -58,15 +62,16 @@ else
         try
         {
             await Task.Delay(300, token);
-            if (pager is not null) await pager.FirstPage();
+            currentPage = 1;
             totalWorkouts = await WorkoutService.GetWorkoutsCountAsync(searchText);
             workouts = await WorkoutService.GetWorkoutsAsync(0, pageSize, searchText);
         }
         catch (TaskCanceledException) { }
     }
 
-    private async Task OnPageChanged(PagerEventArgs args)
+    private async Task OnPageChanged(int page)
     {
-        workouts = await WorkoutService.GetWorkoutsAsync(args.Skip, args.Top, searchText);
+        currentPage = page;
+        workouts = await WorkoutService.GetWorkoutsAsync((page - 1) * pageSize, pageSize, searchText);
     }
 }

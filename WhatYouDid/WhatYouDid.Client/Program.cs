@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using Radzen;
+using MudBlazor.Services;
+using MudExtensions.Services;
 using WhatYouDid.Client;
 using WhatYouDid.Client.Services;
 using WhatYouDid.Shared;
@@ -17,7 +18,8 @@ builder.Services.AddScoped(sp =>
     var nav = sp.GetRequiredService<NavigationManager>();
     return new HttpClient { BaseAddress = new Uri(nav.BaseUri) };
 });
-builder.Services.AddRadzenComponents();
+builder.Services.AddMudServices();
+builder.Services.AddMudExtensions();
 builder.Services.AddScoped<IBrowserStorage, ClientBrowserStorage>();
 
 await builder.Build().RunAsync();

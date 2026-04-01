@@ -1,132 +1,129 @@
 @using WhatYouDid.Shared
 
 @inject IWorkoutService WorkoutService
-@inject DialogService DialogService
+@inject IDialogService DialogService
 
-<RadzenPanel AllowCollapse="true" @bind-Collapsed="collapsed" Style="margin-bottom: 8px"
-             Expand="LoadDetail">
-    <HeaderTemplate>
-        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween"
-                     AlignItems="AlignItems.Center" Style="width: 100%; cursor: pointer"
-                     @onclick="ToggleCollapsed">
-            <RadzenStack Gap="2px">
-                <RadzenText TextStyle="TextStyle.Body1" Style="margin: 0; font-weight: 600">@Workout.RoutineName</RadzenText>
-                <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0; color: var(--rz-text-secondary-color)">
+<MudCard Class="mb-2">
+    <MudCardContent>
+        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center"
+                  Style="cursor: pointer" @onclick="ToggleCollapsed">
+            <MudStack Spacing="0">
+                <MudText Typo="Typo.body1" Style="font-weight: 600">@Workout.RoutineName</MudText>
+                <MudText Typo="Typo.caption" Style="color: var(--mud-palette-text-secondary)">
                     @Workout.StartTime.ToString("MMM d, yyyy h:mm tt")
                     @if (Workout.EndTime is { } endTime)
                     {
                         var duration = endTime - Workout.StartTime;
                         <text> (@((int)duration.TotalHours > 0 ? $"{(int)duration.TotalHours}h {duration.Minutes}m" : $"{duration.Minutes}m"))</text>
                     }
-                </RadzenText>
-            </RadzenStack>
-            <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Text"
-                          Size="ButtonSize.Medium" Click="DeleteWorkout" @onclick:stopPropagation="true"
-                          Style="font-size: 1.75rem" />
-        </RadzenStack>
-    </HeaderTemplate>
+                </MudText>
+            </MudStack>
+            <span @onclick:stopPropagation="true">
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
+                               Size="Size.Medium" OnClick="DeleteWorkout" />
+            </span>
+        </MudStack>
 
-    <ChildContent>
-    @if (detail is not null)
-    {
-        <RadzenStack Gap="0" Style="margin-top: 12px">
-            @foreach (var exercise in detail.WorkoutExercises ?? [])
-            {
-                <RadzenStack Gap="6px" Style="padding: 10px 0; border-top: 1px solid var(--rz-border-disabled-color)">
-                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
-                        <RadzenText TextStyle="TextStyle.Body2" Style="margin: 0; font-weight: 600">
-                            @exercise.Sequence. @exercise.ExerciseName
-                        </RadzenText>
+        @if (!collapsed && detail is not null)
+        {
+            <MudStack Spacing="0" Class="mt-3">
+                @foreach (var exercise in detail.WorkoutExercises ?? [])
+                {
+                    <MudStack Spacing="1" Style="padding: 10px 0; border-top: 1px solid var(--mud-palette-divider)">
+                        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                            <MudText Typo="Typo.body2" Style="font-weight: 600">
+                                @exercise.Sequence. @exercise.ExerciseName
+                            </MudText>
+                            @if (editingExercise == exercise)
+                            {
+                                <MudStack Row="true" Spacing="1">
+                                    <MudButton StartIcon="@Icons.Material.Filled.Save" Disabled="saving"
+                                               OnClick="() => SaveExerciseEdit(exercise)"
+                                               Color="Color.Primary" Size="Size.Small" Variant="Variant.Filled">Save</MudButton>
+                                    <MudButton StartIcon="@Icons.Material.Filled.Close" OnClick="CancelExerciseEdit"
+                                               Color="Color.Secondary" Size="Size.Small" Variant="Variant.Filled">Cancel</MudButton>
+                                </MudStack>
+                            }
+                            else
+                            {
+                                <MudButton StartIcon="@Icons.Material.Filled.Edit"
+                                           OnClick="() => { editingExercise = exercise; _expandedAlts.Clear(); }"
+                                           Size="Size.Small" Variant="Variant.Outlined"
+                                           Disabled="saving">Edit</MudButton>
+                            }
+                        </MudStack>
+
                         @if (editingExercise == exercise)
                         {
-                            <RadzenStack Orientation="Orientation.Horizontal" Gap="4px">
-                                <RadzenButton Text="Save" Icon="save" IsBusy="saving"
-                                              Click="() => SaveExerciseEdit(exercise)"
-                                              ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
-                                <RadzenButton Text="Cancel" Icon="close" Click="CancelExerciseEdit"
-                                              ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" />
-                            </RadzenStack>
+                            @for (int i = 0; i < exercise.Sets; i++)
+                            {
+                                var setIndex = i;
+                                <MudStack Spacing="1">
+                                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Style="flex-wrap: wrap">
+                                        <MudText Typo="Typo.caption" Style="min-width: 40px">Set @(setIndex + 1)</MudText>
+                                        @if (exercise.HasReps)
+                                        {
+                                            <MudNumericField T="int?" @bind-Value="exercise.Reps[setIndex]" Style="width: 65px" Variant="Variant.Outlined" />
+                                            <MudText Typo="Typo.caption">reps</MudText>
+                                        }
+                                        @if (exercise.HasWeights)
+                                        {
+                                            <MudNumericField T="int?" @bind-Value="exercise.Weights[setIndex]" Style="width: 65px" Variant="Variant.Outlined" />
+                                            <MudText Typo="Typo.caption">lbs</MudText>
+                                        }
+                                        @if (exercise.HasDurations)
+                                        {
+                                            <MudNumericField T="int?" @bind-Value="exercise.Durations[setIndex]" Style="width: 65px" Variant="Variant.Outlined" />
+                                            <MudText Typo="Typo.caption">sec</MudText>
+                                        }
+                                        <MudButton Size="Size.Small" Variant="Variant.Outlined"
+                                            StartIcon="@(IsAltExpanded(setIndex) || HasAltData(exercise, setIndex) ? Icons.Material.Filled.Remove : Icons.Material.Filled.Add)"
+                                            OnClick="@(() => ToggleAlt(setIndex))">Alt</MudButton>
+                                    </MudStack>
+
+                                    @if (IsAltExpanded(setIndex) || HasAltData(exercise, setIndex))
+                                    {
+                                        <MudStack Spacing="1"
+                                            Style="border-left: 2px solid var(--mud-palette-secondary-lighten); padding-left: 8px">
+                                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Style="flex-wrap: wrap">
+                                                <MudText Typo="Typo.caption" Style="min-width: 40px; color: var(--mud-palette-text-secondary)">Alt</MudText>
+                                                @if (exercise.HasReps)
+                                                {
+                                                    <MudNumericField T="int?" @bind-Value="exercise.AlternateReps[setIndex]" Style="width: 65px" Variant="Variant.Outlined" />
+                                                    <MudText Typo="Typo.caption">reps</MudText>
+                                                }
+                                                @if (exercise.HasWeights)
+                                                {
+                                                    <MudNumericField T="int?" @bind-Value="exercise.AlternateWeights[setIndex]" Style="width: 65px" Variant="Variant.Outlined" />
+                                                    <MudText Typo="Typo.caption">lbs</MudText>
+                                                }
+                                                @if (exercise.HasDurations)
+                                                {
+                                                    <MudNumericField T="int?" @bind-Value="exercise.AlternateDurations[setIndex]" Style="width: 65px" Variant="Variant.Outlined" />
+                                                    <MudText Typo="Typo.caption">sec</MudText>
+                                                }
+                                            </MudStack>
+                                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                                                <MudText Typo="Typo.caption" Style="min-width: 40px; color: var(--mud-palette-text-secondary)">Note</MudText>
+                                                <MudTextField @bind-Value="exercise.Notes[setIndex]" Placeholder="note" Style="flex: 1" Variant="Variant.Outlined" />
+                                            </MudStack>
+                                        </MudStack>
+                                    }
+                                </MudStack>
+                            }
                         }
                         else
                         {
-                            <RadzenButton Text="Edit" Icon="edit" Click="() => { editingExercise = exercise; _expandedAlts.Clear(); }"
-                                          ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small"
-                                          Disabled="saving" />
+                            <MudText Typo="Typo.caption" Style="white-space: pre-line; color: var(--mud-palette-text-secondary)">
+                                @exercise.Review
+                            </MudText>
                         }
-                    </RadzenStack>
-
-                    @if (editingExercise == exercise)
-                    {
-                        @for (int i = 0; i < exercise.Sets; i++)
-                        {
-                            var setIndex = i;
-                            <RadzenStack Gap="4px">
-                                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="6px" Style="flex-wrap: wrap">
-                                    <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0; min-width: 40px">Set @(setIndex + 1)</RadzenText>
-                                    @if (exercise.HasReps)
-                                    {
-                                        <RadzenNumeric TValue="int?" @bind-Value="exercise.Reps[setIndex]" Style="width: 65px" />
-                                        <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0">reps</RadzenText>
-                                    }
-                                    @if (exercise.HasWeights)
-                                    {
-                                        <RadzenNumeric TValue="int?" @bind-Value="exercise.Weights[setIndex]" Style="width: 65px" />
-                                        <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0">lbs</RadzenText>
-                                    }
-                                    @if (exercise.HasDurations)
-                                    {
-                                        <RadzenNumeric TValue="int?" @bind-Value="exercise.Durations[setIndex]" Style="width: 65px" />
-                                        <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0">sec</RadzenText>
-                                    }
-                                    <RadzenButton Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Light"
-                                        Icon="@(IsAltExpanded(setIndex) || HasAltData(exercise, setIndex) ? "remove" : "add")"
-                                        Text="Alt"
-                                        Click="@(() => ToggleAlt(setIndex))" />
-                                </RadzenStack>
-
-                                @if (IsAltExpanded(setIndex) || HasAltData(exercise, setIndex))
-                                {
-                                    <RadzenStack Orientation="Orientation.Vertical" Gap="4px"
-                                        Style="border-left: 2px solid var(--rz-color-secondary-light); padding-left: 8px">
-                                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="6px" Style="flex-wrap: wrap">
-                                            <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0; min-width: 40px; color: var(--rz-text-secondary-color)">Alt</RadzenText>
-                                            @if (exercise.HasReps)
-                                            {
-                                                <RadzenNumeric TValue="int?" @bind-Value="exercise.AlternateReps[setIndex]" Style="width: 65px" />
-                                                <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0">reps</RadzenText>
-                                            }
-                                            @if (exercise.HasWeights)
-                                            {
-                                                <RadzenNumeric TValue="int?" @bind-Value="exercise.AlternateWeights[setIndex]" Style="width: 65px" />
-                                                <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0">lbs</RadzenText>
-                                            }
-                                            @if (exercise.HasDurations)
-                                            {
-                                                <RadzenNumeric TValue="int?" @bind-Value="exercise.AlternateDurations[setIndex]" Style="width: 65px" />
-                                                <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0">sec</RadzenText>
-                                            }
-                                        </RadzenStack>
-                                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="6px">
-                                            <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0; min-width: 40px; color: var(--rz-text-secondary-color)">Note</RadzenText>
-                                            <RadzenTextBox @bind-Value="exercise.Notes[setIndex]" Placeholder="note" Style="flex: 1" />
-                                        </RadzenStack>
-                                    </RadzenStack>
-                                }
-                            </RadzenStack>
-                        }
-                    }
-                    else
-                    {
-                        <RadzenText TextStyle="TextStyle.Caption" Style="margin: 0; white-space: pre-line; color: var(--rz-text-secondary-color)">
-                            @exercise.Review
-                        </RadzenText>
-                    }
-                </RadzenStack>
-            }
-        </RadzenStack>
-    }
-    </ChildContent>
-</RadzenPanel>
+                    </MudStack>
+                }
+            </MudStack>
+        }
+    </MudCardContent>
+</MudCard>
 
 @code {
     [Parameter, EditorRequired] public required Workout Workout { get; set; }
@@ -191,11 +188,10 @@
 
     async Task DeleteWorkout()
     {
-        var confirmed = await DialogService.Confirm(
-            "Are you sure you wish to delete the workout?",
+        var confirmed = await DialogService.ShowMessageBoxAsync(
             "Delete Workout",
-            new ConfirmOptions { OkButtonText = "Delete", CancelButtonText = "Cancel" });
-
+            "Are you sure you wish to delete the workout?",
+            yesText: "Delete", cancelText: "Cancel");
         if (confirmed != true) return;
 
         await WorkoutService.DeleteWorkoutAsync(Workout.WorkoutId);

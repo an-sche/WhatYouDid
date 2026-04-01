@@ -44,7 +44,7 @@ public class WorkoutExerciseDto
                     if (AlternateDurations.Length > i && AlternateDurations[i] != null) val += "+" + AlternateDurations[i];
                     line.Append("D: " + val + "  ");
                 }
-                if (Notes.Length > i && Notes[i] != null) line.Append($"({Notes[i]})  ");
+                if (Notes.Length > i && !string.IsNullOrEmpty(Notes[i])) line.Append($"({Notes[i]})  ");
                 line.Append(Environment.NewLine);
             }
             return line.ToString();

@@ -5,67 +5,67 @@
 
 <AuthorizeView>
 	<Authorized>
-		<RadzenRow Gap="1rem" RowGap="1rem" class="rz-mt-2 rz-mb-6">
-			<RadzenColumn Size="12">
+		<MudGrid Class="mb-6">
+			<MudItem xs="12">
 				<a href="/routines" class="home-nav-card home-nav-card--primary">
-					<RadzenIcon Icon="playlist_play" />
+					<MudIcon Icon="@Icons.Material.Filled.PlaylistPlay" />
 					<span>Start Workout</span>
 					<small>Browse routines</small>
 				</a>
-			</RadzenColumn>
-			<RadzenColumn Size="6" SizeMD="4">
+			</MudItem>
+			<MudItem xs="6" md="4">
 				<a href="/createroutine" class="home-nav-card">
-					<RadzenIcon Icon="add_circle" IconStyle="IconStyle.Success" />
+					<MudIcon Icon="@Icons.Material.Filled.AddCircle" Style="color: var(--mud-palette-success)" />
 					<span>Create Routine</span>
 				</a>
-			</RadzenColumn>
-			<RadzenColumn Size="6" SizeMD="4">
+			</MudItem>
+			<MudItem xs="6" md="4">
 				<a href="/workouts" class="home-nav-card">
-					<RadzenIcon Icon="fitness_center" IconStyle="IconStyle.Primary" />
+					<MudIcon Icon="@Icons.Material.Filled.FitnessCenter" Style="color: var(--mud-palette-primary)" />
 					<span>Workouts</span>
 				</a>
-			</RadzenColumn>
-			<RadzenColumn Size="6" SizeMD="4">
+			</MudItem>
+			<MudItem xs="6" md="4">
 				<a href="/dashboard" class="home-nav-card">
-					<RadzenIcon Icon="dashboard" IconStyle="IconStyle.Info" />
+					<MudIcon Icon="@Icons.Material.Filled.Dashboard" Style="color: var(--mud-palette-info)" />
 					<span>Dashboard</span>
 				</a>
-			</RadzenColumn>
-			<RadzenColumn Size="6" SizeMD="4">
+			</MudItem>
+			<MudItem xs="6" md="4">
 				<a href="/Account/Manage" class="home-nav-card">
-					<RadzenIcon Icon="manage_accounts" IconStyle="IconStyle.Warning" />
+					<MudIcon Icon="@Icons.Material.Filled.ManageAccounts" Style="color: var(--mud-palette-warning)" />
 					<span>Account</span>
 				</a>
-			</RadzenColumn>
-			<RadzenColumn Size="6" SizeMD="4">
+			</MudItem>
+			<MudItem xs="6" md="4">
 				<form action="Account/Logout" method="post" class="home-nav-card-form">
 					<AntiforgeryToken />
 					<input type="hidden" name="ReturnUrl" value="" />
 					<button type="submit" class="home-nav-card">
-						<RadzenIcon Icon="logout" IconStyle="IconStyle.Secondary" />
+						<MudIcon Icon="@Icons.Material.Filled.Logout" Style="color: var(--mud-palette-secondary)" />
 						<span>Logout</span>
 					</button>
 				</form>
-			</RadzenColumn>
+			</MudItem>
 			<AuthorizeView Roles="Admin">
 				<Authorized Context="adminContext">
-					<RadzenColumn Size="6" SizeMD="4">
+					<MudItem xs="6" md="4">
 						<a href="/admin" class="home-nav-card">
-							<RadzenIcon Icon="admin_panel_settings" IconStyle="IconStyle.Danger" />
+							<MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Style="color: var(--mud-palette-error)" />
 							<span>Admin</span>
 						</a>
-					</RadzenColumn>
+					</MudItem>
 				</Authorized>
 			</AuthorizeView>
-		</RadzenRow>
+		</MudGrid>
 	</Authorized>
 	<NotAuthorized>
-		<RadzenStack AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center" class="rz-mt-6">
+		<MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Class="mt-6">
 			<a href="/Account/Login" class="home-nav-card home-nav-card--login">
-				<RadzenIcon Icon="login" IconStyle="IconStyle.Primary" />
+				<MudIcon Icon="@Icons.Material.Filled.Login" Style="color: var(--mud-palette-primary)" />
 				<span>Log In</span>
 			</a>
-		</RadzenStack>
+		</MudStack>
 	</NotAuthorized>
 </AuthorizeView>
 
@@ -84,16 +84,16 @@
 		gap: 0.5rem;
 		padding: 1.5rem 1rem;
 		width: 100%;
-		border-radius: var(--rz-border-radius);
-		border: 1px solid var(--rz-border-disabled-color);
-		background: var(--rz-base-background-color);
-		color: var(--rz-text-color);
+		border-radius: var(--mud-default-borderradius);
+		border: 1px solid var(--mud-palette-divider);
+		background: var(--mud-palette-background);
+		color: var(--mud-palette-text-primary);
 		text-decoration: none;
 		font-size: 0.95rem;
 		font-weight: 500;
 		cursor: pointer;
 		transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
-		box-shadow: var(--rz-shadow-1);
+		box-shadow: var(--mud-elevation-1);
 	}
 
 	.home-nav-card small {
@@ -102,15 +102,15 @@
 		opacity: 0.7;
 	}
 
-	.home-nav-card .rzi {
+	.home-nav-card .mud-icon-root {
 		font-size: 2rem;
 	}
 
 	.home-nav-card:hover {
-		background: var(--rz-primary-lighter);
-		border-color: var(--rz-primary);
-		box-shadow: var(--rz-shadow-2);
-		color: var(--rz-primary-dark);
+		background: var(--mud-palette-primary-lighten);
+		border-color: var(--mud-palette-primary);
+		box-shadow: var(--mud-elevation-2);
+		color: var(--mud-palette-primary-darken);
 	}
 
 	/* Login card — centered, fixed width */
@@ -120,16 +120,16 @@
 
 	/* Start Workout — primary hero card */
 	.home-nav-card--primary {
-		background: var(--rz-primary);
-		border-color: var(--rz-primary-dark);
-		color: var(--rz-on-primary-color, #fff);
-		box-shadow: var(--rz-shadow-3);
+		background: var(--mud-palette-primary);
+		border-color: var(--mud-palette-primary-darken);
+		color: var(--mud-palette-primary-text);
+		box-shadow: var(--mud-elevation-3);
 		font-size: 1.1rem;
 	}
 
-	.home-nav-card--primary .rzi {
+	.home-nav-card--primary .mud-icon-root {
 		font-size: 2.5rem;
-		color: var(--rz-on-primary-color, #fff);
+		color: var(--mud-palette-primary-text);
 	}
 
 	.home-nav-card--primary small {
@@ -137,9 +137,9 @@
 	}
 
 	.home-nav-card--primary:hover {
-		background: var(--rz-primary-dark);
-		border-color: var(--rz-primary-darker, var(--rz-primary-dark));
-		color: var(--rz-on-primary-color, #fff);
-		box-shadow: var(--rz-shadow-4);
+		background: var(--mud-palette-primary-darken);
+		border-color: var(--mud-palette-primary-darken);
+		color: var(--mud-palette-primary-text);
+		box-shadow: var(--mud-elevation-4);
 	}
 </style>

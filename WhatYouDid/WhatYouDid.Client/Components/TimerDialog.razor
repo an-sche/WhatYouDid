@@ -1,30 +1,30 @@
 @using System.Timers
-@using Radzen
 @rendermode InteractiveWebAssembly
-@inject DialogService DialogService
 @inject IJSRuntime JS
 
-<RadzenStack>
+@implements IDisposable
+
+<MudStack>
     <div style="font-size:2rem;font-weight:600;text-align:center;color:@(ReachedGoal ? "green" : "inherit")">@FormatTime(_elapsedSeconds)</div>
 
     @if (Goal > 0)
     {
-        <div style="text-align:center;color:var(--rz-secondary);font-size:0.9rem;">Target: @FormatTime(Goal)</div>
+        <div style="text-align:center;color:var(--mud-palette-secondary);font-size:0.9rem;">Target: @FormatTime(Goal)</div>
     }
 
-    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center">
-        <RadzenButton Size="ButtonSize.Medium" Click="Start" Disabled="_running" ButtonStyle="ButtonStyle.Secondary" Icon="play_arrow" Title="Start" />
-        <RadzenButton Size="ButtonSize.Medium" Click="Stop" Disabled="!_running" ButtonStyle="ButtonStyle.Secondary" Icon="pause" Title="Pause" />
-        <RadzenButton Size="ButtonSize.Medium" Click="Reset" ButtonStyle="ButtonStyle.Secondary" Icon="refresh" Title="Reset" />
-    </RadzenStack>
-</RadzenStack>
-
+    <MudStack Row="true" Justify="Justify.Center">
+        <MudIconButton Size="Size.Medium" OnClick="Start" Disabled="_running" Color="Color.Secondary" Icon="@Icons.Material.Filled.PlayArrow" />
+        <MudIconButton Size="Size.Medium" OnClick="Stop" Disabled="!_running" Color="Color.Secondary" Icon="@Icons.Material.Filled.Pause" />
+        <MudIconButton Size="Size.Medium" OnClick="Reset" Color="Color.Secondary" Icon="@Icons.Material.Filled.Refresh" />
+    </MudStack>
+</MudStack>
 
 @code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
     private Timer? _timer;
     private bool _running;
     private int _elapsedSeconds;
-
 
     [Parameter]
     public int Goal { get; set; } = 0;
@@ -76,15 +76,6 @@
     {
         var ts = TimeSpan.FromSeconds(seconds);
         return ts.ToString("mm\\:ss");
-    }
-
-    private void Close()
-    {
-        try
-        {
-            DialogService.Close(_elapsedSeconds);
-        }
-        catch { }
     }
 
     public void Dispose()

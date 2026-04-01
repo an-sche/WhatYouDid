@@ -11,72 +11,75 @@
 
 <h1>Dashboard</h1>
 
-<RadzenDropDown TValue="int" @bind-Value="selectedYear" @bind-Value:after="ReloadDataAsync"
-    Data="yearItems" TextProperty="Label" ValueProperty="Value"
-    Style="min-width:160px" />
+<MudSelect T="int" Value="selectedYear" ValueChanged="ReloadDataAsync" Style="min-width:160px" Variant="Variant.Outlined">
+    @foreach (var item in yearItems)
+    {
+        <MudSelectItem Value="@item.Value">@item.Label</MudSelectItem>
+    }
+</MudSelect>
 <br />
 
 @if (dashboard is null)
 {
-    <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" />
+    <MudProgressLinear Indeterminate="true" />
     return;
 }
 @if (dashboard.TopWorkouts is null || !dashboard.TopWorkouts.Any())
 {
-    <RadzenColumn Size="12">
-        <RadzenCard>
-            <ChildContent>
+    <MudItem xs="12">
+        <MudCard>
+            <MudCardContent>
                 <div>No workout data for the selected year(s)</div>
-            </ChildContent>
-        </RadzenCard>
-    </RadzenColumn>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
     return;
 }
 
-<RadzenRow Gap="1rem" RowGap="1rem" class="rz-mt-2 rz-mb-6">
+<MudGrid Class="mb-6">
     @foreach (var w in dashboard.TopWorkouts)
     {
-        <RadzenColumn Size="12" SizeSM="6" SizeMD="4">
-            <RadzenCard Style="height:150px">
-                <ChildContent>
+        <MudItem xs="12" sm="6" md="4">
+            <MudCard Style="height:150px">
+                <MudCardContent>
                     <h5>@w.RoutineName</h5>
                     <div class="display-6">@w.Count</div>
                     <div class="text-muted">times performed</div>
-                </ChildContent>
-            </RadzenCard>
-        </RadzenColumn>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
     }
 
-    <RadzenColumn Size="12" SizeSM="6" SizeMD="4">
-        <RadzenCard Style="height:150px">
-            <ChildContent>
+    <MudItem xs="12" sm="6" md="4">
+        <MudCard Style="height:150px">
+            <MudCardContent>
                 <h6>Total Workout Duration</h6>
                 <div class="display-6">@FormatMinutes(dashboard.TotalWorkoutDuration)</div>
                 <div class="text-muted">sum of all workouts</div>
-            </ChildContent>
-        </RadzenCard>
-    </RadzenColumn>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
 
-    <RadzenColumn Size="12" SizeSM="6" SizeMD="4">
-        <RadzenCard Style="height:150px">
-            <ChildContent>
+    <MudItem xs="12" sm="6" md="4">
+        <MudCard Style="height:150px">
+            <MudCardContent>
                 <h6>Total Reps Completed</h6>
                 <div class="display-6">@dashboard.TotalReps</div>
                 <div class="text-muted">count of reps</div>
-            </ChildContent>
-        </RadzenCard>
-    </RadzenColumn>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
 
-    <RadzenColumn Size="12" SizeSM="6" SizeMD="4">
-        <RadzenCard Style="height:150px">
-            <ChildContent>
+    <MudItem xs="12" sm="6" md="4">
+        <MudCard Style="height:150px">
+            <MudCardContent>
                 <h6>Total Workouts</h6>
                 <div class="display-6">@dashboard.TotalWorkouts</div>
                 <div class="text-muted">workouts completed</div>
-            </ChildContent>
-        </RadzenCard>
-    </RadzenColumn>
-</RadzenRow>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+</MudGrid>
 
 @code {
     private record YearItem(int Value, string Label);
@@ -102,11 +105,12 @@
     {
         var years = await Service.GetActiveYearsAsync();
         yearItems = [new YearItem(0, "All Years"), ..years.Select(y => new YearItem(y, y.ToString()))];
-        await ReloadDataAsync();
+        await ReloadDataAsync(selectedYear);
     }
 
-    private async Task ReloadDataAsync()
+    private async Task ReloadDataAsync(int year)
     {
+        selectedYear = year;
         try
         {
             dashboard = await Service.GetDashboardForUserAsync(selectedYear == 0 ? null : selectedYear);

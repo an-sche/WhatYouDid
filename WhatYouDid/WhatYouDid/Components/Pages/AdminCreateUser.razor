@@ -13,30 +13,25 @@
 <h1>Create User</h1>
 <hr />
 
-<RadzenTemplateForm Data="createModel" TItem="CreateModel" Submit="@(args => CreateUserAsync())">
-    <ChildContent>
-        <RadzenFieldset Text="New user">
-            <RadzenLabel Text="Email" />
-            <RadzenTextBox @bind-Value="createModel.Email" Style="width:100%" AutoCompleteType="AutoCompleteType.Off" />
+<EditForm Model="createModel" OnValidSubmit="CreateUserAsync">
+    <DataAnnotationsValidator />
+    <MudPaper Class="pa-4" Elevation="1" Style="max-width:400px">
+        <MudText Typo="Typo.subtitle1">New user</MudText>
+        <MudTextField Label="Email" @bind-Value="createModel.Email" FullWidth="true" autocomplete="off" Variant="Variant.Outlined" Class="mt-2" />
+        <MudTextField Label="Password" @bind-Value="createModel.Password" InputType="InputType.Password" FullWidth="true" autocomplete="new-password" Variant="Variant.Outlined" Class="mt-2" />
+        <MudTextField Label="Confirm password" @bind-Value="createModel.ConfirmPassword" InputType="InputType.Password" FullWidth="true" autocomplete="new-password" Variant="Variant.Outlined" Class="mt-2" />
 
-            <RadzenLabel Text="Password" />
-            <RadzenTextBox @bind-Value="createModel.Password" Style="width:100%" AutoCompleteType="AutoCompleteType.NewPassword" />
+        <div class="mt-3 d-flex gap-2">
+            <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled">Create user</MudButton>
+            <MudButton OnClick="@(() => NavigationManager.NavigateTo("/admin"))" Variant="Variant.Outlined">Back</MudButton>
+        </div>
 
-            <RadzenLabel Text="Confirm password" />
-            <RadzenTextBox @bind-Value="createModel.ConfirmPassword" Style="width:100%" AutoCompleteType="AutoCompleteType.NewPassword" />
-
-            <div class="mt-2 d-flex gap-2">
-                <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Primary">Create user</RadzenButton>
-                <RadzenButton ButtonStyle="ButtonStyle.Light" Click="@(() => NavigationManager.NavigateTo("/admin"))">Back</RadzenButton>
-            </div>
-
-            @if (!string.IsNullOrEmpty(createStatus))
-            {
-                <div class="mt-2">@createStatus</div>
-            }
-        </RadzenFieldset>
-    </ChildContent>
-</RadzenTemplateForm>
+        @if (!string.IsNullOrEmpty(createStatus))
+        {
+            <div class="mt-2">@createStatus</div>
+        }
+    </MudPaper>
+</EditForm>
 
 @code {
     private CreateModel createModel = new();

@@ -11,7 +11,7 @@
 
 
 <PageTitle>Create Routine</PageTitle>
-<RadzenText TextStyle="TextStyle.H4">Create Routine</RadzenText>
+<MudText Typo="Typo.h4">Create Routine</MudText>
 
 <div style="width: 560px; max-width: 100%">
 		<hr />
@@ -20,11 +20,7 @@
 			<DataAnnotationsValidator />
 			<ValidationSummary />
 
-			<RadzenFormField AllowFloatingLabel="false" Text="Routine Name" Style="width: 100%">
-				<ChildContent>
-					<RadzenTextBox Name="RoutineName" @bind-Value=routine.Name />
-				</ChildContent>
-			</RadzenFormField>
+			<MudTextField Label="Routine Name" @bind-Value="routine.Name" FullWidth="true" Variant="Variant.Outlined" Class="mb-2" />
 			<ValidationMessage For="() => routine.Name" />
 			<hr />
 
@@ -33,63 +29,51 @@
 				var e = routine.Exercises[idx];
 				var i = idx;
 
-				<RadzenCard Variant="Variant.Outlined" class="rz-mb-4" data-exercise-card="@_exerciseKeys[i]">
-					<RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center" class="rz-mb-2">
-						<RadzenText TextStyle="TextStyle.Subtitle2">@e.Sequence.</RadzenText>
-						<RadzenStack Orientation="Orientation.Horizontal" Gap="4px">
-							<RadzenButton Click=@(() => MoveExerciseUp(e)) Icon="arrow_upward" Variant="Variant.Outlined" ButtonStyle="ButtonStyle.Dark" Size="ButtonSize.Medium" Disabled="@(i == 0)" />
-							<RadzenButton Click=@(() => MoveExerciseDown(e)) Icon="arrow_downward" Variant="Variant.Outlined" ButtonStyle="ButtonStyle.Dark" Size="ButtonSize.Medium" Disabled="@(i == routine.Exercises.Count - 1)" />
-							<RadzenButton Click=@(() => RemoveExercise(e)) Icon="delete" Variant="Variant.Outlined" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Medium" />
-						</RadzenStack>
-					</RadzenStack>
-					<RadzenFormField AllowFloatingLabel="false" Text="Exercise Name" Style="width: 100%" class="rz-mb-2">
-						<ChildContent>
-							<RadzenTextBox Name="@($"ExerciseName_{i}")" @bind-Value=e.Name />
-						</ChildContent>
-					</RadzenFormField>
-					<ValidationMessage For="() => e.Name" />
+				<MudCard Outlined="true" Class="mb-4" data-exercise-card="@_exerciseKeys[i]">
+					<MudCardContent>
+						<MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
+							<MudText Typo="Typo.subtitle2">@e.Sequence.</MudText>
+							<MudStack Row="true" Spacing="1">
+								<MudIconButton Icon="@Icons.Material.Filled.ArrowUpward" Variant="Variant.Outlined" Color="Color.Default" Size="Size.Medium" OnClick="@(() => MoveExerciseUp(e))" Disabled="@(i == 0)" />
+								<MudIconButton Icon="@Icons.Material.Filled.ArrowDownward" Variant="Variant.Outlined" Color="Color.Default" Size="Size.Medium" OnClick="@(() => MoveExerciseDown(e))" Disabled="@(i == routine.Exercises.Count - 1)" />
+								<MudIconButton Icon="@Icons.Material.Filled.Delete" Variant="Variant.Outlined" Color="Color.Error" Size="Size.Medium" OnClick="@(() => RemoveExercise(e))" />
+							</MudStack>
+						</MudStack>
+						<MudTextField Label="Exercise Name" @bind-Value="e.Name" FullWidth="true" Variant="Variant.Outlined" Class="mb-2" />
+						<ValidationMessage For="() => e.Name" />
 
-					<RadzenFormField AllowFloatingLabel="false" Text="Description (optional)" Style="width: 100%" class="rz-mt-3">
-						<ChildContent>
-							<RadzenTextArea Name="@($"Description_{i}")" @bind-Value=e.Description Rows="2" Style="width: 100%" />
-						</ChildContent>
-					</RadzenFormField>
-					<ValidationMessage For="() => e.Description" />
+						<MudTextField Label="Description (optional)" @bind-Value="e.Description" Lines="2" FullWidth="true" Variant="Variant.Outlined" Class="mt-3" />
+						<ValidationMessage For="() => e.Description" />
 
-					<RadzenFormField AllowFloatingLabel="false" Text="Sets" class="rz-mt-3">
-						<ChildContent>
-							<RadzenNumeric Name="@($"Sets_{i}")" @bind-Value=e.Sets Min="1" Max="10" />
-						</ChildContent>
-					</RadzenFormField>
-					<ValidationMessage For="() => e.Sets" />
+						<MudNumericField T="int" Label="Sets" @bind-Value="e.Sets" Min="1" Max="10" Variant="Variant.Outlined" Class="mt-3" />
+						<ValidationMessage For="() => e.Sets" />
 
-					<RadzenStack Orientation="Orientation.Horizontal" Gap="1.5rem" Wrap="FlexWrap.Wrap" class="rz-mt-3">
-						<RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
-							<RadzenCheckBox Name="@($"HasReps_{i}")" @bind-Value=e.HasReps />
-							<RadzenLabel Text="Reps" Component="@($"HasReps_{i}")" />
-						</RadzenStack>
-						<RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
-							<RadzenCheckBox Name="@($"HasWeight_{i}")" @bind-Value=e.HasWeight />
-							<RadzenLabel Text="Weight" Component="@($"HasWeight_{i}")" />
-						</RadzenStack>
-						<RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
-							<RadzenCheckBox Name="@($"HasDuration_{i}")" @bind-Value=e.HasDuration />
-							<RadzenLabel Text="Duration" Component="@($"HasDuration_{i}")" />
-						</RadzenStack>
-					</RadzenStack>
-				</RadzenCard>
+						<MudStack Row="true" Spacing="4" Class="mt-3" Style="flex-wrap: wrap">
+							<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+								<MudCheckBox @bind-Value="e.HasReps" />
+								<MudText>Reps</MudText>
+							</MudStack>
+							<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+								<MudCheckBox @bind-Value="e.HasWeight" />
+								<MudText>Weight</MudText>
+							</MudStack>
+							<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+								<MudCheckBox @bind-Value="e.HasDuration" />
+								<MudText>Duration</MudText>
+							</MudStack>
+						</MudStack>
+					</MudCardContent>
+				</MudCard>
 			}
 
-			<RadzenButton Click="@AddExercise" Text="Add Exercise" Icon="add_circle_outline" ButtonStyle="ButtonStyle.Primary" class="rz-mb-4" Style="width: 100%" />
+			<MudButton OnClick="@AddExercise" StartIcon="@Icons.Material.Filled.AddCircleOutline" Color="Color.Primary" Variant="Variant.Filled" Class="mb-4" FullWidth="true">Add Exercise</MudButton>
 
 			@if (errorMessage is not null)
 			{
-				<RadzenAlert AlertStyle="AlertStyle.Danger" ShowIcon="true" Variant="Variant.Flat" class="rz-mb-3">
-					@errorMessage
-				</RadzenAlert>
+				<MudAlert Severity="Severity.Error" Class="mb-3">@errorMessage</MudAlert>
 			}
 
-			<RadzenButton ButtonType="ButtonType.Submit" Text="Create Routine" Icon="save" ButtonStyle="ButtonStyle.Secondary" IsBusy="@Busy" Style="width: 100%" />
+			<MudButton ButtonType="ButtonType.Submit" StartIcon="@Icons.Material.Filled.Save" Color="Color.Secondary" Variant="Variant.Filled" Disabled="@Busy" FullWidth="true">Create Routine</MudButton>
 
 		</EditForm>
 	</div>

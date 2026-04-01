@@ -1,98 +1,84 @@
-﻿@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Authorization
 @using System.Text
 
-
 @rendermode InteractiveWebAssembly
-@inject DialogService DialogService
+@inject IDialogService DialogService
 
-<RadzenFormField AllowFloatingLabel="false" Text="@InternalTitle" Style="width: 100%">
-	<Start>
-		@if (!string.IsNullOrEmpty(Icon))
-		{
-			<RadzenIcon Icon="@Icon"></RadzenIcon>
-		}
-	</Start>
-	<ChildContent>
-			<RadzenNumeric TValue="int?" Name="@InternalTitle" @bind-Value="@EnterValue" Change=@OnChange Key></RadzenNumeric>
-	</ChildContent>
-	<End>
-		@if (Goal is not null)
-		{
-			<RadzenText>/ @Goal</RadzenText>
-		}
-
-		@if (FormFieldType == WorkoutFormFieldType.Duration)
-		{
-			<RadzenButton Size="ButtonSize.Small" Click="OpenTimer" Icon="timer" Style="margin-left:8px;" ButtonStyle="ButtonStyle.Secondary">Timer</RadzenButton>
-		}
-	</End>
-</RadzenFormField>
+<MudTextFieldExtended T="int?" Label="@InternalTitle"
+    Value="@EnterValue" ValueChanged="@OnChange"
+    Style="width: 100%" Variant="Variant.Outlined">
+    <AdornmentStart>
+        <MudIcon Icon="@Icon" Size="Size.Small" Class="mr-1" />
+    </AdornmentStart>
+    <AdornmentEnd>
+        @if (Goal is not null)
+        {
+            <MudText Typo="Typo.caption" Class="mr-1">/ @Goal</MudText>
+        }
+        @if (FormFieldType == WorkoutFormFieldType.Duration)
+        {
+            <MudIconButton Size="Size.Small" OnClick="OpenTimer"
+                Icon="@Icons.Material.Filled.Timer" Color="Color.Secondary" />
+        }
+    </AdornmentEnd>
+</MudTextFieldExtended>
 
 @code {
 
-	[Parameter]
-	public WorkoutFormFieldType FormFieldType { get; set; }
+    [Parameter]
+    public WorkoutFormFieldType FormFieldType { get; set; }
 
-	[Parameter]
-	public string? TitlePrefix { get; set; }
+    [Parameter]
+    public string? TitlePrefix { get; set; }
 
-	[Parameter]
-	public int? Goal { get; set; } = null;
+    [Parameter]
+    public int? Goal { get; set; } = null;
 
-	[Parameter]
-	public int? EnterValue { get; set; } = null;
+    [Parameter]
+    public int? EnterValue { get; set; } = null;
 
-	[Parameter]
-	public EventCallback<int?> EnterValueChanged { get; set; }
+    [Parameter]
+    public EventCallback<int?> EnterValueChanged { get; set; }
 
-	async void OnChange(int? value)
-	{
-		await EnterValueChanged.InvokeAsync(value);
-	}
+    async void OnChange(int? value)
+    {
+        await EnterValueChanged.InvokeAsync(value);
+    }
 
-	private string? Icon
-	{
-		get
-		{
-			return FormFieldType switch
-			{
-				WorkoutFormFieldType.Reps => "123",
-				WorkoutFormFieldType.Weight => "fitness_center",
-				WorkoutFormFieldType.Duration => "timer",
-				_ => "123"
-			};
-		}
-	}
+    private string Icon => FormFieldType switch
+    {
+        WorkoutFormFieldType.Reps => Icons.Material.Filled._123,
+        WorkoutFormFieldType.Weight => Icons.Material.Filled.FitnessCenter,
+        WorkoutFormFieldType.Duration => Icons.Material.Filled.Timer,
+        _ => Icons.Material.Filled._123
+    };
 
-	private string? InternalTitle
-	{
-		get
-		{
-			var title = FormFieldType switch
-			{
-				WorkoutFormFieldType.Reps => "Reps",
-				WorkoutFormFieldType.Weight => "Weight",
-				WorkoutFormFieldType.Duration => "Duration",
-				_ => ""
-			};
-			return string.IsNullOrEmpty(TitlePrefix) ? title : $"{TitlePrefix} {title}";
-		}
-	}
+    private string InternalTitle
+    {
+        get
+        {
+            var title = FormFieldType switch
+            {
+                WorkoutFormFieldType.Reps => "Reps",
+                WorkoutFormFieldType.Weight => "Weight",
+                WorkoutFormFieldType.Duration => "Duration",
+                _ => ""
+            };
+            return string.IsNullOrEmpty(TitlePrefix) ? title : $"{TitlePrefix} {title}";
+        }
+    }
 
-	public enum WorkoutFormFieldType
-	{
-		Reps,
-		Weight,
-		Duration
-	}
+    public enum WorkoutFormFieldType
+    {
+        Reps,
+        Weight,
+        Duration
+    }
 
     private async Task OpenTimer()
     {
-        var parameters = new Dictionary<string, object?>()
-        {
-            { "Goal", Goal ?? 0 }
-        };
-
-        var _ = await DialogService.OpenAsync<TimerDialog>("Timer", parameters, new Radzen.DialogOptions() { Width = "275px" });
+        var parameters = new DialogParameters<TimerDialog> { { x => x.Goal, Goal ?? 0 } };
+        var options = new DialogOptions { MaxWidth = MaxWidth.ExtraSmall };
+        await DialogService.ShowAsync<TimerDialog>("Timer", parameters, options);
     }
 }

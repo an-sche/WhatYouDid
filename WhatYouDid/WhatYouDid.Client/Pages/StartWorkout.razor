@@ -1,114 +1,122 @@
-﻿@page "/workout/{RoutineId:int}"
+@page "/workout/{RoutineId:int}"
 
 @using System.Text
 @using Microsoft.AspNetCore.Authorization
 @using System.Security.Claims
-@using WhatYouDid.Client.Components	
+@using WhatYouDid.Client.Components
 @using WhatYouDid.Shared
 
 @attribute [Authorize]
 @rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
 @inject IBrowserStorage BrowserStorage
-@inject DialogService DialogService
+@inject ISnackbar Snackbar
 @inject NavigationManager Navigation
 @inject HttpClient Http
 
 @if (WorkoutDto is null) {
-	<RadzenText TextStyle="TextStyle.H4">Loading...</RadzenText>
+	<MudText Typo="Typo.h4">Loading...</MudText>
 	return;
 }
 
-<RadzenText TextStyle="TextStyle.H4">@WorkoutDto.RoutineName</RadzenText>
+<MudText Typo="Typo.h4">@WorkoutDto.RoutineName</MudText>
 
 @if (WorkoutDto.ExerciseIndex < WorkoutDto.WorkoutExercises?.Count) {
-	string unit = " of " + @WorkoutDto.WorkoutExercises?.Count;
-	<RadzenProgressBar ProgressBarStyle="ProgressBarStyle.Light" Value="@(WorkoutDto.ExerciseIndex + 1)" Max="@(WorkoutDto.WorkoutExercises?.Count ?? 0)" Unit="@unit" />
+	int curr = WorkoutDto.ExerciseIndex + 1;
+	int max = WorkoutDto.WorkoutExercises?.Count ?? 0;
+	string display = curr + " of " + max;
+	<MudProgressLinear Color="Color.Default" Value="@curr" Max="@max" Size="Size.Large">
+		<MudText Typo="Typo.subtitle1" Style="color: white">
+			<b>@display</b>
+		</MudText>
+	</MudProgressLinear>
 }
 
 <div class="exercise-wrapper">
 	@if (WorkoutDto.ExerciseIndex < @WorkoutDto.WorkoutExercises?.Count)
 	{
-		// This is where i put the information for them to fill out!
 		var workoutExercise = WorkoutDto.WorkoutExercises[WorkoutDto.ExerciseIndex];
 		bool hasLastValues = (workoutExercise.HasReps || workoutExercise.HasWeights || workoutExercise.HasDurations)
 			&& ((workoutExercise.LastReps?.Any(r => r != null) == true) ||
 			(workoutExercise.LastWeights?.Any(w => w != null) == true) ||
 			(workoutExercise.LastDurations?.Any(d => d != null) == true));
 
-		<RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Wrap="FlexWrap.NoWrap" Gap="8px" Class="rz-m-2">
-			<RadzenDropDown
-				Value="@WorkoutDto.WorkoutExercises[WorkoutDto.ExerciseIndex].ExerciseName"
-				Data="@ExerciseNames"
-				Change="@OnDropdownValueChanged"
-				Style="flex:1; min-width:0" />
+		<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="ma-2">
+			<MudSelect T="string" Dense
+				Value="@ExerciseNames.ElementAtOrDefault(WorkoutDto.ExerciseIndex)"
+				ValueChanged="@OnDropdownValueChanged"
+				Style="flex:1; min-width:0" Variant="Variant.Outlined">
+				@foreach (var name in ExerciseNames)
+				{
+					<MudSelectItem T="string" Value="@name">@name</MudSelectItem>
+				}
+			</MudSelect>
 			@if (hasLastValues)
 			{
-				<RadzenButton ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small"
-					Icon="history" Click="OnAutofillLastTime" />
+				<MudIconButton Color="Color.Default" Size="Size.Small"
+					Icon="@Icons.Material.Filled.History" OnClick="OnAutofillLastTime" />
 			}
-		</RadzenStack>
+		</MudStack>
 
-		<RadzenStack @key="@workoutExercise.ExerciseName"
-			Orientation="Orientation.Vertical"
-			JustifyContent="JustifyContent.Normal"
+		<MudStack @key="@workoutExercise.ExerciseName"
+			Spacing="0"
 			Class="@SlidingClass"
 			id="exercise-stack">
 
 			@for (int i = 0; i < workoutExercise.Sets; i++)
 			{
-				var index = i; // capture the loop variable
-				<RadzenCard Variant="Variant.Outlined">
-					<RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
-						<RadzenText TextStyle="TextStyle.Caption">Set: @(index + 1)</RadzenText>
-						<RadzenButton Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Light"
-							Icon="@(IsAlternateExpanded(WorkoutDto.ExerciseIndex, index) || HasAnyAlternateData(workoutExercise, index) || HasAnyLastAlternateData(workoutExercise, index) ? "remove" : "add")"
-							Text="Alt"
-							Disabled="@HasAnyLastAlternateData(workoutExercise, index)"
-							Click="@(() => ToggleAlternate(WorkoutDto.ExerciseIndex, index))" />
-					</RadzenStack>
+				var index = i;
+				<MudCard Outlined="true" Class="mb-2">
+					<MudCardContent>
+						<MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+							<MudText Typo="Typo.caption">Set: @(index + 1)</MudText>
+							<MudButton Size="Size.Small" Variant="Variant.Outlined"
+								StartIcon="@(IsAlternateExpanded(WorkoutDto.ExerciseIndex, index) || HasAnyAlternateData(workoutExercise, index) || HasAnyLastAlternateData(workoutExercise, index) ? Icons.Material.Filled.Remove : Icons.Material.Filled.Add)"
+								Disabled="@HasAnyLastAlternateData(workoutExercise, index)"
+								OnClick="@(() => ToggleAlternate(WorkoutDto.ExerciseIndex, index))">Alt</MudButton>
+						</MudStack>
 
-					<RadzenStack Orientation="Orientation.Vertical" Gap="4px">
-					@if (workoutExercise.HasReps)
-					{
-						int? repGoal = null;
-						if (@workoutExercise.LastReps != null && workoutExercise.LastReps.Length > index)
+						<MudStack Spacing="1">
+						@if (workoutExercise.HasReps)
 						{
-							repGoal = @workoutExercise.LastReps[index];
-						}
-						<WorkoutFormField FormFieldType="WorkoutFormField.WorkoutFormFieldType.Reps"
-						@bind-EnterValue="@workoutExercise.Reps[index]"
-						Goal="@repGoal" />
-					}
-
-					@if (workoutExercise.HasWeights)
-					{
-						int? weightGoal = null;
-						if (@workoutExercise.LastWeights != null && workoutExercise.LastWeights.Length > index)
-						{
-							weightGoal = @workoutExercise.LastWeights[index];
-						}
-						<WorkoutFormField FormFieldType="WorkoutFormField.WorkoutFormFieldType.Weight"
-						@bind-EnterValue="@workoutExercise.Weights[index]"
-						Goal="@weightGoal" />
-					}
-
-					@if (workoutExercise.HasDurations)
-					{
-						int? durationGoal = null;
-						@if (@workoutExercise.LastDurations != null && workoutExercise.LastDurations.Length > index)
-						{
-							durationGoal = @workoutExercise.LastDurations[index];
+							int? repGoal = null;
+							if (@workoutExercise.LastReps != null && workoutExercise.LastReps.Length > index)
+							{
+								repGoal = @workoutExercise.LastReps[index];
+							}
+							<WorkoutFormField FormFieldType="WorkoutFormField.WorkoutFormFieldType.Reps"
+							@bind-EnterValue="@workoutExercise.Reps[index]"
+							Goal="@repGoal" />
 						}
 
-						<WorkoutFormField FormFieldType="WorkoutFormField.WorkoutFormFieldType.Duration"
-						@bind-EnterValue="@workoutExercise.Durations[index]"
-						Goal="@durationGoal" />
-					}
-					</RadzenStack>
+						@if (workoutExercise.HasWeights)
+						{
+							int? weightGoal = null;
+							if (@workoutExercise.LastWeights != null && workoutExercise.LastWeights.Length > index)
+							{
+								weightGoal = @workoutExercise.LastWeights[index];
+							}
+							<WorkoutFormField FormFieldType="WorkoutFormField.WorkoutFormFieldType.Weight"
+							@bind-EnterValue="@workoutExercise.Weights[index]"
+							Goal="@weightGoal" />
+						}
 
-		@if (IsAlternateExpanded(WorkoutDto.ExerciseIndex, index) || HasAnyAlternateData(workoutExercise, index) || HasAnyLastAlternateData(workoutExercise, index))
+						@if (workoutExercise.HasDurations)
+						{
+							int? durationGoal = null;
+							@if (@workoutExercise.LastDurations != null && workoutExercise.LastDurations.Length > index)
+							{
+								durationGoal = @workoutExercise.LastDurations[index];
+							}
+
+							<WorkoutFormField FormFieldType="WorkoutFormField.WorkoutFormFieldType.Duration"
+							@bind-EnterValue="@workoutExercise.Durations[index]"
+							Goal="@durationGoal" />
+						}
+						</MudStack>
+
+			@if (IsAlternateExpanded(WorkoutDto.ExerciseIndex, index) || HasAnyAlternateData(workoutExercise, index) || HasAnyLastAlternateData(workoutExercise, index))
 					{
-						<RadzenStack Orientation="Orientation.Vertical" Gap="4px" Style="border-left: 2px solid var(--rz-color-secondary-light); padding-left: 8px; margin-top: 4px">
+						<MudStack Spacing="1" Style="border-left: 2px solid var(--mud-palette-secondary-lighten); padding-left: 8px; margin-top: 4px">
 							@if (workoutExercise.HasReps)
 							{
 								int? altRepGoal = workoutExercise.LastAlternateReps != null && workoutExercise.LastAlternateReps.Length > index ? workoutExercise.LastAlternateReps[index] : null;
@@ -133,45 +141,44 @@
 									@bind-EnterValue="@workoutExercise.AlternateDurations[index]"
 									Goal="@altDurationGoal" />
 							}
-							<RadzenFormField AllowFloatingLabel="false" Text="Note" Style="width: 100%">
-								<RadzenTextBox @bind-Value="@workoutExercise.Notes[index]" />
-							</RadzenFormField>
+							<MudTextField T="string" Label="Note" @bind-Value="@workoutExercise.Notes[index]" FullWidth="true" Variant="Variant.Outlined" />
 							@{
 								string? lastNote = workoutExercise.LastNotes != null && workoutExercise.LastNotes.Length > index ? workoutExercise.LastNotes[index] : null;
 							}
 							@if (lastNote != null)
 							{
-								<RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-secondary-color)">Last: @lastNote</RadzenText>
+								<MudText Typo="Typo.caption" Style="color: var(--mud-palette-text-secondary)">Last: @lastNote</MudText>
 							}
-						</RadzenStack>
+						</MudStack>
 					}
-				</RadzenCard>
+					</MudCardContent>
+				</MudCard>
 			}
-		</RadzenStack>
+		</MudStack>
 
-		<RadzenStack Orientation="Orientation.Horizontal" Gap="8px" Style="margin: 0.5rem">
-			<RadzenButton Style="flex:1" Icon="arrow_back" Click=@OnBackClick ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Large" Disabled="WorkoutDto.ExerciseIndex == 0" />
-			<RadzenButton Style="flex:1" Icon="arrow_forward" Click=@OnNextClick ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Large" ButtonType="ButtonType.Submit" />
-		</RadzenStack>
+		<MudStack Row="true" Spacing="2" Style="margin: 0.5rem">
+			<MudButton Style="flex:1" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick=@OnBackClick Color="Color.Secondary" Variant="Variant.Filled" Size="Size.Large" Disabled="WorkoutDto.ExerciseIndex == 0" />
+			<MudButton Style="flex:1" StartIcon="@Icons.Material.Filled.ArrowForward" OnClick=@OnNextClick Color="Color.Primary" Variant="Variant.Filled" Size="Size.Large" />
+		</MudStack>
 	}
 	else {
 
-		<RadzenText TextStyle="TextStyle.H5">Review</RadzenText>
-		<RadzenStack Gap="0" class="slide-from-right" Style="margin-bottom: 1rem">
+		<MudText Typo="Typo.h5">Review</MudText>
+		<MudStack Spacing="0" Class="slide-from-right mb-4">
 			@foreach (var ex in WorkoutDto.WorkoutExercises ?? [])
 			{
-				<RadzenStack Gap="2px" Style="padding: 10px 0; border-top: 1px solid var(--rz-border-disabled-color)">
-					<RadzenText TextStyle="TextStyle.Body2" Style="margin: 0; font-weight: 600">@ex.Sequence. @ex.ExerciseName</RadzenText>
-					<RadzenText TextStyle="TextStyle.Caption" Style="margin: 0; color: var(--rz-text-secondary-color); white-space: pre-line">@ex.Review</RadzenText>
-				</RadzenStack>
+				<MudStack Spacing="0" Style="padding: 10px 0; border-top: 1px solid var(--mud-palette-divider)">
+					<MudText Typo="Typo.body2" Style="margin: 0; font-weight: 600">@ex.Sequence. @ex.ExerciseName</MudText>
+					<MudText Typo="Typo.caption" Style="margin: 0; color: var(--mud-palette-text-secondary); white-space: pre-line">@ex.Review</MudText>
+				</MudStack>
 			}
-		</RadzenStack>
+		</MudStack>
 
-		<RadzenStack Orientation="Orientation.Horizontal" Gap="8px" Style="margin: 0.5rem">
-			<RadzenButton Style="flex:1" Icon="arrow_back" Click=@OnBackClick ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Large" />
-			<RadzenButton Style="flex:1" IsBusy=@Saving Click=@OnSubmitClick Text="Finish Workout" Icon="check_circle" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Large" ButtonType="ButtonType.Submit" />
-		</RadzenStack>
-	}	
+		<MudStack Row="true" Spacing="2" Style="margin: 0.5rem">
+			<MudButton Style="flex:1" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick=@OnBackClick Color="Color.Secondary" Variant="Variant.Filled" Size="Size.Large" />
+			<MudButton Style="flex:1" Disabled="@Saving" OnClick=@OnSubmitClick StartIcon="@Icons.Material.Filled.CheckCircle" Color="Color.Primary" Variant="Variant.Filled" Size="Size.Large">Finish Workout</MudButton>
+		</MudStack>
+	}
 </div>
 
 <style>
@@ -189,10 +196,10 @@
 
 	.slide-from-right {
 		animation-duration: 333ms;
-		animation-timing-function: ease-out; 
-		animation-delay: 0s; 
-		animation-iteration-count: 1; 
-		animation-name: slideInFromRight; 
+		animation-timing-function: ease-out;
+		animation-delay: 0s;
+		animation-iteration-count: 1;
+		animation-name: slideInFromRight;
 	}
 
 	@@keyframes slideInFromLeft {
@@ -212,7 +219,7 @@
 		animation-timing-function: ease-out;
 		animation-delay: 0s;
 		animation-iteration-count: 1;
-		animation-name: slideInFromLeft; 
+		animation-name: slideInFromLeft;
 	}
 
 	/* prevents animations from going outside the exercise window (over the menu) */
@@ -235,7 +242,7 @@
 
 	public bool Saving = false;
 
-	private bool AlreadyAsked = false; // Field to know if we need to check browser storage
+	private bool AlreadyAsked = false;
 	private string SlidingClass = "slide-from-right";
 	private HashSet<(int exerciseIndex, int setIndex)> _expandedAlternates = new();
 
@@ -264,9 +271,9 @@
 			|| (exercise.LastAlternateDurations != null && exercise.LastAlternateDurations.Length > setIndex && exercise.LastAlternateDurations[setIndex] != null)
 			|| (exercise.LastNotes != null && exercise.LastNotes.Length > setIndex && !string.IsNullOrEmpty(exercise.LastNotes[setIndex]));
 	}
+
 	protected override async Task OnInitializedAsync()
 	{
-		// Tenant is resolved server-side; call API without passing user id
 		WorkoutDto = await Http.GetFromJsonAsync<WorkoutDto>(
 			$"api/workouts/start/{RoutineId}");
 
@@ -299,24 +306,14 @@
 		await base.OnAfterRenderAsync(firstRender);
 	}
 
-	private async Task OnDropdownValueChanged(object item)
+	private async Task OnDropdownValueChanged(string exercise)
 	{
-		if (WorkoutDto is null
-			|| WorkoutDto.WorkoutExercises is null)
-		{
+		if (WorkoutDto is null || WorkoutDto.WorkoutExercises is null)
 			return;
-		}
-
-		if (item is not string exercise)
-		{
-			return;
-		}
 
 		var newIndex = ExerciseNames.IndexOf(exercise);
 		if (newIndex < 0 || newIndex == WorkoutDto.WorkoutExercises?.Count)
-		{
 			return;
-		}
 
 		SlidingClass = (newIndex < WorkoutDto.ExerciseIndex)
 			? "slide-from-left"
@@ -376,10 +373,9 @@
 		await BrowserStorage.SetAsync(WorkoutDto.GetBrowserStorageId, WorkoutDto);
 	}
 
-	private async Task OnSubmitClick() 
+	private async Task OnSubmitClick()
 	{
-		// Save the workout they created to the database
-		if (WorkoutDto is null) return;	
+		if (WorkoutDto is null) return;
 		if (Saving) return;
 		Saving = true;
 		StateHasChanged();
@@ -391,7 +387,7 @@
 
 			if (!response.IsSuccessStatusCode)
 			{
-				await DialogService.Alert("Your workout could not be saved. Please try again.", "Error");
+				Snackbar.Add("Your workout could not be saved. Please try again.", Severity.Error);
 				return;
 			}
 
@@ -405,7 +401,7 @@
 		}
 		catch
 		{
-			await DialogService.Alert("Your workout could not be saved. Please try again.", "Error");
+			Snackbar.Add("Your workout could not be saved. Please try again.", Severity.Error);
 		}
 		finally { Saving = false; }
 	}

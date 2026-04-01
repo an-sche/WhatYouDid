@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server.Circuits;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Radzen;
+using MudBlazor.Services;
+using MudExtensions.Services;
 using WhatYouDid.Client.Pages;
 using WhatYouDid.Components;
 using WhatYouDid.Components.Account;
@@ -16,7 +17,8 @@ using WhatYouDid.Shared;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddRadzenComponents();
+builder.Services.AddMudServices();
+builder.Services.AddMudExtensions();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
