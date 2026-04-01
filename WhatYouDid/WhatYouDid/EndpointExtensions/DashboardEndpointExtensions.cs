@@ -13,6 +13,11 @@ public static class DashboardEndpointExtensions
             return await service.GetDashboardForUserAsync(year);
         });
 
+        group.MapGet("/years", async (IDashboardService service) =>
+        {
+            return await service.GetActiveYearsAsync();
+        });
+
         return routes;
     }
 }

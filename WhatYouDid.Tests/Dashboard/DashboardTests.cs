@@ -199,6 +199,32 @@ public class DashboardTests(DatabaseFixture fixture)
     }
 
     [Fact]
+    public async Task GetActiveYears_ReturnsDistinctYearsDescending()
+    {
+        var id = Guid.NewGuid().ToString("N")[..8];
+        var user = await fixture.CreateUserAsync($"dash-years-{id}@test.com", "Test1234!");
+
+        var anchor = new DateTime(2024, 3, 1, 10, 0, 0, DateTimeKind.Local);
+        using (var setupDb = fixture.CreateDbContextForTenant(user.Id))
+        {
+            setupDb.Workouts.AddRange(
+                new Workout { WorkoutId = Guid.NewGuid(), ApplicationUserId = user.Id, RoutineName = $"Y1 {id}", StartTime = anchor },                    // 2024
+                new Workout { WorkoutId = Guid.NewGuid(), ApplicationUserId = user.Id, RoutineName = $"Y2 {id}", StartTime = anchor.AddYears(-1) },       // 2023
+                new Workout { WorkoutId = Guid.NewGuid(), ApplicationUserId = user.Id, RoutineName = $"Y3 {id}", StartTime = anchor.AddYears(-1).AddMonths(3) } // 2023 duplicate year
+            );
+            await setupDb.SaveChangesAsync();
+        }
+
+        using var db = fixture.CreateDbContextForTenant(user.Id);
+        var years = await new DashboardService(db).GetActiveYearsAsync();
+
+        Assert.Contains(2024, years);
+        Assert.Contains(2023, years);
+        Assert.Equal(years.Count, years.Distinct().Count()); // no duplicates
+        Assert.True(years.SequenceEqual(years.OrderByDescending(y => y))); // descending
+    }
+
+    [Fact]
     public async Task UserA_DashboardMetrics_DoNotInclude_UserB_Workouts()
     {
         var id = Guid.NewGuid().ToString("N")[..8];

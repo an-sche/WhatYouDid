@@ -72,6 +72,37 @@ public class DashboardApiTests(ApiWebApplicationFactory factory)
         Assert.DoesNotContain(dto.TopWorkouts ?? [], w => w.RoutineName == $"UserA Dash Routine {id}");
     }
 
+    // -------------------------------------------------------------------------
+    // GET /api/dashboard/years
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public async Task GetActiveYears_Unauthenticated_Returns401()
+    {
+        var client = factory.CreateClient();
+
+        var response = await client.GetAsync("/api/dashboard/years");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetActiveYears_ReturnsCurrentYear_WhenWorkoutsExist()
+    {
+        var id = Guid.NewGuid().ToString("N")[..8];
+        var user = await factory.CreateUserAsync($"dash-years-{id}@test.com", "Test1234!");
+        var routineId = await factory.CreateRoutineAsync(user.Id, $"Years Routine {id}");
+        await factory.SaveWorkoutAsync(user.Id, routineId, $"Years Routine {id}");
+        var client = factory.CreateAuthenticatedClient(user.Id);
+
+        var response = await client.GetAsync("/api/dashboard/years");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var years = await response.Content.ReadFromJsonAsync<int[]>();
+        Assert.NotNull(years);
+        Assert.Contains(DateTime.Now.Year, years);
+    }
+
     [Fact]
     public async Task GetDashboard_YearFilter_ScopesResults()
     {

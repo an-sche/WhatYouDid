@@ -60,4 +60,13 @@ public class DashboardService(
 
         return dto;
     }
+
+    public async Task<IReadOnlyList<int>> GetActiveYearsAsync()
+    {
+        return await db.Workouts
+            .Select(w => w.StartTime.Year)
+            .Distinct()
+            .OrderByDescending(y => y)
+            .ToListAsync();
+    }
 }

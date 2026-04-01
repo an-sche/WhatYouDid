@@ -11,10 +11,9 @@
 
 <h1>Dashboard</h1>
 
-<RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" Gap="8px">
-    <RadzenNumeric Style="flex:1; min-width:160px" Step="1" Min="1900" Max="DateTime.Now.Year" Placeholder="Enter Year" @bind-Value="selectedYear" @bind-Value:after="ReloadDataAsync"/>
-    <RadzenButton Click="@ClearYear" Icon="delete" ButtonStyle="ButtonStyle.Secondary">Clear</RadzenButton>
-</RadzenStack>
+<RadzenDropDown TValue="int" @bind-Value="selectedYear" @bind-Value:after="ReloadDataAsync"
+    Data="yearItems" TextProperty="Label" ValueProperty="Value"
+    Style="min-width:160px" />
 <br />
 
 @if (dashboard is null)
@@ -80,8 +79,11 @@
 </RadzenRow>
 
 @code {
+    private record YearItem(int Value, string Label);
+
     private DashboardDto? dashboard;
-    private int? selectedYear;
+    private int selectedYear; // 0 = All Years
+    private List<YearItem> yearItems = [];
 
     private static string FormatMinutes(int? minutes)
     {
@@ -98,12 +100,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await ReloadDataAsync();
-    }
-
-    private async Task ClearYear()
-    {
-        selectedYear = null;
+        var years = await Service.GetActiveYearsAsync();
+        yearItems = [new YearItem(0, "All Years"), ..years.Select(y => new YearItem(y, y.ToString()))];
         await ReloadDataAsync();
     }
 
@@ -111,7 +109,7 @@
     {
         try
         {
-            dashboard = await Service.GetDashboardForUserAsync(selectedYear);
+            dashboard = await Service.GetDashboardForUserAsync(selectedYear == 0 ? null : selectedYear);
         }
         catch
         {
