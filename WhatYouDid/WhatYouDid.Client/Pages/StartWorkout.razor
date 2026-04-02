@@ -69,7 +69,7 @@
 					<MudCardContent>
 						<MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
 							<MudText Typo="Typo.caption">Set: @(index + 1)</MudText>
-							<MudButton Size="Size.Small" Variant="Variant.Outlined"
+							<MudButton Size="Size.Small" Variant="Variant.Outlined" tabindex="-1"
 								StartIcon="@(IsAlternateExpanded(WorkoutDto.ExerciseIndex, index) || HasAnyAlternateData(workoutExercise, index) || HasAnyLastAlternateData(workoutExercise, index) ? Icons.Material.Filled.Remove : Icons.Material.Filled.Add)"
 								Disabled="@HasAnyLastAlternateData(workoutExercise, index)"
 								OnClick="@(() => ToggleAlternate(WorkoutDto.ExerciseIndex, index))">Alt</MudButton>
