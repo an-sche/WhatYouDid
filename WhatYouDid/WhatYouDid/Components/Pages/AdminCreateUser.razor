@@ -47,7 +47,7 @@
             return;
         }
 
-        var user = new ApplicationUser { UserName = createModel.Email, Email = createModel.Email };
+        var user = new ApplicationUser { UserName = createModel.Email, Email = createModel.Email, EmailConfirmed = true };
         var result = await UserManager.CreateAsync(user, createModel.Password);
         if (result.Succeeded)
         {

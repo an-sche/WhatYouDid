@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using WhatYouDid.ServiceExtensions;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server.Circuits;
 using Microsoft.AspNetCore.Identity;
@@ -77,8 +78,14 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
+builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
+{
+    options.TokenLifespan = TimeSpan.FromHours(1);
+});
+
 builder.Services.AddOpenApi();
-builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+builder.Services.AddResendEmail(builder.Configuration);
+
 builder.Services.AddTransient<IRoutineService, RoutineService>();
 builder.Services.AddTransient<IWorkoutService, WorkoutService>();
 builder.Services.AddScoped<IAdminService, AdminService>();

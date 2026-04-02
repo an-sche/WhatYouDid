@@ -8,6 +8,7 @@
   <ItemGroup>
     <PackageReference Include="CodeBeam.MudBlazor.Extensions" Version="9.0.3" />
     <PackageReference Include="MudBlazor" Version="9.2.0" />
+    <PackageReference Include="Resend" Version="0.2.2" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.13.17" />
     <ProjectReference Include="..\..\WhatYouDid.Shared\WhatYouDid.Shared.csproj" />
     <ProjectReference Include="..\WhatYouDid.Client\WhatYouDid.Client.csproj" />

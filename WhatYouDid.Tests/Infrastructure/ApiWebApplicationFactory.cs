@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Testcontainers.MsSql;
 
 namespace WhatYouDid.Tests.Infrastructure;
@@ -51,6 +52,11 @@ public class ApiWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLi
                 var d = services.FirstOrDefault(s => s.ImplementationType?.Name == name);
                 if (d is not null) services.Remove(d);
             }
+
+            // Replace Resend email sender with a fake that captures sent emails in memory
+            services.RemoveAll<IEmailSender<ApplicationUser>>();
+            services.AddSingleton<FakeEmailSender>();
+            services.AddTransient<IEmailSender<ApplicationUser>>(sp => sp.GetRequiredService<FakeEmailSender>());
 
             // Replace all Identity auth with a simple header-based test handler
             services.AddAuthentication(opts =>
