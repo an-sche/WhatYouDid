@@ -77,7 +77,12 @@
     private async Task OpenTimer()
     {
         var parameters = new DialogParameters<TimerDialog> { { x => x.Goal, Goal ?? 0 } };
-        var options = new DialogOptions { MaxWidth = MaxWidth.ExtraSmall };
+        var options = new DialogOptions 
+        { 
+            MaxWidth = MaxWidth.ExtraSmall,
+            BackdropClick = false,
+            CloseButton = true,
+        };
         await DialogService.ShowAsync<TimerDialog>("Timer", parameters, options);
     }
 }
