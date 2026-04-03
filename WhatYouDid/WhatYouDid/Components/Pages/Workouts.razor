@@ -1,5 +1,4 @@
 @page "/workouts"
-@using WhatYouDid
 @using Microsoft.AspNetCore.Authorization
 @using WhatYouDid.Shared
 @attribute [Authorize]
@@ -37,7 +36,7 @@ else
 
 @code {
 
-    List<Workout>? workouts;
+    List<WorkoutListItemDto>? workouts;
     int totalWorkouts;
     int currentPage = 1;
     const int pageSize = 10;

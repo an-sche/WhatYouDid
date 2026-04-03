@@ -126,7 +126,7 @@
 </MudCard>
 
 @code {
-    [Parameter, EditorRequired] public required Workout Workout { get; set; }
+    [Parameter, EditorRequired] public required WorkoutListItemDto Workout { get; set; }
     [Parameter] public EventCallback OnDeleted { get; set; }
 
     bool collapsed = true;

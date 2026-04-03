@@ -1,4 +1,3 @@
-using WhatYouDid.Services;
 using WhatYouDid.Shared;
 
 namespace WhatYouDid.EndpointExtensions;
@@ -15,15 +14,7 @@ public static class WorkoutEndpointExtensions
             int count = 10,
             string? search = null) =>
         {
-            var workouts = await service.GetWorkoutsAsync(startIndex, count, search);
-            return workouts.Select(w => new WorkoutDto
-            {
-                WorkoutId = w.WorkoutId,
-                RoutineId = w.RoutineId ?? 0,
-                RoutineName = w.RoutineName,
-                StartTime = w.StartTime,
-                EndTime = w.EndTime,
-            });
+            return await service.GetWorkoutsAsync(startIndex, count, search);
         });
 
         group.MapGet("/count", async (IWorkoutService service, string? search = null) =>

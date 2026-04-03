@@ -33,7 +33,7 @@ public class WorkoutApiTests(ApiWebApplicationFactory factory)
         var response = await client.GetAsync("/api/workouts");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var workouts = await response.Content.ReadFromJsonAsync<List<WorkoutDto>>();
+        var workouts = await response.Content.ReadFromJsonAsync<List<WorkoutListItemDto>>();
         Assert.NotNull(workouts);
         Assert.Contains(workouts, w => w.RoutineName == $"List Routine {id}");
     }
@@ -51,7 +51,7 @@ public class WorkoutApiTests(ApiWebApplicationFactory factory)
         var response = await client.GetAsync("/api/workouts");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var workouts = await response.Content.ReadFromJsonAsync<List<WorkoutDto>>();
+        var workouts = await response.Content.ReadFromJsonAsync<List<WorkoutListItemDto>>();
         Assert.NotNull(workouts);
         Assert.DoesNotContain(workouts, w => w.RoutineName == $"Isolated Routine {id}");
     }
@@ -69,7 +69,7 @@ public class WorkoutApiTests(ApiWebApplicationFactory factory)
 
         var response = await client.GetAsync($"/api/workouts?search=Chest+Day+{id}");
 
-        var workouts = await response.Content.ReadFromJsonAsync<List<WorkoutDto>>();
+        var workouts = await response.Content.ReadFromJsonAsync<List<WorkoutListItemDto>>();
         Assert.NotNull(workouts);
         Assert.All(workouts, w => Assert.Contains($"Chest Day {id}", w.RoutineName));
     }
@@ -87,8 +87,8 @@ public class WorkoutApiTests(ApiWebApplicationFactory factory)
         var page1 = await client.GetAsync($"/api/workouts?startIndex=0&count=2&search=Page+Routine+{id}");
         var page2 = await client.GetAsync($"/api/workouts?startIndex=2&count=2&search=Page+Routine+{id}");
 
-        var p1 = await page1.Content.ReadFromJsonAsync<List<WorkoutDto>>();
-        var p2 = await page2.Content.ReadFromJsonAsync<List<WorkoutDto>>();
+        var p1 = await page1.Content.ReadFromJsonAsync<List<WorkoutListItemDto>>();
+        var p2 = await page2.Content.ReadFromJsonAsync<List<WorkoutListItemDto>>();
         Assert.NotNull(p1);
         Assert.NotNull(p2);
         Assert.Equal(2, p1.Count);
@@ -326,7 +326,7 @@ public class WorkoutApiTests(ApiWebApplicationFactory factory)
         await client.DeleteAsync($"/api/workouts/{workoutId}");
 
         var response = await client.GetAsync("/api/workouts");
-        var workouts = await response.Content.ReadFromJsonAsync<List<WorkoutDto>>();
+        var workouts = await response.Content.ReadFromJsonAsync<List<WorkoutListItemDto>>();
         Assert.DoesNotContain(workouts!, w => w.WorkoutId == workoutId);
     }
 

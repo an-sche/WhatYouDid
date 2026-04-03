@@ -70,7 +70,6 @@ public class WorkoutCrudTests(DatabaseFixture fixture)
         var saved = workouts.FirstOrDefault(w => w.WorkoutId == workoutId);
 
         Assert.NotNull(saved);
-        Assert.Equal(user.Id, saved.ApplicationUserId);
     }
 
     [Fact]

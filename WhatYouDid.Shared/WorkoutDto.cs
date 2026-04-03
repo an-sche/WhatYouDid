@@ -3,6 +3,14 @@ using System.Text.Json.Serialization;
 
 namespace WhatYouDid.Shared;
 
+public class WorkoutListItemDto
+{
+    public Guid WorkoutId { get; set; }
+    public string? RoutineName { get; set; }
+    public DateTimeOffset StartTime { get; set; }
+    public DateTimeOffset? EndTime { get; set; }
+}
+
 /// <summary>
 /// Information about a workout defined by a Routine. 
 /// Also holds information about the last time this Routine was performed.

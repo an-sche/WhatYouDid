@@ -1,7 +1,4 @@
-using WhatYouDid.Data;
-using WhatYouDid.Shared;
-
-namespace WhatYouDid.Services;
+namespace WhatYouDid.Shared;
 
 public interface IWorkoutService
 {
@@ -11,5 +8,5 @@ public interface IWorkoutService
     Task<bool> UpdateWorkoutExerciseAsync(Guid workoutId, WorkoutExerciseDto exercise);
     Task<bool> DeleteWorkoutAsync(Guid workoutId);
     Task<int> GetWorkoutsCountAsync(string? search = null);
-    Task<List<Workout>> GetWorkoutsAsync(int startIndex, int count, string? search = null);
+    Task<List<WorkoutListItemDto>> GetWorkoutsAsync(int startIndex, int count, string? search = null);
 }

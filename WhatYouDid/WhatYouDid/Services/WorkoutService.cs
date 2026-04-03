@@ -18,7 +18,7 @@ public class WorkoutService(
         return await query.Where(x => x.EndTime != null).CountAsync();
     }
 
-    public async Task<List<Workout>> GetWorkoutsAsync(int startIndex, int count, string? search = null)
+    public async Task<List<WorkoutListItemDto>> GetWorkoutsAsync(int startIndex, int count, string? search = null)
     {
         using var db = await dbFactory.CreateDbContextAsync();
         var query = db.Workouts.AsQueryable();
@@ -29,6 +29,13 @@ public class WorkoutService(
             .OrderByDescending(x => x.EndTime)
             .Skip(startIndex)
             .Take(count)
+            .Select(x => new WorkoutListItemDto
+            {
+                WorkoutId = x.WorkoutId,
+                RoutineName = x.RoutineName,
+                StartTime = x.StartTime,
+                EndTime = x.EndTime,
+            })
             .ToListAsync();
     }
 

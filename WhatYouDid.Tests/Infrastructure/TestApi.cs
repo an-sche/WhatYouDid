@@ -22,5 +22,5 @@ public class TestApi(RoutineService routineService, WorkoutService workoutServic
     public Task<bool> UpdateWorkoutExerciseAsync(Guid workoutId, WorkoutExerciseDto exercise) => workoutService.UpdateWorkoutExerciseAsync(workoutId, exercise);
     public Task<bool> DeleteWorkoutAsync(Guid workoutId) => workoutService.DeleteWorkoutAsync(workoutId);
     public Task<int> GetWorkoutsCountAsync(string? search = null) => workoutService.GetWorkoutsCountAsync(search);
-    public Task<List<Workout>> GetWorkoutsAsync(int startIndex, int count, string? search = null) => workoutService.GetWorkoutsAsync(startIndex, count, search);
+    public Task<List<WorkoutListItemDto>> GetWorkoutsAsync(int startIndex, int count, string? search = null) => workoutService.GetWorkoutsAsync(startIndex, count, search);
 }
