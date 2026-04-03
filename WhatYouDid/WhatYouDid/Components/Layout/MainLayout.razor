@@ -12,15 +12,9 @@
 
 @if (!isWorkoutPage)
 {
-    <MudPopoverProvider @rendermode="InteractiveServer" />
-    <MudDialogProvider @rendermode="InteractiveServer" />
-    <MudSnackbarProvider @rendermode="InteractiveServer" />
-}
-else
-{
-    <MudPopoverProvider @rendermode="InteractiveWebAssembly" />
-    <MudDialogProvider @rendermode="InteractiveWebAssembly" />
-    <MudSnackbarProvider @rendermode="InteractiveWebAssembly" />
+    <MudPopoverProvider />
+    <MudDialogProvider />
+    <MudSnackbarProvider />
 }
 
 <div class="page">

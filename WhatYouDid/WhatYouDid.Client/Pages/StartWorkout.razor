@@ -13,6 +13,11 @@
 @inject NavigationManager Navigation
 @inject HttpClient Http
 
+<MudThemeProvider />
+<MudPopoverProvider />
+<MudDialogProvider /> 
+<MudSnackbarProvider />
+
 @if (WorkoutDto is null) {
 	<MudText Typo="Typo.h4">Loading...</MudText>
 	return;
