@@ -1,6 +1,6 @@
 @page "/routines"
 
-@using WhatYouDid.Services
+@using WhatYouDid.Shared
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Identity
 @using System.Security.Claims
@@ -30,7 +30,7 @@ else
 
 @code {
 
-    IEnumerable<Routine>? routines;
+    IEnumerable<RoutineDto>? routines;
 
     protected override async Task OnInitializedAsync()
     {

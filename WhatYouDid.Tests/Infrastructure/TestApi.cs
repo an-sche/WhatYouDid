@@ -1,4 +1,3 @@
-using WhatYouDid.Data;
 using WhatYouDid.Services;
 using WhatYouDid.Shared;
 
@@ -12,9 +11,9 @@ public class TestApi(RoutineService routineService, WorkoutService workoutServic
     : IRoutineService, IWorkoutService
 {
     public Task<bool> AddRoutineAsync(CreateRoutineDto routine) => routineService.AddRoutineAsync(routine);
-    public Task<List<Exercise>> GetExercisesAsync(int routineId) => routineService.GetExercisesAsync(routineId);
-    public Task<Routine?> GetRoutineAsync(int routineId) => routineService.GetRoutineAsync(routineId);
-    public Task<List<Routine>> GetUserRoutinesAsync() => routineService.GetUserRoutinesAsync();
+    public Task<List<ExerciseDto>> GetExercisesAsync(int routineId) => routineService.GetExercisesAsync(routineId);
+    public Task<RoutineDetailDto?> GetRoutineAsync(int routineId) => routineService.GetRoutineAsync(routineId);
+    public Task<List<RoutineDto>> GetUserRoutinesAsync() => routineService.GetUserRoutinesAsync();
 
     public Task<WorkoutDto?> GetStartWorkoutDtoAsync(int routineId) => workoutService.GetStartWorkoutDtoAsync(routineId);
     public Task<WorkoutDto?> GetCompletedWorkoutDtoAsync(Guid workoutId) => workoutService.GetCompletedWorkoutDtoAsync(workoutId);

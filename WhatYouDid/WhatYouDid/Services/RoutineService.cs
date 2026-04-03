@@ -37,23 +37,55 @@ public class RoutineService(
         return true;
     }
 
-    public async Task<List<Exercise>> GetExercisesAsync(int routineId)
+    public async Task<List<ExerciseDto>> GetExercisesAsync(int routineId)
     {
         using var db = await dbFactory.CreateDbContextAsync();
-        return await db.Exercises.Where(x => x.RoutineId == routineId).ToListAsync();
+        return await db.Exercises
+            .Where(x => x.RoutineId == routineId)
+            .Select(e => new ExerciseDto
+            {
+                ExerciseId = e.ExerciseId,
+                Name = e.Name,
+                Description = e.Description,
+                Sequence = e.Sequence,
+                Sets = e.Sets,
+                HasReps = e.HasReps,
+                HasWeight = e.HasWeight,
+                HasDuration = e.HasDuration,
+            })
+            .ToListAsync();
     }
 
-    public async Task<Routine?> GetRoutineAsync(int routineId)
+    public async Task<RoutineDetailDto?> GetRoutineAsync(int routineId)
     {
         using var db = await dbFactory.CreateDbContextAsync();
         return await db.Routines
-            .Include(x => x.Exercises)
-            .FirstOrDefaultAsync(x => x.RoutineId == routineId);
+            .Where(x => x.RoutineId == routineId)
+            .Select(r => new RoutineDetailDto
+            {
+                RoutineId = r.RoutineId,
+                Name = r.Name,
+                Exercises = r.Exercises.Select(e => new ExerciseDto
+                {
+                    ExerciseId = e.ExerciseId,
+                    Name = e.Name,
+                    Description = e.Description,
+                    Sequence = e.Sequence,
+                    Sets = e.Sets,
+                    HasReps = e.HasReps,
+                    HasWeight = e.HasWeight,
+                    HasDuration = e.HasDuration,
+                }).ToList()
+            })
+            .FirstOrDefaultAsync();
     }
 
-    public async Task<List<Routine>> GetUserRoutinesAsync()
+    public async Task<List<RoutineDto>> GetUserRoutinesAsync()
     {
         using var db = await dbFactory.CreateDbContextAsync();
-        return await db.Routines.OrderBy(x => x.Name).ToListAsync();
+        return await db.Routines
+            .OrderBy(x => x.Name)
+            .Select(r => new RoutineDto { RoutineId = r.RoutineId, Name = r.Name })
+            .ToListAsync();
     }
 }

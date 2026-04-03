@@ -36,7 +36,6 @@ public class RoutineCrudTests(DatabaseFixture fixture)
         var created = routines.FirstOrDefault(r => r.Name == $"My Routine {id}");
 
         Assert.NotNull(created);
-        Assert.Equal(user.Id, created.CreateUserId);
     }
 
     [Fact]

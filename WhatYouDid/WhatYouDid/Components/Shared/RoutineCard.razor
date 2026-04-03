@@ -1,3 +1,4 @@
+@using WhatYouDid.Shared
 @inject IRoutineService RoutineService
 @inject NavigationManager Navigation
 
@@ -55,7 +56,7 @@
     public required int RoutineId { get; set; }
 
     bool expanded = false;
-    List<Exercise>? exercises;
+    List<ExerciseDto>? exercises;
 
     async Task ToggleExpanded()
     {
