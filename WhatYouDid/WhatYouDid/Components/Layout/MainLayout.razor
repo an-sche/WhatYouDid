@@ -10,13 +10,6 @@
 
 <MudThemeProvider Theme="_theme" />
 
-@if (!isWorkoutPage)
-{
-    <MudPopoverProvider />
-    <MudDialogProvider />
-    <MudSnackbarProvider />
-}
-
 <div class="page">
     <header class="top-bar">
         <a href="/" class="top-bar-brand" data-enhance-nav="@(isWorkoutPage ? "false" : null)">
