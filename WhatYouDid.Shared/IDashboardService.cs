@@ -1,6 +1,4 @@
-using WhatYouDid.Shared;
-
-namespace WhatYouDid.Services;
+namespace WhatYouDid.Shared;
 
 public interface IDashboardService
 {

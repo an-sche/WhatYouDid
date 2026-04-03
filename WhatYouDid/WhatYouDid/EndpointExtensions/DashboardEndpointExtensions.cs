@@ -1,4 +1,4 @@
-using WhatYouDid.Services;
+using WhatYouDid.Shared;
 
 namespace WhatYouDid.EndpointExtensions;
 
