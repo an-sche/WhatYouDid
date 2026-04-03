@@ -10,8 +10,13 @@
     <a href="/admin/createuser" style="text-decoration:none; color:inherit">
         <MudCard Style="cursor:pointer">
             <MudCardContent>
-                <MudText Typo="Typo.subtitle1" Style="font-weight:bold">Create User</MudText>
-                <MudText Typo="Typo.body2">Add a new user account.</MudText>
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                    <MudIcon Icon="@Icons.Material.Filled.PersonAdd" Color="Color.Primary" />
+                    <div>
+                        <MudText Typo="Typo.subtitle1" Style="font-weight:bold">Create User</MudText>
+                        <MudText Typo="Typo.body2">Add a new user account.</MudText>
+                    </div>
+                </MudStack>
             </MudCardContent>
         </MudCard>
     </a>
@@ -19,8 +24,27 @@
     <a href="/admin/resetpassword" style="text-decoration:none; color:inherit">
         <MudCard Style="cursor:pointer">
             <MudCardContent>
-                <MudText Typo="Typo.subtitle1" Style="font-weight:bold">Reset Password</MudText>
-                <MudText Typo="Typo.body2">Reset a password for an existing user.</MudText>
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                    <MudIcon Icon="@Icons.Material.Filled.LockReset" Color="Color.Primary" />
+                    <div>
+                        <MudText Typo="Typo.subtitle1" Style="font-weight:bold">Reset Password</MudText>
+                        <MudText Typo="Typo.body2">Reset a password for an existing user.</MudText>
+                    </div>
+                </MudStack>
+            </MudCardContent>
+        </MudCard>
+    </a>
+
+    <a href="https://resend.com/overview" target="_blank" style="text-decoration:none; color:inherit">
+        <MudCard Style="cursor:pointer">
+            <MudCardContent>
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                    <MudIcon Icon="@Icons.Material.Filled.Email" Color="Color.Primary" />
+                    <div>
+                        <MudText Typo="Typo.subtitle1" Style="font-weight:bold">Resend (Email) Usage Statistics</MudText>
+                        <MudText Typo="Typo.body2">Free tier: 3,000 emails/month, 100/day. Click to view live stats on resend.com.</MudText>
+                    </div>
+                </MudStack>
             </MudCardContent>
         </MudCard>
     </a>
