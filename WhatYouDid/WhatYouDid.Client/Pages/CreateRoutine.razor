@@ -1,14 +1,17 @@
 @page "/createroutine"
 
-@using Microsoft.AspNetCore.Authorization
 @using WhatYouDid.Shared
 @attribute [Authorize]
-@rendermode InteractiveServer
+@rendermode InteractiveWebAssembly
+
 @inject IRoutineService RoutineService
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 @inject IBrowserStorage BrowserStorage
 
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
 
 <PageTitle>Create Routine</PageTitle>
 <MudText Typo="Typo.h4">Create Routine</MudText>
