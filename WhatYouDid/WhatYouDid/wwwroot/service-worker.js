@@ -17,10 +17,13 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
     event.waitUntil((async () => {
         const keys = await caches.keys();
-        await Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)));
+        const oldKeys = keys.filter(k => k !== CACHE_NAME);
+        await Promise.all(oldKeys.map(k => caches.delete(k)));
         await self.clients.claim();
-        const clients = await self.clients.matchAll({ type: 'window' });
-        clients.forEach(c => c.postMessage({ type: 'SW_UPDATED' }));
+        if (oldKeys.length > 0) {
+            const clients = await self.clients.matchAll({ type: 'window' });
+            clients.forEach(c => c.postMessage({ type: 'SW_UPDATED' }));
+        }
     })());
 });
 
