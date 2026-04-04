@@ -1,15 +1,14 @@
 @page "/routines"
-
 @using WhatYouDid.Shared
-@using Microsoft.AspNetCore.Authorization
-@using Microsoft.AspNetCore.Identity
-@using System.Security.Claims
-
 @attribute [Authorize]
-@rendermode InteractiveServer
+@rendermode InteractiveWebAssembly
+
 @inject IRoutineService RoutineService
-@inject UserManager<ApplicationUser> UserManager
 @inject NavigationManager Navigation
+
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
 
 <PageTitle>Routines</PageTitle>
 <MudText Typo="Typo.h4">Routines</MudText>
@@ -30,10 +29,11 @@ else
 
 @code {
 
-    IEnumerable<RoutineDto>? routines;
+    [PersistentState]
+    public List<RoutineDto>? routines { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        routines = await RoutineService.GetUserRoutinesAsync();
+        routines ??= await RoutineService.GetUserRoutinesAsync();
     }
 }
