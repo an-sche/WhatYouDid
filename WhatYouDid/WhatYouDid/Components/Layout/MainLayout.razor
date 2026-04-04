@@ -1,18 +1,10 @@
 @inherits LayoutComponentBase
-@inject NavigationManager NavigationManager
-
-@{
-    // The workout page uses pure WASM — skip the InteractiveServer MudBlazor providers
-    // so no SignalR circuit is created, preventing reconnect prompts on mobile.
-    var isWorkoutPage = NavigationManager.ToBaseRelativePath(NavigationManager.Uri)
-        .StartsWith("workout/", StringComparison.OrdinalIgnoreCase);
-}
 
 <MudThemeProvider Theme="_theme" />
 
 <div class="page">
     <header class="top-bar">
-        <a href="/" class="top-bar-brand" data-enhance-nav="@(isWorkoutPage ? "false" : null)">
+        <a href="/" class="top-bar-brand" data-enhance-nav="false">
             <MudIconButton Icon="@Icons.Material.Filled.Home" Size="Size.Small" />
             <span>What You Did</span>
         </a>
