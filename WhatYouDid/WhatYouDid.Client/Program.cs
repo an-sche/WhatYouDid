@@ -23,5 +23,6 @@ builder.Services.AddMudExtensions();
 builder.Services.AddScoped<IBrowserStorage, ClientBrowserStorage>();
 builder.Services.AddScoped<IDashboardService, DashboardHttpService>();
 builder.Services.AddScoped<IRoutineService, RoutineHttpService>();
+builder.Services.AddScoped<IWorkoutService, WorkoutHttpService>();
 
 await builder.Build().RunAsync();

@@ -1,8 +1,8 @@
 @page "/workouts"
-@using Microsoft.AspNetCore.Authorization
 @using WhatYouDid.Shared
 @attribute [Authorize]
-@rendermode InteractiveServer
+@rendermode InteractiveWebAssembly
+
 @inject IWorkoutService WorkoutService
 
 <MudPopoverProvider />
@@ -30,25 +30,29 @@ else
     }
 
     <div class="d-flex justify-content-center mt-2">
-        <MudPagination MiddleCount="3" BoundaryCount="1" Count="@totalPages" Selected="currentPage" 
-            SelectedChanged="OnPageChanged" />
+        <MudPagination Count="@totalPages" Selected="currentPage" SelectedChanged="OnPageChanged" />
     </div>
 }
 
 @code {
 
-    List<WorkoutListItemDto>? workouts;
-    int totalWorkouts;
+    [PersistentState]
+    public List<WorkoutListItemDto>? workouts { get; set; }
+
+    [PersistentState]
+    public int? totalWorkouts { get; set; }
+
     int currentPage = 1;
     const int pageSize = 10;
     string? searchText;
     CancellationTokenSource? _debounce;
 
-    private int totalPages => (int)Math.Ceiling(totalWorkouts / (double)pageSize);
+    private int totalPages => (int)Math.Ceiling((totalWorkouts ?? 0) / (double)pageSize);
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadPage();
+        if (workouts is null)
+            await LoadPage();
     }
 
     private async Task LoadPage()
@@ -72,6 +76,7 @@ else
         }
         catch (TaskCanceledException) { }
     }
+
 
     private async Task OnPageChanged(int page)
     {
