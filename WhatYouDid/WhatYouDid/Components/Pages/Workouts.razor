@@ -30,7 +30,8 @@ else
     }
 
     <div class="d-flex justify-content-center mt-2">
-        <MudPagination Count="@totalPages" Selected="currentPage" SelectedChanged="OnPageChanged" />
+        <MudPagination MiddleCount="3" BoundaryCount="1" Count="@totalPages" Selected="currentPage" 
+            SelectedChanged="OnPageChanged" />
     </div>
 }
 
