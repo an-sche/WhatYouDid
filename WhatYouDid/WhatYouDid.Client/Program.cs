@@ -21,5 +21,6 @@ builder.Services.AddScoped(sp =>
 builder.Services.AddMudServices();
 builder.Services.AddMudExtensions();
 builder.Services.AddScoped<IBrowserStorage, ClientBrowserStorage>();
+builder.Services.AddScoped<IDashboardService, DashboardHttpService>();
 
 await builder.Build().RunAsync();

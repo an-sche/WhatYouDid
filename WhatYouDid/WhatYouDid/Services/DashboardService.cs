@@ -24,13 +24,11 @@ public class DashboardService(
     {
         // Compute top 3 most frequent workouts (by RoutineName) optionally filtered by year.
         var workoutsQuery = db.Workouts.AsNoTracking().AsQueryable();
-        var workoutExercisesQuery = db.WorkoutExercises.AsNoTracking().AsQueryable();
         var dto = new DashboardDto();
 
         if (year != 0)
         {
             workoutsQuery = workoutsQuery.Where(w => w.StartTime.Year == year);
-            workoutExercisesQuery = workoutExercisesQuery.Where(we => we.Workout.StartTime.Year == year);
             dto.Year = year;
         }
 

@@ -249,8 +249,7 @@ public class DashboardTests(DatabaseFixture fixture)
 
         // User A's dashboard should only reflect their own data
         using var db = fixture.CreateDbContextForTenant(userA.Id);
-        var dashboardService = new DashboardService(db);
-        var dto = await dashboardService.GetDashboardForUserAsync();
+        var dto = await new DashboardService(db).GetDashboardForUserAsync();
 
         var userAEntry = dto.TopWorkouts?.FirstOrDefault(w => w.RoutineName == $"Isolation A {id}");
         Assert.NotNull(userAEntry);

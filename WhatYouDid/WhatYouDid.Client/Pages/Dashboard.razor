@@ -1,11 +1,9 @@
 @page "/dashboard"
 @using WhatYouDid.Shared
-@using System.Net.Http.Json
 @attribute [Authorize]
-@rendermode InteractiveServer
+@rendermode InteractiveWebAssembly
 
 @inject IDashboardService Service
-@inject HttpClient Http
 
 <MudPopoverProvider />
 <MudDialogProvider />
@@ -16,7 +14,7 @@
 <h1>Dashboard</h1>
 
 <MudSelect T="int" Value="selectedYear" ValueChanged="ReloadDataAsync" Style="min-width:160px" Variant="Variant.Outlined">
-    @foreach (var item in yearItems)
+    @foreach (var item in yearItems ?? [new YearItem(0, "All Years")])
     {
         <MudSelectItem Value="@item.Value">@item.Label</MudSelectItem>
     }
@@ -86,11 +84,15 @@
 </MudGrid>
 
 @code {
-    private record YearItem(int Value, string Label);
+    public record YearItem(int Value, string Label);
 
-    private DashboardDto? dashboard;
+    [PersistentState]
+    public DashboardDto? dashboard { get; set; }
+
+    [PersistentState]
+    public List<YearItem>? yearItems { get; set; }
+
     private int selectedYear; // 0 = All Years
-    private List<YearItem> yearItems = [];
 
     private static string FormatMinutes(int? minutes)
     {
@@ -107,9 +109,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var years = await Service.GetActiveYearsAsync();
-        yearItems = [new YearItem(0, "All Years"), ..years.Select(y => new YearItem(y, y.ToString()))];
-        await ReloadDataAsync(selectedYear);
+        if (yearItems is null)
+        {
+            var years = await Service.GetActiveYearsAsync();
+            yearItems = [new YearItem(0, "All Years"), ..years.Select(y => new YearItem(y, y.ToString()))];
+        }
+        dashboard ??= await Service.GetDashboardForUserAsync();
     }
 
     private async Task ReloadDataAsync(int year)

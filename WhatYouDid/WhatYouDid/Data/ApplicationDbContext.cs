@@ -8,28 +8,28 @@ public class ApplicationDbContext(
     ITenantService tenantService
 ) : IdentityDbContext<ApplicationUser>(options)
 {
-    private readonly string _tenant = tenantService.Tenant;
+    private string Tenant => tenantService.Tenant;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.Entity<Workout>()
-            .HasQueryFilter(w => w.ApplicationUserId == _tenant && !w.IsDeleted)
+            .HasQueryFilter(w => w.ApplicationUserId == Tenant && !w.IsDeleted)
             .HasIndex(w => new { w.ApplicationUserId, w.StartTime })
             .IsDescending(false, true)
             .HasFilter("[IsDeleted] = 0")
             .HasDatabaseName("IX_Workouts_User_StartTime");
 
         builder.Entity<Routine>()
-            .HasQueryFilter(r => r.CreateUserId == _tenant || r.IsPublic);
+            .HasQueryFilter(r => r.CreateUserId == Tenant || r.IsPublic);
 
         builder.Entity<Exercise>()
-            .HasQueryFilter(w => w.Routine!.CreateUserId == _tenant || w.Routine!.IsPublic);
+            .HasQueryFilter(w => w.Routine!.CreateUserId == Tenant || w.Routine!.IsPublic);
 
         builder.Entity<WorkoutExercise>()
-            .HasQueryFilter(we => we.Workout.ApplicationUserId == _tenant && !we.Workout.IsDeleted);
+            .HasQueryFilter(we => we.Workout.ApplicationUserId == Tenant && !we.Workout.IsDeleted);
 
         builder.Entity<WorkoutExerciseSet>()
-            .HasQueryFilter(wes => wes.WorkoutExercise.Workout.ApplicationUserId == _tenant && !wes.WorkoutExercise.Workout.IsDeleted);
+            .HasQueryFilter(wes => wes.WorkoutExercise.Workout.ApplicationUserId == Tenant && !wes.WorkoutExercise.Workout.IsDeleted);
 
         base.OnModelCreating(builder);
     }
