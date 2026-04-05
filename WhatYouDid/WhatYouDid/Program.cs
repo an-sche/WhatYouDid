@@ -112,6 +112,13 @@ builder.Services.AddScoped(sp =>
 
 var app = builder.Build();
 
+// Trust the X-Forwarded-Proto header from Cloudflare so OAuth redirect URIs
+// are built with https:// even though IIS receives plain HTTP from the tunnel.
+app.UseForwardedHeaders(new Microsoft.AspNetCore.HttpOverrides.ForwardedHeadersOptions
+{
+    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
+});
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
