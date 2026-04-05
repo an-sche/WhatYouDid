@@ -23,4 +23,4 @@ The sending domain is verified via DNS records in Cloudflare. To re-verify or ch
 | Feature | Description |
 |---|---|
 | Password Reset | User requests a reset link, valid for 1 hour |
-| Email Confirmation | Not yet active — scaffolding is in place |
+| Email Confirmation | Sent when a user registers or requests a resend at `/Account/ResendEmailConfirmation` |
