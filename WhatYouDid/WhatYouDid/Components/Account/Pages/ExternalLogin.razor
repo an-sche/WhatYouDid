@@ -1,4 +1,4 @@
-﻿@* @page "/Account/ExternalLogin" *@
+﻿@page "/Account/ExternalLogin"
 
 @using System.ComponentModel.DataAnnotations
 @using System.Security.Claims
@@ -120,15 +120,38 @@
             RedirectManager.RedirectTo("Account/Lockout");
         }
 
-        // If the user does not have an account, then ask the user to create an account.
-        if (externalLoginInfo.Principal.HasClaim(c => c.Type == ClaimTypes.Email))
+        // If an existing account has this email, link the external login and sign in.
+        var googleEmail = externalLoginInfo.Principal.FindFirstValue(ClaimTypes.Email);
+        if (googleEmail is not null)
         {
-            Input.Email = externalLoginInfo.Principal.FindFirstValue(ClaimTypes.Email) ?? "";
+            var existingUser = await UserManager.FindByEmailAsync(googleEmail);
+            if (existingUser is not null)
+            {
+                await UserManager.AddLoginAsync(existingUser, externalLoginInfo);
+                await SignInManager.SignInAsync(existingUser, isPersistent: false, externalLoginInfo.LoginProvider);
+                RedirectManager.RedirectTo(ReturnUrl);
+            }
+
+            Input.Email = googleEmail;
         }
     }
 
     private async Task OnValidSubmitAsync()
     {
+        // If an account already exists with this email, link the external login instead of creating a new account.
+        var existingUser = await UserManager.FindByEmailAsync(Input.Email);
+        if (existingUser is not null)
+        {
+            var linkResult = await UserManager.AddLoginAsync(existingUser, externalLoginInfo);
+            if (linkResult.Succeeded)
+            {
+                await SignInManager.SignInAsync(existingUser, isPersistent: false, externalLoginInfo.LoginProvider);
+                RedirectManager.RedirectTo(ReturnUrl);
+            }
+            message = $"Error: {string.Join(",", linkResult.Errors.Select(e => e.Description))}";
+            return;
+        }
+
         var emailStore = GetEmailStore();
         var user = CreateUser();
 
@@ -143,20 +166,9 @@
             {
                 Logger.LogInformation("User created an account using {Name} provider.", externalLoginInfo.LoginProvider);
 
-                var userId = await UserManager.GetUserIdAsync(user);
+                // External provider has already verified the email — confirm it automatically.
                 var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
-                code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-
-                var callbackUrl = NavigationManager.GetUriWithQueryParameters(
-                    NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
-                    new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code });
-                await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
-
-                // If account confirmation is required, we need to show the link if we don't have a real email sender
-                if (UserManager.Options.SignIn.RequireConfirmedAccount)
-                {
-                    RedirectManager.RedirectTo("Account/RegisterConfirmation", new() { ["email"] = Input.Email });
-                }
+                await UserManager.ConfirmEmailAsync(user, code);
 
                 await SignInManager.SignInAsync(user, isPersistent: false, externalLoginInfo.LoginProvider);
                 RedirectManager.RedirectTo(ReturnUrl);

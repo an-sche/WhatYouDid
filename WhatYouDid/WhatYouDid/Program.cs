@@ -81,6 +81,13 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
+builder.Services.AddAuthentication()
+    .AddGoogle(options =>
+    {
+        options.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
+        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
+    });
+
 builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
 {
     options.TokenLifespan = TimeSpan.FromHours(1);
