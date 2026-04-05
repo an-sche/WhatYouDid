@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.HttpOverrides;
 using WhatYouDid.ServiceExtensions;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server.Circuits;
@@ -114,9 +115,9 @@ var app = builder.Build();
 
 // Trust the X-Forwarded-Proto header from Cloudflare so OAuth redirect URIs
 // are built with https:// even though IIS receives plain HTTP from the tunnel.
-app.UseForwardedHeaders(new Microsoft.AspNetCore.HttpOverrides.ForwardedHeadersOptions
+app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
-    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
+    ForwardedHeaders = ForwardedHeaders.XForwardedProto
 });
 
 // Configure the HTTP request pipeline.
