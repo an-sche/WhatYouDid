@@ -66,7 +66,7 @@ Server-side Blazor pages live in `WhatYouDid/Components/Pages/` (Routines, Worko
 
 ### UI components
 
-The app uses **Radzen Blazor** components throughout. All routes require authentication (`AuthorizeRouteView` in `Routes.razor` redirects unauthenticated users to login).
+The app uses **MudBlazor** components throughout. All routes require authentication (`AuthorizeRouteView` in `Routes.razor` redirects unauthenticated users to login).
 
 ### Deployment
 
@@ -84,10 +84,26 @@ The GitHub Actions workflow (`.github/workflows/main_whatyoudid-app.yml`) target
 
 ### Configuration (User Secrets)
 
-The `DevelopmentConnection` and `ProductionConnection` strings are in User Secrets. Also configure the `Admins` section with your email to enable admin features:
+The following are stored in User Secrets. Also configure the `Admins` section with your email to enable admin features:
 
 ```json
-"Admins": [
-  "your@email.here"
-]
+{
+  "ConnectionStrings:DevelopmentConnection": "<sql-server-connection-string>",
+  "Resend": {
+    "ApiKey": "<resend-api-key>",
+    "FromAddress": "noreply@what-you-did.com"
+  },
+  "Authentication": {
+    "Google": {
+      "ClientId": "<google-client-id>",
+      "ClientSecret": "<google-client-secret>"
+    }
+  },
+  "Admins": [
+    "your@email.here"
+  ]
+}
 ```
+
+- **Resend** — transactional email provider. API key from resend.com.
+- **Authentication:Google** — OAuth2 credentials from Google Cloud Console. Required for Google login.
