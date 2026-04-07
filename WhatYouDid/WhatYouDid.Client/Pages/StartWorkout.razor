@@ -57,7 +57,7 @@
 			@if (hasLastValues)
 			{
 				<MudIconButton Color="Color.Default" Size="Size.Small"
-					Icon="@Icons.Material.Filled.History" OnClick="OnAutofillLastTime" />
+					Icon="@Icons.Material.Filled.History" OnClick="OnAutofillLastTime" aria-label="Autofill from last workout" />
 			}
 		</MudStack>
 
@@ -161,8 +161,8 @@
 		</MudStack>
 
 		<MudStack Row="true" Spacing="2" Style="margin: 0.5rem">
-			<MudButton Style="flex:1" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick=@OnBackClick Color="Color.Secondary" Variant="Variant.Filled" Size="Size.Large" Disabled="WorkoutDto.ExerciseIndex == 0" />
-			<MudButton Style="flex:1" StartIcon="@Icons.Material.Filled.ArrowForward" OnClick=@OnNextClick Color="Color.Primary" Variant="Variant.Filled" Size="Size.Large" />
+			<MudButton Style="flex:1" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick=@OnBackClick Color="Color.Secondary" Variant="Variant.Filled" Size="Size.Large" Disabled="WorkoutDto.ExerciseIndex == 0" aria-label="Previous exercise" />
+			<MudButton Style="flex:1" StartIcon="@Icons.Material.Filled.ArrowForward" OnClick=@OnNextClick Color="Color.Primary" Variant="Variant.Filled" Size="Size.Large" aria-label="Next exercise" />
 		</MudStack>
 	}
 	else {
@@ -179,8 +179,8 @@
 		</MudStack>
 
 		<MudStack Row="true" Spacing="2" Style="margin: 0.5rem">
-			<MudButton Style="flex:1" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick=@OnBackClick Color="Color.Secondary" Variant="Variant.Filled" Size="Size.Large" />
-			<MudButton Style="flex:1" Disabled="@Saving" OnClick=@OnSubmitClick StartIcon="@Icons.Material.Filled.CheckCircle" Color="Color.Primary" Variant="Variant.Filled" Size="Size.Large">Finish Workout</MudButton>
+			<MudButton Style="flex:1" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick=@OnBackClick Color="Color.Secondary" Variant="Variant.Filled" Size="Size.Large" aria-label="Previous exercise" />
+			<MudButton Style="flex:1" Disabled="@Saving" OnClick=@OnSubmitClick StartIcon="@Icons.Material.Filled.CheckCircle" Color="Color.Primary" Variant="Variant.Filled" Size="Size.Large" aria-label="Finish Workout">Finish Workout</MudButton>
 		</MudStack>
 	}
 </div>

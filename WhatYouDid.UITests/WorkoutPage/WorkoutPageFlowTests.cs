@@ -5,14 +5,16 @@ namespace WhatYouDid.UITests.WorkoutPage;
 [Collection("Playwright")]
 public class WorkoutPageFlowTests(PlaywrightFixture fixture)
 {
-    // MudBlazor renders navigation buttons with SVG icons (no text), so GetByRole(Name="arrow_back")
-    // won't match. Use the filled color CSS classes instead — they're unique per screen.
-    private static ILocator NextButton(AuthenticatedPage page) => page.Locator(".mud-button-filled-primary");
-    private static ILocator BackButton(AuthenticatedPage page) => page.Locator(".mud-button-filled-secondary");
+    private static ILocator NextButton(AuthenticatedPage page)
+        => page.GetByRole(AriaRole.Button, new() { Name = "Next exercise" });
 
-    // MudTextFieldExtended (CodeBeam) does not produce <label for=""> associations, so GetByLabel
-    // doesn't work. Use inputmode="numeric" attribute which all workout form fields share.
-    private static ILocator NumericInputs(AuthenticatedPage page) => page.Locator("input[inputmode='numeric']");
+    private static ILocator BackButton(AuthenticatedPage page)
+        => page.GetByRole(AriaRole.Button, new() { Name = "Previous exercise" });
+
+    // MudTextFieldExtended (CodeBeam.MudBlazor.Extensions) doesn't associate labels via <label for="">,
+    // so GetByLabel doesn't work. All workout form fields use InputMode.numeric — use that instead.
+    private static ILocator NumericInputs(AuthenticatedPage page)
+        => page.Locator("input[inputmode='numeric']");
 
     [Fact]
     public async Task BackButton_IsDisabledOnFirstExercise()
@@ -74,6 +76,7 @@ public class WorkoutPageFlowTests(PlaywrightFixture fixture)
         await Expect(page.GetByText("Bench Press")).ToBeVisibleAsync();
         await NextButton(page).ClickAsync();
         await Expect(page.GetByRole(AriaRole.Heading, new() { Name = "Review" })).ToBeVisibleAsync();
+        await Expect(page.GetByRole(AriaRole.Button, new() { Name = "Finish Workout" })).ToBeVisibleAsync();
     }
 
     [Fact]
@@ -159,8 +162,7 @@ public class WorkoutPageFlowTests(PlaywrightFixture fixture)
             $"{fixture.Factory.BaseAddress}workout/{routineId}");
 
         await Expect(page.GetByText("Bench Press")).ToBeVisibleAsync();
-        // History button is inside .exercise-wrapper — narrows to the right icon button
-        await page.Locator(".exercise-wrapper .mud-icon-button").ClickAsync();
+        await page.GetByRole(AriaRole.Button, new() { Name = "Autofill from last workout" }).ClickAsync();
         await Expect(NumericInputs(page).First).ToHaveValueAsync("10");
         await Expect(NumericInputs(page).Nth(1)).ToHaveValueAsync("135");
     }
