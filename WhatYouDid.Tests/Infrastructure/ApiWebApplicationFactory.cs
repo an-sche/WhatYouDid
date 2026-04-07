@@ -169,6 +169,87 @@ public class ApiWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLi
     }
 
     /// <summary>
+    /// Inserts a routine with <paramref name="exerciseCount"/> exercises and returns
+    /// the RoutineId and the generated ExerciseIds. Useful for flow tests that need
+    /// multi-exercise navigation or autofill seeding.
+    /// </summary>
+    public async Task<(int RoutineId, int[] ExerciseIds)> CreateRoutineWithExercisesAsync(
+        string userId, string routineName, int exerciseCount = 1)
+    {
+        var tenantService = new TestTenantService();
+        tenantService.SetTenant(userId);
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseSqlServer(_connectionString)
+            .Options;
+        await using var db = new ApplicationDbContext(options, tenantService);
+
+        var exercises = Enumerable.Range(1, exerciseCount).Select(i => new Exercise
+        {
+            Name = i == 1 ? "Bench Press" : $"Exercise {i}",
+            Sequence = i,
+            Sets = 3,
+            HasReps = true,
+            HasWeight = true,
+        }).ToList();
+
+        var routine = new Routine
+        {
+            Name = routineName,
+            CreateUserId = userId,
+            Exercises = exercises
+        };
+        db.Routines.Add(routine);
+        await db.SaveChangesAsync();
+
+        return (routine.RoutineId, exercises.Select(e => e.ExerciseId).ToArray());
+    }
+
+    /// <summary>
+    /// Inserts a completed workout with WorkoutExercise and set records so that the
+    /// autofill history button appears on the workout page for <paramref name="exerciseId"/>.
+    /// Returns the WorkoutId.
+    /// </summary>
+    public async Task<Guid> SaveWorkoutWithSetsAsync(
+        string userId, int routineId, string routineName,
+        int exerciseId, string exerciseName, int reps, int weight)
+    {
+        var tenantService = new TestTenantService();
+        tenantService.SetTenant(userId);
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseSqlServer(_connectionString)
+            .Options;
+        await using var db = new ApplicationDbContext(options, tenantService);
+
+        var workoutId = Guid.NewGuid();
+        var workout = new Workout
+        {
+            WorkoutId = workoutId,
+            ApplicationUserId = userId,
+            RoutineId = routineId,
+            RoutineName = routineName,
+            StartTime = DateTimeOffset.Now.AddHours(-1),
+            EndTime = DateTimeOffset.Now.AddMinutes(-1),
+            WorkoutExercise =
+            [
+                new WorkoutExercise
+                {
+                    ExerciseId = exerciseId,
+                    ExerciseName = exerciseName,
+                    Sets =
+                    [
+                        new WorkoutExerciseSet { SetNumber = 1, Reps = reps, Weight = weight },
+                        new WorkoutExerciseSet { SetNumber = 2, Reps = reps, Weight = weight },
+                        new WorkoutExerciseSet { SetNumber = 3, Reps = reps, Weight = weight },
+                    ]
+                }
+            ]
+        };
+        db.Workouts.Add(workout);
+        await db.SaveChangesAsync();
+        return workoutId;
+    }
+
+    /// <summary>
     /// Creates an HttpClient pre-loaded with the X-Test-UserId header so every
     /// request is authenticated as <paramref name="userId"/>.
     /// </summary>

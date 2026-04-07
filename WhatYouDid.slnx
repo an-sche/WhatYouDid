@@ -6,4 +6,5 @@
   <Project Path="WhatYouDid/WhatYouDid.Client/WhatYouDid.Client.csproj" />
   <Project Path="WhatYouDid/WhatYouDid/WhatYouDid.csproj" />
   <Project Path="WhatYouDid.Tests/WhatYouDid.Tests.csproj" />
+  <Project Path="WhatYouDid.UITests/WhatYouDid.UITests.csproj" />
 </Solution>
