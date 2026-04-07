@@ -183,5 +183,6 @@ public class WorkoutPageFlowTests(PlaywrightFixture fixture)
 
         await page.GetByRole(AriaRole.Button, new() { Name = "Finish Workout" }).ClickAsync();
         await page.AsPage().WaitForURLAsync("**/workouts");
+        await Expect(page.GetByText("Flow Test Routine")).ToBeVisibleAsync();
     }
 }
