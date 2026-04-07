@@ -205,13 +205,48 @@ public class ApiWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLi
     }
 
     /// <summary>
+    /// Inserts a routine with one exercise that has all three field types enabled
+    /// (Reps, Weight, Duration). Useful for tests that need to verify every input type.
+    /// Returns the RoutineId and the generated ExerciseId.
+    /// </summary>
+    public async Task<(int RoutineId, int ExerciseId)> CreateRoutineWithAllFieldTypesAsync(
+        string userId, string routineName)
+    {
+        var tenantService = new TestTenantService();
+        tenantService.SetTenant(userId);
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseSqlServer(_connectionString)
+            .Options;
+        await using var db = new ApplicationDbContext(options, tenantService);
+
+        var exercise = new Exercise
+        {
+            Name = "Full Body Exercise",
+            Sequence = 1,
+            Sets = 3,
+            HasReps = true,
+            HasWeight = true,
+            HasDuration = true,
+        };
+        var routine = new Routine
+        {
+            Name = routineName,
+            CreateUserId = userId,
+            Exercises = [exercise]
+        };
+        db.Routines.Add(routine);
+        await db.SaveChangesAsync();
+        return (routine.RoutineId, exercise.ExerciseId);
+    }
+
+    /// <summary>
     /// Inserts a completed workout with WorkoutExercise and set records so that the
     /// autofill history button appears on the workout page for <paramref name="exerciseId"/>.
     /// Returns the WorkoutId.
     /// </summary>
     public async Task<Guid> SaveWorkoutWithSetsAsync(
         string userId, int routineId, string routineName,
-        int exerciseId, string exerciseName, int reps, int weight)
+        int exerciseId, string exerciseName, int? reps = null, int? weight = null, int? duration = null)
     {
         var tenantService = new TestTenantService();
         tenantService.SetTenant(userId);
@@ -237,9 +272,9 @@ public class ApiWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLi
                     ExerciseName = exerciseName,
                     Sets =
                     [
-                        new WorkoutExerciseSet { SetNumber = 1, Reps = reps, Weight = weight },
-                        new WorkoutExerciseSet { SetNumber = 2, Reps = reps, Weight = weight },
-                        new WorkoutExerciseSet { SetNumber = 3, Reps = reps, Weight = weight },
+                        new WorkoutExerciseSet { SetNumber = 1, Reps = reps, Weight = weight, Duration = duration },
+                        new WorkoutExerciseSet { SetNumber = 2, Reps = reps, Weight = weight, Duration = duration },
+                        new WorkoutExerciseSet { SetNumber = 3, Reps = reps, Weight = weight, Duration = duration },
                     ]
                 }
             ]

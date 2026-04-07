@@ -11,11 +11,6 @@ public class WorkoutPageFlowTests(PlaywrightFixture fixture)
     private static ILocator BackButton(AuthenticatedPage page)
         => page.GetByRole(AriaRole.Button, new() { Name = "Previous exercise" });
 
-    // MudTextFieldExtended (CodeBeam.MudBlazor.Extensions) doesn't associate labels via <label for="">,
-    // so GetByLabel doesn't work. All workout form fields use InputMode.numeric — use that instead.
-    private static ILocator NumericInputs(AuthenticatedPage page)
-        => page.Locator("input[inputmode='numeric']");
-
     [Fact]
     public async Task BackButton_IsDisabledOnFirstExercise()
     {
@@ -80,91 +75,85 @@ public class WorkoutPageFlowTests(PlaywrightFixture fixture)
     }
 
     [Fact]
-    public async Task RepsField_AcceptsInput()
+    public async Task AllFieldTypes_AcceptInput()
     {
         var user = await fixture.Factory.CreateUserAsync($"{Guid.NewGuid()}@test.com", "Test123!");
-        var (routineId, _) = await fixture.Factory.CreateRoutineWithExercisesAsync(user.Id, "Flow Test Routine");
+        var (routineId, _) = await fixture.Factory.CreateRoutineWithAllFieldTypesAsync(user.Id, "Full Field Routine");
 
         await using var page = await fixture.CreateAuthenticatedPageAsync(user.Id);
         await PlaywrightFixture.NavigateAndAssertNoErrorsAsync(page,
             $"{fixture.Factory.BaseAddress}workout/{routineId}");
 
-        await Expect(page.GetByText("Bench Press")).ToBeVisibleAsync();
-        await NumericInputs(page).First.FillAsync("10");
-        await Expect(NumericInputs(page).First).ToHaveValueAsync("10");
-    }
+        await Expect(page.GetByText("Full Body Exercise")).ToBeVisibleAsync();
 
-    [Fact]
-    public async Task WeightField_AcceptsInput()
-    {
-        var user = await fixture.Factory.CreateUserAsync($"{Guid.NewGuid()}@test.com", "Test123!");
-        var (routineId, _) = await fixture.Factory.CreateRoutineWithExercisesAsync(user.Id, "Flow Test Routine");
+        await page.GetByLabel("Reps").First.FillAsync("10");
+        await page.GetByLabel("Weight").First.FillAsync("135");
+        await page.GetByLabel("Duration").First.FillAsync("30");
 
-        await using var page = await fixture.CreateAuthenticatedPageAsync(user.Id);
-        await PlaywrightFixture.NavigateAndAssertNoErrorsAsync(page,
-            $"{fixture.Factory.BaseAddress}workout/{routineId}");
-
-        await Expect(page.GetByText("Bench Press")).ToBeVisibleAsync();
-        // Nth(1) = Set 1 Weight (Nth(0) = Set 1 Reps)
-        await NumericInputs(page).Nth(1).FillAsync("135");
-        await Expect(NumericInputs(page).Nth(1)).ToHaveValueAsync("135");
+        await Expect(page.GetByLabel("Reps").First).ToHaveValueAsync("10");
+        await Expect(page.GetByLabel("Weight").First).ToHaveValueAsync("135");
+        await Expect(page.GetByLabel("Duration").First).ToHaveValueAsync("30");
     }
 
     [Fact]
     public async Task AltToggle_ShowsAltSection()
     {
         var user = await fixture.Factory.CreateUserAsync($"{Guid.NewGuid()}@test.com", "Test123!");
-        var (routineId, _) = await fixture.Factory.CreateRoutineWithExercisesAsync(user.Id, "Flow Test Routine");
+        var (routineId, _) = await fixture.Factory.CreateRoutineWithAllFieldTypesAsync(user.Id, "Full Field Routine");
 
         await using var page = await fixture.CreateAuthenticatedPageAsync(user.Id);
         await PlaywrightFixture.NavigateAndAssertNoErrorsAsync(page,
             $"{fixture.Factory.BaseAddress}workout/{routineId}");
 
-        await Expect(page.GetByText("Bench Press")).ToBeVisibleAsync();
-        // 3 sets × 2 fields (Reps + Weight) = 6 inputs before expanding
-        await Expect(NumericInputs(page)).ToHaveCountAsync(6);
-
+        await Expect(page.GetByText("Full Body Exercise")).ToBeVisibleAsync();
         await page.GetByRole(AriaRole.Button, new() { Name = "Alt" }).First.ClickAsync();
-        // After expanding Set 1 alt: +2 inputs (Alt Reps + Alt Weight)
-        await Expect(NumericInputs(page)).ToHaveCountAsync(8);
+
+        await Expect(page.GetByLabel("Alt Reps").First).ToBeVisibleAsync();
+        await Expect(page.GetByLabel("Alt Weight").First).ToBeVisibleAsync();
+        await Expect(page.GetByLabel("Alt Duration").First).ToBeVisibleAsync();
+        await Expect(page.GetByLabel("Note").First).ToBeVisibleAsync();
     }
 
     [Fact]
     public async Task AltToggle_HidesAltSection_WhenClickedAgain()
     {
         var user = await fixture.Factory.CreateUserAsync($"{Guid.NewGuid()}@test.com", "Test123!");
-        var (routineId, _) = await fixture.Factory.CreateRoutineWithExercisesAsync(user.Id, "Flow Test Routine");
+        var (routineId, _) = await fixture.Factory.CreateRoutineWithAllFieldTypesAsync(user.Id, "Full Field Routine");
 
         await using var page = await fixture.CreateAuthenticatedPageAsync(user.Id);
         await PlaywrightFixture.NavigateAndAssertNoErrorsAsync(page,
             $"{fixture.Factory.BaseAddress}workout/{routineId}");
 
-        await Expect(page.GetByText("Bench Press")).ToBeVisibleAsync();
+        await Expect(page.GetByText("Full Body Exercise")).ToBeVisibleAsync();
         await page.GetByRole(AriaRole.Button, new() { Name = "Alt" }).First.ClickAsync();
-        await Expect(NumericInputs(page)).ToHaveCountAsync(8);
+        await Expect(page.GetByLabel("Alt Reps").First).ToBeVisibleAsync();
 
         await page.GetByRole(AriaRole.Button, new() { Name = "Alt" }).First.ClickAsync();
-        await Expect(NumericInputs(page)).ToHaveCountAsync(6);
+        await Expect(page.GetByLabel("Alt Reps").First).ToBeHiddenAsync();
+        await Expect(page.GetByLabel("Alt Weight").First).ToBeHiddenAsync();
+        await Expect(page.GetByLabel("Alt Duration").First).ToBeHiddenAsync();
+        await Expect(page.GetByLabel("Note").First).ToBeHiddenAsync();
     }
 
     [Fact]
     public async Task AutofillButton_PopulatesFromPreviousWorkout()
     {
         var user = await fixture.Factory.CreateUserAsync($"{Guid.NewGuid()}@test.com", "Test123!");
-        var (routineId, exerciseIds) = await fixture.Factory.CreateRoutineWithExercisesAsync(user.Id, "Autofill Test Routine");
+        var (routineId, exerciseId) = await fixture.Factory.CreateRoutineWithAllFieldTypesAsync(user.Id, "Autofill Test Routine");
         await fixture.Factory.SaveWorkoutWithSetsAsync(
             user.Id, routineId, "Autofill Test Routine",
-            exerciseId: exerciseIds[0], exerciseName: "Bench Press",
-            reps: 10, weight: 135);
+            exerciseId: exerciseId, exerciseName: "Full Body Exercise",
+            reps: 10, weight: 135, duration: 60);
 
         await using var page = await fixture.CreateAuthenticatedPageAsync(user.Id);
         await PlaywrightFixture.NavigateAndAssertNoErrorsAsync(page,
             $"{fixture.Factory.BaseAddress}workout/{routineId}");
 
-        await Expect(page.GetByText("Bench Press")).ToBeVisibleAsync();
+        await Expect(page.GetByText("Full Body Exercise")).ToBeVisibleAsync();
         await page.GetByRole(AriaRole.Button, new() { Name = "Autofill from last workout" }).ClickAsync();
-        await Expect(NumericInputs(page).First).ToHaveValueAsync("10");
-        await Expect(NumericInputs(page).Nth(1)).ToHaveValueAsync("135");
+        await Expect(page.GetByLabel("Reps").First).ToHaveValueAsync("10");
+        await Expect(page.GetByLabel("Weight").First).ToHaveValueAsync("135");
+        await Expect(page.GetByLabel("Duration").First).ToHaveValueAsync("60");
     }
 
     [Fact]
