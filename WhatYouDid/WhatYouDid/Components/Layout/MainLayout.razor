@@ -1,6 +1,6 @@
 @inherits LayoutComponentBase
 
-<MudThemeProvider Theme="_theme" />
+<MudThemeProvider Theme="_theme" IsDarkMode="true" />
 
 <div class="page">
     <header class="top-bar">
@@ -26,10 +26,25 @@
 @code {
     private MudTheme _theme = new MudTheme
     {
-        PaletteLight = new PaletteLight
+        PaletteDark = new PaletteDark
         {
-            Primary = "#1b6ec2",
-            Secondary = "#3a0647",
+            Primary = "#39FF14",
+            PrimaryContrastText = "#000000",
+            Secondary = "#FF2D78",
+            SecondaryContrastText = "#000000",
+            Background = "#1A1A1A",
+            BackgroundGray = "#141414",
+            Surface = "#2D2D2D",
+            AppbarBackground = "#0D0D0D",
+            AppbarText = "#FFFFFF",
+            DrawerBackground = "#1A1A1A",
+            DrawerText = "#FFFFFF",
+            TextPrimary = "#F0F0F0",
+            TextSecondary = "rgba(255,255,255,0.6)",
+            ActionDefault = "rgba(255,255,255,0.54)",
+            LinesDefault = "#3D3D3D",
+            TableLines = "#3D3D3D",
+            Divider = "#3D3D3D",
         }
     };
 }
