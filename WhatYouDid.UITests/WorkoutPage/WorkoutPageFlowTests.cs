@@ -51,11 +51,18 @@ public class WorkoutPageFlowTests(PlaywrightFixture fixture)
             $"{fixture.Factory.BaseAddress}workout/{routineId}");
 
         await Expect(page.GetByText("1 of 2")).ToBeVisibleAsync();
+
+        await page.GetByLabel("Reps").First.FillAsync("10");
+        await page.GetByLabel("Weight").First.FillAsync("135");
+
         await NextButton(page).ClickAsync();
         await Expect(page.GetByText("2 of 2")).ToBeVisibleAsync();
 
         await BackButton(page).ClickAsync();
         await Expect(page.GetByText("1 of 2")).ToBeVisibleAsync();
+
+        await Expect(page.GetByLabel("Reps").First).ToHaveValueAsync("10");
+        await Expect(page.GetByLabel("Weight").First).ToHaveValueAsync("135");
     }
 
     [Fact]
@@ -70,7 +77,7 @@ public class WorkoutPageFlowTests(PlaywrightFixture fixture)
 
         await Expect(page.GetByText("Bench Press")).ToBeVisibleAsync();
         await NextButton(page).ClickAsync();
-        await Expect(page.GetByRole(AriaRole.Heading, new() { Name = "Review" })).ToBeVisibleAsync();
+        await Expect(page.GetByRole(AriaRole.Heading, new() { Name = "Review", Exact = true })).ToBeVisibleAsync();
         await Expect(page.GetByRole(AriaRole.Button, new() { Name = "Finish Workout" })).ToBeVisibleAsync();
     }
 
@@ -93,6 +100,59 @@ public class WorkoutPageFlowTests(PlaywrightFixture fixture)
         await Expect(page.GetByLabel("Reps").First).ToHaveValueAsync("10");
         await Expect(page.GetByLabel("Weight").First).ToHaveValueAsync("135");
         await Expect(page.GetByLabel("Duration").First).ToHaveValueAsync("30");
+    }
+
+    [Fact]
+    public async Task ReviewScreen_ShowsEnteredData()
+    {
+        var user = await fixture.Factory.CreateUserAsync($"{Guid.NewGuid()}@test.com", "Test123!");
+        var (routineId, _) = await fixture.Factory.CreateRoutineWithAllFieldTypesAsync(user.Id, "Review Test");
+
+        await using var page = await fixture.CreateAuthenticatedPageAsync(user.Id);
+        await PlaywrightFixture.NavigateAndAssertNoErrorsAsync(page,
+            $"{fixture.Factory.BaseAddress}workout/{routineId}");
+
+        await Expect(page.GetByText("Full Body Exercise")).ToBeVisibleAsync();
+        await page.GetByLabel("Reps").First.FillAsync("10");
+        await page.GetByLabel("Weight").First.FillAsync("135");
+        await page.GetByLabel("Duration").First.FillAsync("30");
+
+        await NextButton(page).ClickAsync();
+        await Expect(page.GetByRole(AriaRole.Heading, new() { Name = "Review", Exact = true })).ToBeVisibleAsync();
+
+        await Expect(page.GetByText("Full Body Exercise")).ToBeVisibleAsync();
+        await Expect(page.GetByText("R: 10")).ToBeVisibleAsync();
+        await Expect(page.GetByText("W: 135")).ToBeVisibleAsync();
+        await Expect(page.GetByText("D: 30")).ToBeVisibleAsync();
+    }
+
+    [Fact]
+    public async Task WorkoutProgress_PersistsAfterPageRefresh()
+    {
+        var user = await fixture.Factory.CreateUserAsync($"{Guid.NewGuid()}@test.com", "Test123!");
+        var (routineId, _) = await fixture.Factory.CreateRoutineWithAllFieldTypesAsync(user.Id, "Persistence Test");
+
+        await using var page = await fixture.CreateAuthenticatedPageAsync(user.Id);
+        await PlaywrightFixture.NavigateAndAssertNoErrorsAsync(page,
+            $"{fixture.Factory.BaseAddress}workout/{routineId}");
+
+        await Expect(page.GetByText("Full Body Exercise")).ToBeVisibleAsync();
+        await page.GetByLabel("Reps").First.FillAsync("10");
+        await page.GetByLabel("Weight").First.FillAsync("135");
+        await page.GetByLabel("Duration").First.FillAsync("30");
+
+        // Next triggers storage save
+        await NextButton(page).ClickAsync();
+        await Expect(page.GetByRole(AriaRole.Heading, new() { Name = "Review", Exact = true })).ToBeVisibleAsync();
+
+        await page.AsPage().ReloadAsync();
+        await page.AsPage().WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+        // Storage should restore to the review screen with the same entered values
+        await Expect(page.GetByRole(AriaRole.Heading, new() { Name = "Review", Exact = true })).ToBeVisibleAsync();
+        await Expect(page.GetByText("R: 10")).ToBeVisibleAsync();
+        await Expect(page.GetByText("W: 135")).ToBeVisibleAsync();
+        await Expect(page.GetByText("D: 30")).ToBeVisibleAsync();
     }
 
     [Fact]
@@ -168,7 +228,7 @@ public class WorkoutPageFlowTests(PlaywrightFixture fixture)
 
         await Expect(page.GetByText("Bench Press")).ToBeVisibleAsync();
         await NextButton(page).ClickAsync();
-        await Expect(page.GetByRole(AriaRole.Heading, new() { Name = "Review" })).ToBeVisibleAsync();
+        await Expect(page.GetByRole(AriaRole.Heading, new() { Name = "Review", Exact = true })).ToBeVisibleAsync();
 
         await page.GetByRole(AriaRole.Button, new() { Name = "Finish Workout" }).ClickAsync();
         await page.AsPage().WaitForURLAsync("**/workouts");
