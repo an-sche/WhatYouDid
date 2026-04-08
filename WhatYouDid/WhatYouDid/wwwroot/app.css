@@ -51,3 +51,41 @@ h1:focus {
 .darker-border-checkbox.form-check-input {
     border-color: #929292;
 }
+
+/* Dark theme overrides for Bootstrap form controls on SSR identity pages */
+.form-control,
+.form-floating > .form-control {
+    background-color: #2D2D2D;
+    color: #F0F0F0;
+    border-color: #3D3D3D;
+}
+
+.form-control:focus,
+.form-floating > .form-control:focus {
+    background-color: #2D2D2D;
+    color: #F0F0F0;
+    border-color: #39D614;
+}
+
+.form-control::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.form-floating > label {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.form-floating > .form-control:focus ~ label,
+.form-floating > .form-control:not(:placeholder-shown) ~ label {
+    color: #39D614;
+}
+
+.form-check-input {
+    background-color: #2D2D2D;
+    border-color: #3D3D3D;
+}
+
+.form-check-input:checked {
+    background-color: #39D614;
+    border-color: #39D614;
+}
