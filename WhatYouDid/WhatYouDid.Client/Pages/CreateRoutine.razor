@@ -8,13 +8,18 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 @inject IBrowserStorage BrowserStorage
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
 
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
 <PageTitle>Create Routine</PageTitle>
-<MudText Typo="Typo.h4">Create Routine</MudText>
+<MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
+    <MudText Typo="Typo.h4">Create Routine</MudText>
+    <MudButton OnClick="ConfirmClear" StartIcon="@Icons.Material.Filled.ClearAll" Color="Color.Default" Variant="Variant.Outlined">Clear</MudButton>
+</MudStack>
 
 <div style="width: 560px; max-width: 100%">
 		<hr />
@@ -135,7 +140,8 @@
 			}
 
 			await BrowserStorage.DeleteAsync(DraftKey);
-			Navigation.NavigateTo("routines");
+			ResetForm();
+			Snackbar.Add("Routine created!", Severity.Success);
 		}
 		catch
 		{
@@ -145,6 +151,42 @@
 		{
 			Busy = false;
 		}
+	}
+
+	async Task ConfirmClear()
+	{
+		bool? confirmed = await DialogService.ShowMessageBoxAsync(
+			"Clear form?",
+			"All form data will be lost.",
+			yesText: "Clear",
+			cancelText: "Cancel");
+
+		if (confirmed == true)
+		{
+			await BrowserStorage.DeleteAsync(DraftKey);
+			ResetForm();
+		}
+	}
+
+	void ResetForm()
+	{
+		routine = new CreateRoutineDto
+		{
+			Name = string.Empty,
+			Exercises = new List<CreateExerciseDto>()
+			{
+				new CreateExerciseDto()
+				{
+					Sequence = 1,
+					Name = string.Empty,
+					Sets = 1,
+					HasReps = true,
+					HasWeight = true
+				}
+			},
+		};
+		_exerciseKeys = [Guid.NewGuid().ToString("N")];
+		errorMessage = null;
 	}
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)

@@ -19,7 +19,11 @@
 }
 else
 {
-    <MudStack Spacing="3">
+    @if (!_ready)
+    {
+        <MudProgressLinear Indeterminate="true" Class="mb-2" />
+    }
+    <MudStack Spacing="3" Style="@(!_ready ? "pointer-events: none; opacity: 0.6" : "")">
         @foreach (var routine in routines)
         {
             <RoutineCard Name="@routine.Name" RoutineId="@routine.RoutineId" />
@@ -32,8 +36,19 @@ else
     [PersistentState]
     public List<RoutineDto>? routines { get; set; }
 
+    bool _ready;
+
     protected override async Task OnInitializedAsync()
     {
         routines ??= await RoutineService.GetUserRoutinesAsync();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _ready = true;
+            StateHasChanged();
+        }
     }
 }

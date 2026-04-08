@@ -43,16 +43,18 @@
 			(workoutExercise.LastWeights?.Any(w => w != null) == true) ||
 			(workoutExercise.LastDurations?.Any(d => d != null) == true));
 
-		<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="ma-2">
-			<MudSelect T="string" Dense
-				Value="@ExerciseNames.ElementAtOrDefault(WorkoutDto.ExerciseIndex)"
-				ValueChanged="@OnDropdownValueChanged"
-				Style="flex:1; min-width:0" Variant="Variant.Outlined">
-				@foreach (var name in ExerciseNames)
-				{
-					<MudSelectItem T="string" Value="@name">@name</MudSelectItem>
-				}
-			</MudSelect>
+		<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="ma-2" Style="overflow: hidden">
+			<div style="flex: 1; min-width: 0; overflow: hidden">
+				<MudSelect T="string" Dense FullWidth="true"
+					Value="@ExerciseNames.ElementAtOrDefault(WorkoutDto.ExerciseIndex)"
+					ValueChanged="@OnDropdownValueChanged"
+					Variant="Variant.Outlined">
+					@foreach (var name in ExerciseNames)
+					{
+						<MudSelectItem T="string" Value="@name">@name</MudSelectItem>
+					}
+				</MudSelect>
+			</div>
 			@if (hasLastValues)
 			{
 				<MudIconButton Color="Color.Default" Size="Size.Small"
