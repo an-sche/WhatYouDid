@@ -1,0 +1,38 @@
+@using WhatYouDid.Shared
+
+<MudStack Spacing="1" Class="mb-2">
+    <MudText Typo="Typo.caption" Style="color: var(--mud-palette-text-secondary)">
+        Started: @Workout.StartTime.ToLocalTime().ToString("h:mm tt")
+    </MudText>
+    @if (Workout.EndTime.HasValue)
+    {
+        var duration = Workout.EndTime.Value - Workout.StartTime;
+        <MudText Typo="Typo.caption" Style="color: var(--mud-palette-text-secondary)">
+            Ended: @Workout.EndTime.Value.ToLocalTime().ToString("h:mm tt")
+            &nbsp;&bull;&nbsp;
+            Duration: @FormatDuration(duration)
+        </MudText>
+    }
+</MudStack>
+
+<MudStack Spacing="0" Class="slide-from-right mb-4">
+    @foreach (var ex in Workout.WorkoutExercises ?? [])
+    {
+        <MudStack Spacing="0" Style="padding: 10px 0; border-top: 1px solid var(--mud-palette-divider)">
+            <MudText Typo="Typo.body2" Style="margin: 0; font-weight: 600">@ex.Sequence. @ex.ExerciseName</MudText>
+            <MudText Typo="Typo.caption" Style="margin: 0; color: var(--mud-palette-text-secondary); white-space: pre-line">@ex.Review</MudText>
+        </MudStack>
+    }
+</MudStack>
+
+@code {
+    [Parameter, EditorRequired]
+    public required WorkoutDto Workout { get; set; }
+
+    private static string FormatDuration(TimeSpan duration)
+    {
+        if (duration.TotalHours >= 1)
+            return $"{(int)duration.TotalHours}h {duration.Minutes}m";
+        return $"{duration.Minutes}m {duration.Seconds}s";
+    }
+}

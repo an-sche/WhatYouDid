@@ -169,15 +169,7 @@
 	else {
 
 		<MudText Typo="Typo.h5">Review</MudText>
-		<MudStack Spacing="0" Class="slide-from-right mb-4">
-			@foreach (var ex in WorkoutDto.WorkoutExercises ?? [])
-			{
-				<MudStack Spacing="0" Style="padding: 10px 0; border-top: 1px solid var(--mud-palette-divider)">
-					<MudText Typo="Typo.body2" Style="margin: 0; font-weight: 600">@ex.Sequence. @ex.ExerciseName</MudText>
-					<MudText Typo="Typo.caption" Style="margin: 0; color: var(--mud-palette-text-secondary); white-space: pre-line">@ex.Review</MudText>
-				</MudStack>
-			}
-		</MudStack>
+		<WorkoutReview Workout="@WorkoutDto" />
 
 		<MudStack Row="true" Spacing="2" Style="margin: 0.5rem">
 			<MudButton Style="flex:1" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick=@OnBackClick Color="Color.Secondary" Variant="Variant.Filled" Size="Size.Large" aria-label="Previous exercise" />
@@ -363,6 +355,7 @@
 		if (WorkoutDto.ExerciseIndex > 0)
 			WorkoutDto.ExerciseIndex--;
 
+		WorkoutDto.EndTime = DateTimeOffset.Now;
 		await BrowserStorage.SetAsync(WorkoutDto.GetBrowserStorageId, WorkoutDto);
 	}
 
@@ -375,6 +368,7 @@
 		if (WorkoutDto.ExerciseIndex < WorkoutDto.WorkoutExercises?.Count)
 			WorkoutDto.ExerciseIndex++;
 
+		WorkoutDto.EndTime = DateTimeOffset.Now;
 		await BrowserStorage.SetAsync(WorkoutDto.GetBrowserStorageId, WorkoutDto);
 	}
 
@@ -387,7 +381,7 @@
 
 		try
 		{
-			WorkoutDto.EndTime = DateTimeOffset.Now;
+			WorkoutDto.EndTime ??= DateTimeOffset.Now;
 			var response = await Http.PostAsJsonAsync("api/workouts", WorkoutDto);
 
 			if (!response.IsSuccessStatusCode)
