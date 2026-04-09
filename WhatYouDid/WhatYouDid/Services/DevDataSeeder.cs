@@ -136,6 +136,10 @@ internal sealed class DevDataSeeder(
             SeedWorkoutHistory(db, adminUser.Id, [legDay, adminPush, adminPull], startDaysAgo: 27, now);
             SeedWorkoutHistory(db, testUser.Id, [legDay, testPilates, testYoga], startDaysAgo: 27, now);
 
+            var year2005 = new DateTime(2005, 6, 1);
+            SeedWorkoutHistory(db, adminUser.Id, [legDay, adminPush, adminPull], startDaysAgo: 27, year2005);
+            SeedWorkoutHistory(db, testUser.Id, [legDay, testPilates, testYoga], startDaysAgo: 27, year2005);
+
             await db.SaveChangesAsync(cancellationToken);
             logger.LogInformation("Dev data seeding complete.");
         }

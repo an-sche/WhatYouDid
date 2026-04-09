@@ -77,11 +77,11 @@
                                             <MudText Typo="Typo.caption">sec</MudText>
                                         }
                                         <MudButton Size="Size.Small" Variant="Variant.Outlined"
-                                            StartIcon="@(IsAltExpanded(setIndex) || HasAltData(exercise, setIndex) ? Icons.Material.Filled.Remove : Icons.Material.Filled.Add)"
+                                            StartIcon="@(IsAltExpanded(setIndex) || exercise.HasAnyAlternateData(setIndex) ? Icons.Material.Filled.Remove : Icons.Material.Filled.Add)"
                                             OnClick="@(() => ToggleAlt(setIndex))">Alt</MudButton>
                                     </MudStack>
 
-                                    @if (IsAltExpanded(setIndex) || HasAltData(exercise, setIndex))
+                                    @if (IsAltExpanded(setIndex) || exercise.HasAnyAlternateData(setIndex))
                                     {
                                         <MudStack Spacing="1"
                                             Style="border-left: 2px solid var(--mud-palette-secondary-lighten); padding-left: 8px">
@@ -143,13 +143,7 @@
             _expandedAlts.Add(setIndex);
     }
 
-    bool HasAltData(WorkoutExerciseDto exercise, int setIndex) =>
-        (exercise.AlternateReps.Length > setIndex && exercise.AlternateReps[setIndex] != null)
-        || (exercise.AlternateWeights.Length > setIndex && exercise.AlternateWeights[setIndex] != null)
-        || (exercise.AlternateDurations.Length > setIndex && exercise.AlternateDurations[setIndex] != null)
-        || (exercise.Notes.Length > setIndex && !string.IsNullOrEmpty(exercise.Notes[setIndex]));
-
-    async Task ToggleCollapsed()
+async Task ToggleCollapsed()
     {
         collapsed = !collapsed;
         if (!collapsed)

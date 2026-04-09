@@ -23,7 +23,7 @@
 
 <div style="width: 560px; max-width: 100%">
 		<hr />
-		<EditForm Model=@routine OnValidSubmit="OnValidSubmit" OnInvalidSubmit="OnInvalidSubmit" FormName="CreateRoutine" Context="CreateRoutine">
+		<EditForm Model=@routine OnValidSubmit="OnValidSubmit" FormName="CreateRoutine" Context="CreateRoutine">
 
 			<DataAnnotationsValidator />
 			<ValidationSummary />
@@ -97,7 +97,10 @@
 	private List<string> _exerciseKeys = [Guid.NewGuid().ToString("N")];
 	private Dictionary<string, double>? _flipPositions;
 
-	CreateRoutineDto routine = new() {
+	CreateRoutineDto routine = NewRoutine();
+
+	static CreateRoutineDto NewRoutine() => new()
+	{
 		Name = string.Empty,
 		Exercises = new List<CreateExerciseDto>()
 		{
@@ -106,17 +109,11 @@
 				Sequence = 1,
 				Name = string.Empty,
 				Sets = 1,
-
 				HasReps = true,
 				HasWeight = true
 			}
 		},
 	};
-
-	async Task OnInvalidSubmit()
-	{
-		await Task.Yield();
-	}
 
 	async Task OnValidSubmit()
 	{
@@ -170,21 +167,7 @@
 
 	void ResetForm()
 	{
-		routine = new CreateRoutineDto
-		{
-			Name = string.Empty,
-			Exercises = new List<CreateExerciseDto>()
-			{
-				new CreateExerciseDto()
-				{
-					Sequence = 1,
-					Name = string.Empty,
-					Sets = 1,
-					HasReps = true,
-					HasWeight = true
-				}
-			},
-		};
+		routine = NewRoutine();
 		_exerciseKeys = [Guid.NewGuid().ToString("N")];
 		errorMessage = null;
 	}

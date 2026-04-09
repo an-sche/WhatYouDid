@@ -11,7 +11,7 @@
 
 <PageTitle>Dashboard</PageTitle>
 
-<h1>Dashboard</h1>
+<MudText Typo="Typo.h4">Dashboard</MudText>
 
 <MudSelect T="int" Value="selectedYear" ValueChanged="ReloadDataAsync" Style="min-width:160px" Variant="Variant.Outlined">
     @foreach (var item in yearItems ?? [new YearItem(0, "All Years")])
@@ -31,7 +31,7 @@
     <MudItem xs="12">
         <MudCard>
             <MudCardContent>
-                <div>No workout data for the selected year(s)</div>
+                <MudText>No workout data for the selected year(s)</MudText>
             </MudCardContent>
         </MudCard>
     </MudItem>
@@ -44,9 +44,9 @@
         <MudItem xs="12" sm="6" md="4">
             <MudCard Style="height:150px">
                 <MudCardContent>
-                    <h5>@w.RoutineName</h5>
-                    <div class="display-6">@w.Count</div>
-                    <div class="text-muted">times performed</div>
+                    <MudText Typo="Typo.h6">@w.RoutineName</MudText>
+                    <MudText Typo="Typo.h3">@w.Count</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">times performed</MudText>
                 </MudCardContent>
             </MudCard>
         </MudItem>
@@ -55,9 +55,9 @@
     <MudItem xs="12" sm="6" md="4">
         <MudCard Style="height:150px">
             <MudCardContent>
-                <h6>Total Workout Duration</h6>
-                <div class="display-6">@FormatMinutes(dashboard.TotalWorkoutDuration)</div>
-                <div class="text-muted">sum of all workouts</div>
+                <MudText Typo="Typo.h6">Total Workout Duration</MudText>
+                <MudText Typo="Typo.h3">@FormatMinutes(dashboard.TotalWorkoutDuration)</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">sum of all workouts</MudText>
             </MudCardContent>
         </MudCard>
     </MudItem>
@@ -65,9 +65,9 @@
     <MudItem xs="12" sm="6" md="4">
         <MudCard Style="height:150px">
             <MudCardContent>
-                <h6>Total Reps Completed</h6>
-                <div class="display-6">@dashboard.TotalReps</div>
-                <div class="text-muted">count of reps</div>
+                <MudText Typo="Typo.h6">Total Reps Completed</MudText>
+                <MudText Typo="Typo.h3">@dashboard.TotalReps</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">count of reps</MudText>
             </MudCardContent>
         </MudCard>
     </MudItem>
@@ -75,9 +75,9 @@
     <MudItem xs="12" sm="6" md="4">
         <MudCard Style="height:150px">
             <MudCardContent>
-                <h6>Total Workouts</h6>
-                <div class="display-6">@dashboard.TotalWorkouts</div>
-                <div class="text-muted">workouts completed</div>
+                <MudText Typo="Typo.h6">Total Workouts</MudText>
+                <MudText Typo="Typo.h3">@dashboard.TotalWorkouts</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">workouts completed</MudText>
             </MudCardContent>
         </MudCard>
     </MudItem>
@@ -92,7 +92,8 @@
     [PersistentState]
     public List<YearItem>? yearItems { get; set; }
 
-    private int selectedYear; // 0 = All Years
+    [PersistentState]
+    public int selectedYear { get; set; } // 0 = All Years
 
     private static string FormatMinutes(int? minutes)
     {
@@ -128,6 +129,5 @@
         {
             dashboard = new DashboardDto { TopWorkouts = new List<WorkoutSummaryDto>() };
         }
-        StateHasChanged();
     }
 }

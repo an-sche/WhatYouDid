@@ -84,4 +84,11 @@ public class WorkoutExerciseDto
     public int?[] AlternateWeights { get; init; } = [];
     public int?[] AlternateDurations { get; init; } = [];
     public string?[] Notes { get; init; } = [];
+
+    public bool HasAnyAlternateData(int setIndex) =>
+        (AlternateReps.Length > setIndex && AlternateReps[setIndex] != null)
+        || (AlternateWeights.Length > setIndex && AlternateWeights[setIndex] != null)
+        || (AlternateDurations.Length > setIndex && AlternateDurations[setIndex] != null)
+        || (Notes.Length > setIndex && !string.IsNullOrEmpty(Notes[setIndex]));
+
 }

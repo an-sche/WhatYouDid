@@ -1,7 +1,5 @@
 @page "/workout/{RoutineId:int}"
 
-@using System.Text
-@using System.Security.Claims
 @using WhatYouDid.Client.Components
 @using WhatYouDid.Shared
 
@@ -35,7 +33,7 @@
 }
 
 <div class="exercise-wrapper">
-	@if (WorkoutDto.ExerciseIndex < @WorkoutDto.WorkoutExercises?.Count)
+	@if (WorkoutDto.ExerciseIndex < WorkoutDto.WorkoutExercises?.Count)
 	{
 		var workoutExercise = WorkoutDto.WorkoutExercises[WorkoutDto.ExerciseIndex];
 		bool hasLastValues = (workoutExercise.HasReps || workoutExercise.HasWeights || workoutExercise.HasDurations)
@@ -75,7 +73,7 @@
 						<MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
 							<MudText Typo="Typo.caption">Set: @(index + 1)</MudText>
 							<MudButton Size="Size.Small" Variant="Variant.Outlined" tabindex="-1"
-								StartIcon="@(IsAlternateExpanded(WorkoutDto.ExerciseIndex, index) || HasAnyAlternateData(workoutExercise, index) || HasAnyLastAlternateData(workoutExercise, index) ? Icons.Material.Filled.Remove : Icons.Material.Filled.Add)"
+								StartIcon="@(IsAlternateExpanded(WorkoutDto.ExerciseIndex, index) || workoutExercise.HasAnyAlternateData(index) || HasAnyLastAlternateData(workoutExercise, index) ? Icons.Material.Filled.Remove : Icons.Material.Filled.Add)"
 								Disabled="@HasAnyLastAlternateData(workoutExercise, index)"
 								OnClick="@(() => ToggleAlternate(WorkoutDto.ExerciseIndex, index))">Alt</MudButton>
 						</MudStack>
@@ -119,7 +117,7 @@
 						}
 						</MudStack>
 
-			@if (IsAlternateExpanded(WorkoutDto.ExerciseIndex, index) || HasAnyAlternateData(workoutExercise, index) || HasAnyLastAlternateData(workoutExercise, index))
+			@if (IsAlternateExpanded(WorkoutDto.ExerciseIndex, index) || workoutExercise.HasAnyAlternateData(index) || HasAnyLastAlternateData(workoutExercise, index))
 					{
 						<MudStack Spacing="1" Style="border-left: 2px solid var(--mud-palette-secondary-lighten); padding-left: 8px; margin-top: 4px">
 							@if (workoutExercise.HasReps)
@@ -253,14 +251,6 @@
 			_expandedAlternates.Add(key);
 	}
 
-	private bool HasAnyAlternateData(WorkoutExerciseDto exercise, int setIndex)
-	{
-		return (exercise.AlternateReps.Length > setIndex && exercise.AlternateReps[setIndex] != null)
-			|| (exercise.AlternateWeights.Length > setIndex && exercise.AlternateWeights[setIndex] != null)
-			|| (exercise.AlternateDurations.Length > setIndex && exercise.AlternateDurations[setIndex] != null)
-			|| (exercise.Notes.Length > setIndex && !string.IsNullOrEmpty(exercise.Notes[setIndex]));
-	}
-
 	private bool HasAnyLastAlternateData(WorkoutExerciseDto exercise, int setIndex)
 	{
 		return (exercise.LastAlternateReps != null && exercise.LastAlternateReps.Length > setIndex && exercise.LastAlternateReps[setIndex] != null)
@@ -278,7 +268,7 @@
 		{
 			WorkoutDto.StartTime = DateTimeOffset.Now;
 			ExerciseNames = WorkoutDto.WorkoutExercises?
-				.Select(w => $"{w.Sequence}: {w.ExerciseName}").ToArray() ?? new string[0];
+				.Select(w => $"{w.Sequence}: {w.ExerciseName}").ToArray() ?? [];
 		}
 
 		await base.OnInitializedAsync();
@@ -341,7 +331,7 @@
 			if (ex.LastNotes != null && ex.LastNotes.Length > i)
 				ex.Notes[i] = ex.LastNotes[i];
 
-			if (HasAnyAlternateData(ex, i))
+			if (ex.HasAnyAlternateData(i))
 				_expandedAlternates.Add((WorkoutDto.ExerciseIndex, i));
 		}
 	}

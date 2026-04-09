@@ -1,10 +1,7 @@
-@using Microsoft.AspNetCore.Authorization
-@using System.Text
-
 @inject IDialogService DialogService
 
 <MudTextFieldExtended T="int?" Label="@InternalTitle" aria-label="@InternalTitle"
-    Value="@EnterValue" ValueChanged="@OnChange"
+    Value="@EnterValue" ValueChanged="@OnChangeAsync"
     Style="width: 100%" Variant="Variant.Outlined"
     InputMode="InputMode.numeric">
     <AdornmentStart>
@@ -32,15 +29,15 @@
     public string? TitlePrefix { get; set; }
 
     [Parameter]
-    public int? Goal { get; set; } = null;
+    public int? Goal { get; set; }
 
     [Parameter]
-    public int? EnterValue { get; set; } = null;
+    public int? EnterValue { get; set; }
 
     [Parameter]
     public EventCallback<int?> EnterValueChanged { get; set; }
 
-    async void OnChange(int? value)
+    async Task OnChangeAsync(int? value)
     {
         await EnterValueChanged.InvokeAsync(value);
     }
