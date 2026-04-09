@@ -1,6 +1,7 @@
 @page "/createroutine"
 
 @using WhatYouDid.Shared
+@using System.ComponentModel.DataAnnotations
 @attribute [Authorize]
 @rendermode InteractiveWebAssembly
 
@@ -123,9 +124,10 @@
 
 		try
 		{
-			if (routine.Exercises.Any(e => string.IsNullOrWhiteSpace(e.Name) || e.Name.Trim().Length < 3))
+			var errors = new List<ValidationResult>();
+			if (!Validator.TryValidateObject(routine, new ValidationContext(routine), errors, validateAllProperties: true))
 			{
-				errorMessage = "All exercises must have a name (at least 3 characters).";
+				errorMessage = errors.First().ErrorMessage;
 				return;
 			}
 

@@ -201,6 +201,52 @@ public class RoutineApiTests(ApiWebApplicationFactory factory)
     }
 
     [Fact]
+    public async Task CreateRoutine_EmptyRoutineName_Returns400()
+    {
+        var id = Guid.NewGuid().ToString("N")[..8];
+        var user = await factory.CreateUserAsync($"rt-val1-{id}@test.com", "Test1234!");
+        var client = factory.CreateAuthenticatedClient(user.Id);
+        var dto = new CreateRoutineDto { Name = "", Exercises = [] };
+
+        var response = await client.PostAsJsonAsync("/api/routines", dto);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateRoutine_ShortRoutineName_Returns400()
+    {
+        var id = Guid.NewGuid().ToString("N")[..8];
+        var user = await factory.CreateUserAsync($"rt-val2-{id}@test.com", "Test1234!");
+        var client = factory.CreateAuthenticatedClient(user.Id);
+        var dto = new CreateRoutineDto { Name = "AB", Exercises = [] };
+
+        var response = await client.PostAsJsonAsync("/api/routines", dto);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateRoutine_EmptyExerciseName_Returns400()
+    {
+        var id = Guid.NewGuid().ToString("N")[..8];
+        var user = await factory.CreateUserAsync($"rt-val3-{id}@test.com", "Test1234!");
+        var client = factory.CreateAuthenticatedClient(user.Id);
+        var dto = new CreateRoutineDto
+        {
+            Name = "Valid Routine",
+            Exercises =
+            [
+                new CreateExerciseDto { Name = "", Sequence = 1, Sets = 3 }
+            ]
+        };
+
+        var response = await client.PostAsJsonAsync("/api/routines", dto);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
     public async Task CreateRoutine_Authenticated_RoutineIsRetrievable()
     {
         var id = Guid.NewGuid().ToString("N")[..8];
