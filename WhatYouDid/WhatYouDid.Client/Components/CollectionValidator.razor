@@ -1,0 +1,52 @@
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Forms
+@implements IDisposable
+
+@code {
+    [CascadingParameter] private EditContext EditContext { get; set; } = null!;
+    [Parameter] public IEnumerable<object> Items { get; set; } = [];
+
+    private ValidationMessageStore _messageStore = null!;
+
+    protected override void OnInitialized()
+    {
+        _messageStore = new ValidationMessageStore(EditContext);
+        EditContext.OnValidationRequested += Validate;
+        EditContext.OnFieldChanged += OnFieldChanged;
+    }
+
+    private void Validate(object? sender, ValidationRequestedEventArgs e)
+    {
+        _messageStore.Clear();
+        foreach (var item in Items)
+        {
+            var results = new List<ValidationResult>();
+            Validator.TryValidateObject(item, new ValidationContext(item), results, validateAllProperties: true);
+            foreach (var result in results)
+                foreach (var memberName in result.MemberNames)
+                    _messageStore.Add(new FieldIdentifier(item, memberName), result.ErrorMessage ?? "Invalid");
+        }
+    }
+
+    private void OnFieldChanged(object? sender, FieldChangedEventArgs e)
+    {
+        // Re-validate just the changed item so inline messages update as you type
+        var item = e.FieldIdentifier.Model;
+        if (!Items.Contains(item)) return;
+
+        _messageStore.Clear(e.FieldIdentifier);
+        var results = new List<ValidationResult>();
+        Validator.TryValidateObject(item, new ValidationContext(item), results, validateAllProperties: true);
+        foreach (var result in results)
+            foreach (var memberName in result.MemberNames)
+                _messageStore.Add(new FieldIdentifier(item, memberName), result.ErrorMessage ?? "Invalid");
+
+        EditContext.NotifyValidationStateChanged();
+    }
+
+    public void Dispose()
+    {
+        EditContext.OnValidationRequested -= Validate;
+        EditContext.OnFieldChanged -= OnFieldChanged;
+    }
+}

@@ -93,6 +93,7 @@ builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
     options.TokenLifespan = TimeSpan.FromHours(1);
 });
 
+builder.Services.AddValidation();
 builder.Services.AddOpenApi();
 builder.Services.AddResendEmail(builder.Configuration);
 builder.Services.AddAccountRateLimiting();

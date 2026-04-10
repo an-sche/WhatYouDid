@@ -25,4 +25,6 @@ builder.Services.AddScoped<IDashboardService, DashboardHttpService>();
 builder.Services.AddScoped<IRoutineService, RoutineHttpService>();
 builder.Services.AddScoped<IWorkoutService, WorkoutHttpService>();
 
+builder.Services.AddValidation();
+
 await builder.Build().RunAsync();
