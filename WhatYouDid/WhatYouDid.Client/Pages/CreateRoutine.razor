@@ -62,16 +62,16 @@
 
 						<NumberStepper Label="Sets" @bind-Value="e.Sets" Min="1" Max="10" Class="mt-3 mb-1" />
 
-						<MudStack Row="true" Spacing="1" Class="mt-3">
-							<MudButton ButtonType="ButtonType.Button" StartIcon="@Icons.Material.Filled._123"
-								Variant="@(e.HasReps ? Variant.Filled : Variant.Outlined)" Color="@(e.HasReps ? Color.Primary : Color.Default)" Size="Size.Medium"
-								OnClick="@(() => e.HasReps = !e.HasReps)">Reps</MudButton>
-							<MudButton ButtonType="ButtonType.Button" StartIcon="@Icons.Material.Filled.FitnessCenter"
-								Variant="@(e.HasWeight ? Variant.Filled : Variant.Outlined)" Color="@(e.HasWeight ? Color.Primary : Color.Default)" Size="Size.Medium"
-								OnClick="@(() => e.HasWeight = !e.HasWeight)">Weight</MudButton>
-							<MudButton ButtonType="ButtonType.Button" StartIcon="@Icons.Material.Filled.Timer"
-								Variant="@(e.HasDuration ? Variant.Filled : Variant.Outlined)" Color="@(e.HasDuration ? Color.Primary : Color.Default)" Size="Size.Medium"
-								OnClick="@(() => e.HasDuration = !e.HasDuration)">Duration</MudButton>
+						<MudStack Row="true" Spacing="1" Class="mt-3" Style="flex-wrap:wrap">
+							<MudChip T="string" Icon="@Icons.Material.Filled._123"
+								Variant="@(e.HasReps ? Variant.Filled : Variant.Outlined)" Color="@(e.HasReps ? Color.Primary : Color.Default)"
+								OnClick="@(() => e.HasReps = !e.HasReps)">Reps</MudChip>
+							<MudChip T="string" Icon="@Icons.Material.Filled.FitnessCenter"
+								Variant="@(e.HasWeight ? Variant.Filled : Variant.Outlined)" Color="@(e.HasWeight ? Color.Primary : Color.Default)"
+								OnClick="@(() => e.HasWeight = !e.HasWeight)">Weight</MudChip>
+							<MudChip T="string" Icon="@Icons.Material.Filled.Timer"
+								Variant="@(e.HasDuration ? Variant.Filled : Variant.Outlined)" Color="@(e.HasDuration ? Color.Primary : Color.Default)"
+								OnClick="@(() => e.HasDuration = !e.HasDuration)">Duration</MudChip>
 						</MudStack>
 					</MudCardContent>
 				</MudCard>
