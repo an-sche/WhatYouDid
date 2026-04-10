@@ -1,0 +1,28 @@
+@* A +/- stepper for small integer values, replacing a dropdown *@
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="@Class">
+    <MudText Typo="Typo.body2" Style="min-width:48px; color: var(--mud-palette-text-secondary)">@Label</MudText>
+    <MudIconButton Icon="@Icons.Material.Filled.Remove"
+                   Variant="Variant.Outlined"
+                   Size="Size.Small"
+                   Disabled="@(Value <= Min)"
+                   OnClick="Decrement" />
+    <MudText Typo="Typo.body1" Style="min-width:24px; text-align:center; font-weight:600">@Value</MudText>
+    <MudIconButton Icon="@Icons.Material.Filled.Add"
+                   Variant="Variant.Outlined"
+                   Size="Size.Small"
+                   Disabled="@(Value >= Max)"
+                   OnClick="Increment" />
+</MudStack>
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public int Value { get; set; }
+    [Parameter, EditorRequired] public EventCallback<int> ValueChanged { get; set; }
+    [Parameter] public int Min { get; set; } = 1;
+    [Parameter] public int Max { get; set; } = 10;
+    [Parameter] public string? Class { get; set; }
+
+    Task Decrement() => ValueChanged.InvokeAsync(Math.Max(Min, Value - 1));
+    Task Increment() => ValueChanged.InvokeAsync(Math.Min(Max, Value + 1));
+}

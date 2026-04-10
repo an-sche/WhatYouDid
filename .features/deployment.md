@@ -44,7 +44,6 @@ This logic lives in `Program.cs` and uses a raw SQL `BACKUP DATABASE` command (S
 ## Development Seed Data
 In the `Development` environment, `DevDataSeeder` runs at startup and populates:
 - Two test accounts: `admin@test.com / Admin1234!` and `test@test.com / Test1234!`
-- 5 routines and ~27 days of workout history
 - One public "Leg Day" routine visible to all users
 
 This does not run in production.
