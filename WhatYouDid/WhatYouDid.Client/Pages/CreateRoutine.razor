@@ -9,11 +9,9 @@
 @inject IJSRuntime JS
 @inject IBrowserStorage BrowserStorage
 @inject IDialogService DialogService
-@inject ISnackbar Snackbar
 
 <MudPopoverProvider />
 <MudDialogProvider />
-<MudSnackbarProvider />
 
 <PageTitle>Create Routine</PageTitle>
 <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
@@ -22,6 +20,14 @@
 </MudStack>
 
 <div style="width: 560px; max-width: 100%; padding: 0 8px">
+		@if (_createdRoutineName is not null)
+		{
+			<MudAlert Severity="Severity.Success" ShowCloseIcon="true" CloseIconClicked="() => _createdRoutineName = null" Class="mb-3">
+				Routine "@_createdRoutineName" created!
+				<MudButton Href="/routines" Variant="Variant.Outlined" Size="Size.Small" Class="ml-2" Style="color:white; border-color:white">View Routines</MudButton>
+			</MudAlert>
+		}
+
 		<hr />
 		<EditForm Model=@routine OnValidSubmit="OnValidSubmit" FormName="CreateRoutine" Context="CreateRoutine">
 			<DataAnnotationsValidator />
@@ -39,7 +45,7 @@
 				<MudCard Outlined="true" Class="mb-4" data-exercise-card="@_exerciseKeys[i]">
 					<MudCardContent>
 						<MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
-							<MudText Typo="Typo.subtitle2">@e.Sequence.</MudText>
+							<MudText Typo="Typo.subtitle2">Exercise @e.Sequence</MudText>
 							<MudStack Row="true" Spacing="1">
 								<MudIconButton Icon="@Icons.Material.Filled.ArrowUpward" Variant="Variant.Outlined" Color="Color.Default" Size="Size.Large" OnClick="@(() => MoveExerciseUp(e))" Disabled="@(i == 0)" />
 								<MudIconButton Icon="@Icons.Material.Filled.ArrowDownward" Variant="Variant.Outlined" Color="Color.Default" Size="Size.Large" OnClick="@(() => MoveExerciseDown(e))" Disabled="@(i == routine.Exercises.Count - 1)" />
@@ -94,6 +100,7 @@
 @code {
 
 	private const string DraftKey = "CreateRoutine_Draft";
+	private string? _createdRoutineName = null;
 	private static readonly int[] SetOptions = Enumerable.Range(1, 10).ToArray();
 	private bool _initialized = false;
 	private bool Busy = false;
@@ -134,9 +141,10 @@
 				return;
 			}
 
+			var createdName = routine.Name;
 			await BrowserStorage.DeleteAsync(DraftKey);
 			ResetForm();
-			Snackbar.Add("Routine created!", Severity.Success);
+			_createdRoutineName = createdName;
 		}
 		catch
 		{
@@ -168,6 +176,7 @@
 		routine = NewRoutine();
 		_exerciseKeys = [Guid.NewGuid().ToString("N")];
 		errorMessage = null;
+		_createdRoutineName = null;
 	}
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)
