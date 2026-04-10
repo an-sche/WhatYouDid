@@ -1,7 +1,6 @@
 @page "/createroutine"
 
 @using WhatYouDid.Shared
-@using System.ComponentModel.DataAnnotations
 @attribute [Authorize]
 @rendermode InteractiveWebAssembly
 
@@ -25,11 +24,9 @@
 <div style="width: 560px; max-width: 100%">
 		<hr />
 		<EditForm Model=@routine OnValidSubmit="OnValidSubmit" FormName="CreateRoutine" Context="CreateRoutine">
-
 			<DataAnnotationsValidator />
-			<ValidationSummary />
 
-			<MudTextField Label="Routine Name" @bind-Value="routine.Name" FullWidth="true" Variant="Variant.Outlined" Class="mb-2" />
+			<MudTextField Label="Routine Name" @bind-Value="routine.Name" Immediate="true" FullWidth="true" Variant="Variant.Outlined" Class="mb-2" />
 			<ValidationMessage For="() => routine.Name" />
 			<hr />
 
@@ -48,7 +45,7 @@
 								<MudIconButton Icon="@Icons.Material.Filled.Delete" Variant="Variant.Outlined" Color="Color.Error" Size="Size.Medium" OnClick="@(() => RemoveExercise(e))" />
 							</MudStack>
 						</MudStack>
-						<MudTextField Label="Exercise Name" @bind-Value="e.Name" FullWidth="true" Variant="Variant.Outlined" Class="mb-2" />
+						<MudTextField Label="Exercise Name" @bind-Value="e.Name" Immediate="true" FullWidth="true" Variant="Variant.Outlined" Class="mb-2" />
 						<ValidationMessage For="() => e.Name" />
 
 						<MudTextField Label="Description (optional)" @bind-Value="e.Description" Lines="2" FullWidth="true" Variant="Variant.Outlined" Class="mt-3" />
@@ -57,25 +54,27 @@
 						<MudNumericField T="int" Label="Sets" @bind-Value="e.Sets" Min="1" Max="10" Variant="Variant.Outlined" Class="mt-3" />
 						<ValidationMessage For="() => e.Sets" />
 
-						<MudStack Row="true" Spacing="4" Class="mt-3" Style="flex-wrap: wrap">
-							<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
-								<MudCheckBox @bind-Value="e.HasReps" />
-								<MudText>Reps</MudText>
-							</MudStack>
-							<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
-								<MudCheckBox @bind-Value="e.HasWeight" />
-								<MudText>Weight</MudText>
-							</MudStack>
-							<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
-								<MudCheckBox @bind-Value="e.HasDuration" />
-								<MudText>Duration</MudText>
-							</MudStack>
+						<MudStack Row="true" Spacing="1" Class="mt-3">
+							<MudButton ButtonType="ButtonType.Button" StartIcon="@Icons.Material.Filled._123"
+								Variant="Variant.Outlined" Color="Color.Default" Size="Size.Medium"
+								OnClick="@(() => e.HasReps = !e.HasReps)"
+								Style="@(e.HasReps ? "opacity: 1.0" : "opacity: 0.2")">Reps</MudButton>
+							<MudButton ButtonType="ButtonType.Button" StartIcon="@Icons.Material.Filled.FitnessCenter"
+								Variant="Variant.Outlined" Color="Color.Default" Size="Size.Medium"
+								OnClick="@(() => e.HasWeight = !e.HasWeight)"
+								Style="@(e.HasWeight ? "opacity: 1.0" : "opacity: 0.2")">Weight</MudButton>
+							<MudButton ButtonType="ButtonType.Button" StartIcon="@Icons.Material.Filled.Timer"
+								Variant="Variant.Outlined" Color="Color.Default" Size="Size.Medium"
+								OnClick="@(() => e.HasDuration = !e.HasDuration)"
+								Style="@(e.HasDuration ? "opacity: 1.0" : "opacity: 0.2")">Duration</MudButton>
 						</MudStack>
 					</MudCardContent>
 				</MudCard>
 			}
 
 			<MudButton OnClick="@AddExercise" StartIcon="@Icons.Material.Filled.AddCircleOutline" Color="Color.Primary" Variant="Variant.Filled" Class="mb-4" FullWidth="true">Add Exercise</MudButton>
+
+			<ValidationSummary />
 
 			@if (errorMessage is not null)
 			{
@@ -98,7 +97,7 @@
 	private List<string> _exerciseKeys = [Guid.NewGuid().ToString("N")];
 	private Dictionary<string, double>? _flipPositions;
 
-	CreateRoutineDto routine = NewRoutine();
+	public CreateRoutineDto routine = NewRoutine();
 
 	static CreateRoutineDto NewRoutine() => new()
 	{
@@ -124,10 +123,9 @@
 
 		try
 		{
-			var errors = new List<ValidationResult>();
-			if (!Validator.TryValidateObject(routine, new ValidationContext(routine), errors, validateAllProperties: true))
+				if (routine.Exercises.Any(e => string.IsNullOrWhiteSpace(e.Name) || e.Name.Trim().Length < 3))
 			{
-				errorMessage = errors.First().ErrorMessage;
+				errorMessage = "All exercises must have a name (at least 3 characters).";
 				return;
 			}
 
