@@ -29,4 +29,13 @@ public class PageSmokeTests(PlaywrightFixture fixture)
         await PlaywrightFixture.NavigateAndAssertNoErrorsAsync(page,
             $"{fixture.Factory.BaseAddress}workouts");
     }
+
+    [Fact]
+    public async Task CreateRoutinePage_Loads_WithoutConsoleErrors()
+    {
+        var user = await fixture.Factory.CreateUserAsync($"{Guid.NewGuid()}@test.com", "Test123!");
+        await using var page = await fixture.CreateAuthenticatedPageAsync(user.Id);
+        await PlaywrightFixture.NavigateAndAssertNoErrorsAsync(page,
+            $"{fixture.Factory.BaseAddress}createroutine");
+    }
 }
