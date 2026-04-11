@@ -66,7 +66,7 @@ public class WorkoutCrudTests(DatabaseFixture fixture)
             ]
         });
 
-        var workouts = await api.GetWorkoutsAsync(0, 100);
+        var workouts = (await api.GetWorkoutsAsync(0, 100)).Items;
         var saved = workouts.FirstOrDefault(w => w.WorkoutId == workoutId);
 
         Assert.NotNull(saved);
@@ -104,7 +104,7 @@ public class WorkoutCrudTests(DatabaseFixture fixture)
             });
         }
 
-        var workouts = await api.GetWorkoutsAsync(0, 100);
+        var workouts = (await api.GetWorkoutsAsync(0, 100)).Items;
         var mine = workouts.Where(w => w.RoutineName == $"Order Routine {id}").ToList();
 
         Assert.Equal(3, mine.Count);
@@ -143,15 +143,14 @@ public class WorkoutCrudTests(DatabaseFixture fixture)
             WorkoutExercises = []
         });
 
-        var results = await api.GetWorkoutsAsync(0, 100, $"Chest Day {id}");
-        var count = await api.GetWorkoutsCountAsync($"Chest Day {id}");
+        var result = await api.GetWorkoutsAsync(0, 100, $"Chest Day {id}");
 
-        Assert.All(results, w => Assert.Contains($"Chest Day {id}", w.RoutineName));
-        Assert.Equal(results.Count, count);
+        Assert.All(result.Items, w => Assert.Contains($"Chest Day {id}", w.RoutineName));
+        Assert.Equal(result.Items.Count, result.TotalCount);
     }
 
     [Fact]
-    public async Task GetWorkoutsCountAsync_ReturnsCorrectCount()
+    public async Task GetWorkoutsAsync_TotalCount_ReturnsCorrectCount()
     {
         var id = Guid.NewGuid().ToString("N")[..8];
         var user = await fixture.CreateUserAsync($"workout-count-{id}@test.com", "Test1234!");
@@ -172,13 +171,13 @@ public class WorkoutCrudTests(DatabaseFixture fixture)
                 WorkoutExercises = []
             });
 
-        var count = await api.GetWorkoutsCountAsync();
+        var result = await api.GetWorkoutsAsync(0, 1, $"Count Routine {id}");
 
-        Assert.Equal(3, count);
+        Assert.Equal(3, result.TotalCount);
     }
 
     [Fact]
-    public async Task GetWorkoutsAsync_Pagination_RespectsStartIndexAndCount()
+    public async Task GetWorkoutsAsync_Pagination_RespectsPageAndPageSize()
     {
         var id = Guid.NewGuid().ToString("N")[..8];
         var user = await fixture.CreateUserAsync($"workout-page-{id}@test.com", "Test1234!");
@@ -200,14 +199,14 @@ public class WorkoutCrudTests(DatabaseFixture fixture)
             });
 
         var page1 = await api.GetWorkoutsAsync(0, 2, $"Page Routine {id}");
-        var page2 = await api.GetWorkoutsAsync(2, 2, $"Page Routine {id}");
-        var page3 = await api.GetWorkoutsAsync(4, 2, $"Page Routine {id}");
+        var page2 = await api.GetWorkoutsAsync(1, 2, $"Page Routine {id}");
+        var page3 = await api.GetWorkoutsAsync(2, 2, $"Page Routine {id}");
 
-        Assert.Equal(2, page1.Count);
-        Assert.Equal(2, page2.Count);
-        Assert.Single(page3);
+        Assert.Equal(2, page1.Items.Count);
+        Assert.Equal(2, page2.Items.Count);
+        Assert.Single(page3.Items);
         // Pages should not overlap
-        Assert.Empty(page1.Select(w => w.WorkoutId).Intersect(page2.Select(w => w.WorkoutId)));
+        Assert.Empty(page1.Items.Select(w => w.WorkoutId).Intersect(page2.Items.Select(w => w.WorkoutId)));
     }
 
     [Fact]

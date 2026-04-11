@@ -10,16 +10,11 @@ public static class WorkoutEndpointExtensions
 
         group.MapGet("", async (
             IWorkoutService service,
-            int startIndex = 0,
-            int count = 10,
+            int page = 0,
+            int pageSize = 10,
             string? search = null) =>
         {
-            return await service.GetWorkoutsAsync(startIndex, count, search);
-        });
-
-        group.MapGet("/count", async (IWorkoutService service, string? search = null) =>
-        {
-            return await service.GetWorkoutsCountAsync(search);
+            return await service.GetWorkoutsAsync(page, pageSize, search);
         });
 
         group.MapGet("/{workoutId:guid}", async (Guid workoutId, IWorkoutService service) =>

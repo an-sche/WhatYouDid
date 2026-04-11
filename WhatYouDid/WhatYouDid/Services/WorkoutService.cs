@@ -9,26 +9,15 @@ public class WorkoutService(
     ITenantService tenantService
 ) : IWorkoutService
 {
-    public async Task<int> GetWorkoutsCountAsync(string? search = null)
+    public async Task<PagedList<WorkoutListItemDto>> GetWorkoutsAsync(int page, int pageSize, string? search = null)
     {
         using var db = await dbFactory.CreateDbContextAsync();
-        var query = db.Workouts.AsQueryable();
-        if (!string.IsNullOrWhiteSpace(search))
-            query = query.Where(x => x.RoutineName.Contains(search));
-        return await query.Where(x => x.EndTime != null).CountAsync();
-    }
-
-    public async Task<List<WorkoutListItemDto>> GetWorkoutsAsync(int startIndex, int count, string? search = null)
-    {
-        using var db = await dbFactory.CreateDbContextAsync();
-        var query = db.Workouts.AsQueryable();
+        var query = db.Workouts
+            .Where(x => x.EndTime != null);
         if (!string.IsNullOrWhiteSpace(search))
             query = query.Where(x => x.RoutineName.Contains(search));
         return await query
-            .Where(x => x.EndTime != null)
             .OrderByDescending(x => x.EndTime)
-            .Skip(startIndex)
-            .Take(count)
             .Select(x => new WorkoutListItemDto
             {
                 WorkoutId = x.WorkoutId,
@@ -36,7 +25,7 @@ public class WorkoutService(
                 StartTime = x.StartTime,
                 EndTime = x.EndTime,
             })
-            .ToListAsync();
+            .ToPagedListAsync(page, pageSize);
     }
 
     public async Task<WorkoutDto?> GetStartWorkoutDtoAsync(int routineId)

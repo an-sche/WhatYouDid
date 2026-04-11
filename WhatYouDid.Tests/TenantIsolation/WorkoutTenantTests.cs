@@ -71,11 +71,10 @@ public class WorkoutTenantTests(DatabaseFixture fixture)
         await api.SaveWorkoutAsync(BuildWorkoutDto(routineId, $"Push Day {id}", exerciseId));
 
         tenantService.SetTenant(userB.Id);
-        var workouts = await api.GetWorkoutsAsync(0, 100);
-        var count = await api.GetWorkoutsCountAsync();
+        var result = await api.GetWorkoutsAsync(0, 100);
 
-        Assert.Empty(workouts);
-        Assert.Equal(0, count);
+        Assert.Empty(result.Items);
+        Assert.Equal(0, result.TotalCount);
     }
 
     [Fact]
@@ -91,11 +90,10 @@ public class WorkoutTenantTests(DatabaseFixture fixture)
         var (routineId, exerciseId) = await CreateRoutineAsync(api, $"Push Day Own {id}");
         await api.SaveWorkoutAsync(BuildWorkoutDto(routineId, $"Push Day Own {id}", exerciseId));
 
-        var workouts = await api.GetWorkoutsAsync(0, 100);
-        var count = await api.GetWorkoutsCountAsync();
+        var result = await api.GetWorkoutsAsync(0, 100);
 
-        Assert.Single(workouts);
-        Assert.Equal(1, count);
+        Assert.Single(result.Items);
+        Assert.Equal(1, result.TotalCount);
     }
 
     [Fact]
@@ -114,8 +112,8 @@ public class WorkoutTenantTests(DatabaseFixture fixture)
 
         await api.DeleteWorkoutAsync(workoutDto.WorkoutId);
 
-        var workouts = await api.GetWorkoutsAsync(0, 100);
-        Assert.Empty(workouts);
+        var result = await api.GetWorkoutsAsync(0, 100);
+        Assert.Empty(result.Items);
     }
 
     [Fact]

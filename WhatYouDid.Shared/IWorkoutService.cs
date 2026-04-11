@@ -7,6 +7,5 @@ public interface IWorkoutService
     Task<bool> SaveWorkoutAsync(WorkoutDto workout);
     Task<bool> UpdateWorkoutExerciseAsync(Guid workoutId, WorkoutExerciseDto exercise);
     Task<bool> DeleteWorkoutAsync(Guid workoutId);
-    Task<int> GetWorkoutsCountAsync(string? search = null);
-    Task<List<WorkoutListItemDto>> GetWorkoutsAsync(int startIndex, int count, string? search = null);
+    Task<PagedList<WorkoutListItemDto>> GetWorkoutsAsync(int page, int pageSize, string? search = null);
 }

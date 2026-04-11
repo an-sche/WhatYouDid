@@ -5,20 +5,13 @@ namespace WhatYouDid.Client.Services;
 
 public class WorkoutHttpService(HttpClient http) : IWorkoutService
 {
-    public async Task<List<WorkoutListItemDto>> GetWorkoutsAsync(int startIndex, int count, string? search = null)
+    public async Task<PagedList<WorkoutListItemDto>> GetWorkoutsAsync(int page, int pageSize, string? search = null)
     {
-        var url = $"/api/workouts?startIndex={startIndex}&count={count}";
+        var url = $"/api/workouts?page={page}&pageSize={pageSize}";
         if (!string.IsNullOrEmpty(search))
             url += $"&search={Uri.EscapeDataString(search)}";
-        return await http.GetFromJsonAsync<List<WorkoutListItemDto>>(url) ?? [];
-    }
-
-    public async Task<int> GetWorkoutsCountAsync(string? search = null)
-    {
-        var url = "/api/workouts/count";
-        if (!string.IsNullOrEmpty(search))
-            url += $"?search={Uri.EscapeDataString(search)}";
-        return await http.GetFromJsonAsync<int>(url);
+        return await http.GetFromJsonAsync<PagedList<WorkoutListItemDto>>(url)
+            ?? new PagedList<WorkoutListItemDto>([], page, pageSize, 0);
     }
 
     public async Task<WorkoutDto?> GetCompletedWorkoutDtoAsync(Guid workoutId)

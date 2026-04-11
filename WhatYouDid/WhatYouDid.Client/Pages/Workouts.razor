@@ -57,8 +57,9 @@ else
 
     private async Task LoadPage()
     {
-        totalWorkouts = await WorkoutService.GetWorkoutsCountAsync(searchText);
-        workouts = await WorkoutService.GetWorkoutsAsync((currentPage - 1) * pageSize, pageSize, searchText);
+        var result = await WorkoutService.GetWorkoutsAsync(currentPage - 1, pageSize, searchText);
+        workouts = result.Items;
+        totalWorkouts = result.TotalCount;
     }
 
     private async Task OnSearchInput(ChangeEventArgs args)
@@ -71,16 +72,18 @@ else
         {
             await Task.Delay(300, token);
             currentPage = 1;
-            totalWorkouts = await WorkoutService.GetWorkoutsCountAsync(searchText);
-            workouts = await WorkoutService.GetWorkoutsAsync(0, pageSize, searchText);
+            var result = await WorkoutService.GetWorkoutsAsync(0, pageSize, searchText);
+            workouts = result.Items;
+            totalWorkouts = result.TotalCount;
         }
         catch (TaskCanceledException) { }
     }
 
-
     private async Task OnPageChanged(int page)
     {
         currentPage = page;
-        workouts = await WorkoutService.GetWorkoutsAsync((page - 1) * pageSize, pageSize, searchText);
+        var result = await WorkoutService.GetWorkoutsAsync(page - 1, pageSize, searchText);
+        workouts = result.Items;
+        totalWorkouts = result.TotalCount;
     }
 }

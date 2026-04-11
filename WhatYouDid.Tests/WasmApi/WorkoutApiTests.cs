@@ -33,9 +33,9 @@ public class WorkoutApiTests(ApiWebApplicationFactory factory)
         var response = await client.GetAsync("/api/workouts");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var workouts = await response.Content.ReadFromJsonAsync<List<WorkoutListItemDto>>();
-        Assert.NotNull(workouts);
-        Assert.Contains(workouts, w => w.RoutineName == $"List Routine {id}");
+        var result = await response.Content.ReadFromJsonAsync<PagedList<WorkoutListItemDto>>();
+        Assert.NotNull(result);
+        Assert.Contains(result.Items, w => w.RoutineName == $"List Routine {id}");
     }
 
     [Fact]
@@ -51,9 +51,9 @@ public class WorkoutApiTests(ApiWebApplicationFactory factory)
         var response = await client.GetAsync("/api/workouts");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var workouts = await response.Content.ReadFromJsonAsync<List<WorkoutListItemDto>>();
-        Assert.NotNull(workouts);
-        Assert.DoesNotContain(workouts, w => w.RoutineName == $"Isolated Routine {id}");
+        var result = await response.Content.ReadFromJsonAsync<PagedList<WorkoutListItemDto>>();
+        Assert.NotNull(result);
+        Assert.DoesNotContain(result.Items, w => w.RoutineName == $"Isolated Routine {id}");
     }
 
     [Fact]
@@ -69,9 +69,9 @@ public class WorkoutApiTests(ApiWebApplicationFactory factory)
 
         var response = await client.GetAsync($"/api/workouts?search=Chest+Day+{id}");
 
-        var workouts = await response.Content.ReadFromJsonAsync<List<WorkoutListItemDto>>();
-        Assert.NotNull(workouts);
-        Assert.All(workouts, w => Assert.Contains($"Chest Day {id}", w.RoutineName));
+        var result = await response.Content.ReadFromJsonAsync<PagedList<WorkoutListItemDto>>();
+        Assert.NotNull(result);
+        Assert.All(result.Items, w => Assert.Contains($"Chest Day {id}", w.RoutineName));
     }
 
     [Fact]
@@ -84,34 +84,20 @@ public class WorkoutApiTests(ApiWebApplicationFactory factory)
             await factory.SaveWorkoutAsync(user.Id, routineId, $"Page Routine {id}");
         var client = factory.CreateAuthenticatedClient(user.Id);
 
-        var page1 = await client.GetAsync($"/api/workouts?startIndex=0&count=2&search=Page+Routine+{id}");
-        var page2 = await client.GetAsync($"/api/workouts?startIndex=2&count=2&search=Page+Routine+{id}");
+        var page1 = await client.GetAsync($"/api/workouts?page=0&pageSize=2&search=Page+Routine+{id}");
+        var page2 = await client.GetAsync($"/api/workouts?page=1&pageSize=2&search=Page+Routine+{id}");
 
-        var p1 = await page1.Content.ReadFromJsonAsync<List<WorkoutListItemDto>>();
-        var p2 = await page2.Content.ReadFromJsonAsync<List<WorkoutListItemDto>>();
+        var p1 = await page1.Content.ReadFromJsonAsync<PagedList<WorkoutListItemDto>>();
+        var p2 = await page2.Content.ReadFromJsonAsync<PagedList<WorkoutListItemDto>>();
         Assert.NotNull(p1);
         Assert.NotNull(p2);
-        Assert.Equal(2, p1.Count);
-        Assert.Single(p2);
-        Assert.Empty(p1.Select(w => w.WorkoutId).Intersect(p2.Select(w => w.WorkoutId)));
-    }
-
-    // -------------------------------------------------------------------------
-    // GET /api/workouts/count
-    // -------------------------------------------------------------------------
-
-    [Fact]
-    public async Task GetWorkoutsCount_Unauthenticated_Returns401()
-    {
-        var client = factory.CreateClient();
-
-        var response = await client.GetAsync("/api/workouts/count");
-
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal(2, p1.Items.Count);
+        Assert.Single(p2.Items);
+        Assert.Empty(p1.Items.Select(w => w.WorkoutId).Intersect(p2.Items.Select(w => w.WorkoutId)));
     }
 
     [Fact]
-    public async Task GetWorkoutsCount_Authenticated_ReturnsCorrectCount()
+    public async Task GetWorkouts_TotalCount_ReturnsCorrectCount()
     {
         var id = Guid.NewGuid().ToString("N")[..8];
         var user = await factory.CreateUserAsync($"wh-count-{id}@test.com", "Test1234!");
@@ -120,11 +106,12 @@ public class WorkoutApiTests(ApiWebApplicationFactory factory)
         await factory.SaveWorkoutAsync(user.Id, routineId, $"Count Routine {id}");
         var client = factory.CreateAuthenticatedClient(user.Id);
 
-        var response = await client.GetAsync($"/api/workouts/count?search=Count+Routine+{id}");
+        var response = await client.GetAsync($"/api/workouts?page=0&pageSize=1&search=Count+Routine+{id}");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var count = await response.Content.ReadFromJsonAsync<int>();
-        Assert.Equal(2, count);
+        var result = await response.Content.ReadFromJsonAsync<PagedList<WorkoutListItemDto>>();
+        Assert.NotNull(result);
+        Assert.Equal(2, result.TotalCount);
     }
 
     // -------------------------------------------------------------------------
@@ -326,8 +313,8 @@ public class WorkoutApiTests(ApiWebApplicationFactory factory)
         await client.DeleteAsync($"/api/workouts/{workoutId}");
 
         var response = await client.GetAsync("/api/workouts");
-        var workouts = await response.Content.ReadFromJsonAsync<List<WorkoutListItemDto>>();
-        Assert.DoesNotContain(workouts!, w => w.WorkoutId == workoutId);
+        var result = await response.Content.ReadFromJsonAsync<PagedList<WorkoutListItemDto>>();
+        Assert.DoesNotContain(result!.Items, w => w.WorkoutId == workoutId);
     }
 
     [Fact]
