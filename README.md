@@ -48,7 +48,7 @@ Both users are seeded with workout history. The admin account also requires `adm
 Key constraints and priorities
 - Target framework: .NET 10. Make sure any changes keep compatibility with .NET 10.
 - UI: Blazor (prioritize Blazor-specific patterns over Razor Pages or MVC).
-	- Specifically, prefer Radzen Blazor components for UI consistency.
+	- Specifically, prefer MudBlazor components for UI consistency.
 - Platform: WebAssembly client exists in the workspace. Preserve client-server communication patterns.
 - Most important feature to preserve: reliable logging of workouts and existing data integrity.
 
