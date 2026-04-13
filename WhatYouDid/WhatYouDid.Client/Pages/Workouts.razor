@@ -3,6 +3,7 @@
 @attribute [Authorize]
 @rendermode InteractiveWebAssembly
 
+@implements IDisposable
 @inject IWorkoutService WorkoutService
 
 <MudPopoverProvider />
@@ -72,9 +73,7 @@ else
         {
             await Task.Delay(300, token);
             currentPage = 1;
-            var result = await WorkoutService.GetWorkoutsAsync(0, pageSize, searchText);
-            workouts = result.Items;
-            totalWorkouts = result.TotalCount;
+            await LoadPage();
         }
         catch (TaskCanceledException) { }
     }
@@ -85,5 +84,11 @@ else
         var result = await WorkoutService.GetWorkoutsAsync(page - 1, pageSize, searchText);
         workouts = result.Items;
         totalWorkouts = result.TotalCount;
+    }
+
+    public void Dispose()
+    {
+        _debounce?.Cancel();
+        _debounce?.Dispose();
     }
 }
