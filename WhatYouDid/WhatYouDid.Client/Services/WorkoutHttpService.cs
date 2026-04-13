@@ -19,7 +19,7 @@ public class WorkoutHttpService(HttpClient http) : IWorkoutService
 
     public async Task<bool> UpdateWorkoutExerciseAsync(Guid workoutId, WorkoutExerciseDto exercise)
     {
-        var response = await http.PatchAsJsonAsync($"/api/workouts/{workoutId}/exercises/{exercise.ExerciseId}", exercise);
+        var response = await http.PatchAsJsonAsync($"/api/workouts/{workoutId}/exercises", exercise);
         return response.IsSuccessStatusCode;
     }
 

@@ -174,7 +174,7 @@ public class WorkoutApiTests(ApiWebApplicationFactory factory)
     }
 
     // -------------------------------------------------------------------------
-    // PATCH /api/workouts/{workoutId}/exercises/{exerciseId}
+    // PATCH /api/workouts/{workoutId}/exercises
     // -------------------------------------------------------------------------
 
     [Fact]
@@ -192,7 +192,7 @@ public class WorkoutApiTests(ApiWebApplicationFactory factory)
             HasDurations = false,
         };
 
-        var response = await client.PatchAsJsonAsync($"/api/workouts/{Guid.NewGuid()}/exercises/1", dto);
+        var response = await client.PatchAsJsonAsync($"/api/workouts/{Guid.NewGuid()}/exercises", dto);
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
@@ -245,7 +245,7 @@ public class WorkoutApiTests(ApiWebApplicationFactory factory)
         };
 
         var response = await client.PatchAsJsonAsync(
-            $"/api/workouts/{workoutId}/exercises/{exerciseId}", patch);
+            $"/api/workouts/{workoutId}/exercises", patch);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
@@ -268,7 +268,7 @@ public class WorkoutApiTests(ApiWebApplicationFactory factory)
         };
 
         var response = await client.PatchAsJsonAsync(
-            $"/api/workouts/{Guid.NewGuid()}/exercises/1", dto);
+            $"/api/workouts/{Guid.NewGuid()}/exercises", dto);
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }

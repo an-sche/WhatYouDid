@@ -23,9 +23,8 @@ public static class WorkoutEndpointExtensions
             return dto is null ? Results.NotFound() : Results.Ok(dto);
         });
 
-        group.MapPatch("/{workoutId:guid}/exercises/{exerciseId:int}", async (
+        group.MapPatch("/{workoutId:guid}/exercises", async (
             Guid workoutId,
-            int exerciseId,
             WorkoutExerciseDto exercise,
             IWorkoutService service) =>
         {

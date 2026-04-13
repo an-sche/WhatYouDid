@@ -65,5 +65,5 @@
             exercises = await RoutineService.GetExercisesAsync(RoutineId);
     }
 
-    void StartWorkout() => Navigation.NavigateTo($"workout/{RoutineId}");
+    void StartWorkout() => Navigation.NavigateTo($"/workout/{RoutineId}");
 }
