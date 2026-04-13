@@ -117,7 +117,7 @@
 						}
 						</MudStack>
 
-			@if (IsAlternateExpanded(WorkoutDto.ExerciseIndex, index) || workoutExercise.HasAnyAlternateData(index) || HasAnyLastAlternateData(workoutExercise, index))
+					@if (IsAlternateExpanded(WorkoutDto.ExerciseIndex, index) || workoutExercise.HasAnyAlternateData(index) || HasAnyLastAlternateData(workoutExercise, index))
 					{
 						<MudStack Spacing="1" Style="border-left: 2px solid var(--mud-palette-secondary-lighten); padding-left: 8px; margin-top: 4px">
 							@if (workoutExercise.HasReps)
@@ -144,7 +144,7 @@
 									@bind-EnterValue="@workoutExercise.AlternateDurations[index]"
 									Goal="@altDurationGoal" />
 							}
-							<MudTextField T="string" Label="Note" @bind-Value="@workoutExercise.Notes[index]" FullWidth="true" Variant="Variant.Outlined" />
+							<MudTextField T="string" Label="Note" MaxLength="20" @bind-Value="@workoutExercise.Notes[index]" FullWidth="true" Variant="Variant.Outlined" />
 							@{
 								string? lastNote = workoutExercise.LastNotes != null && workoutExercise.LastNotes.Length > index ? workoutExercise.LastNotes[index] : null;
 							}
