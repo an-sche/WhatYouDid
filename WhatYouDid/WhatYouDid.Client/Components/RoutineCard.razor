@@ -1,6 +1,8 @@
 @using WhatYouDid.Shared
 @inject IRoutineService RoutineService
 @inject NavigationManager Navigation
+@inject IBrowserStorage BrowserStorage
+@inject IDialogService DialogService
 
 <MudCard Class="routine-card">
     <MudCardContent>
@@ -9,13 +11,38 @@
             <MudText Typo="Typo.h6" Style="margin: 0">@Name</MudText>
             <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
                 <MudIcon Icon="@(expanded ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)"
-                         Style="color: var(--mud-palette-secondary); font-size: 1.75rem" />
+                         Style="color: var(--mud-palette-text-secondary); font-size: 1.75rem" />
                 <span @onclick:stopPropagation="true">
-                    <MudButton StartIcon="@Icons.Material.Filled.PlayArrow"
-                               Color="Color.Primary"
-                               Size="Size.Medium"
-                               Variant="Variant.Filled"
-                               OnClick="StartWorkout">Start</MudButton>
+                    @if (_hasInProgress)
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.DeleteOutline"
+                                       Color="Color.Error"
+                                       Size="Size.Medium"
+                                       Style="opacity: 0.5"
+                                       title="Discard in-progress workout"
+                                       OnClick="DiscardWorkout" />
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="ContinueWorkout"
+                                   title="Continue workout" Style="min-width: unset; padding: 6px 8px">
+                            <span style="position: relative; display: inline-flex; font-size: 1.5rem">
+                                <MudIcon Icon="@Icons.Material.Filled.PlayArrow" />
+                                @if (_progressTotal > 0)
+                                {
+                                    <span style="font-size: 0.625rem; position: absolute; bottom: -2px; right: -6px; line-height: 1">@_progressIndex/@_progressTotal</span>
+                                }
+                            </span>
+                        </MudButton>
+                    }
+                    else
+                    {
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="StartWorkout"
+                                   title="Start workout" Style="min-width: unset; padding: 6px 8px">
+                            <span style="position: relative; display: inline-flex; font-size: 1.5rem">
+                                <MudIcon Icon="@Icons.Material.Filled.PlayArrow" />
+                                <MudIcon Icon="@Icons.Material.Filled.Add"
+                                         Style="font-size: 0.875rem; position: absolute; bottom: -2px; right: -4px" />
+                            </span>
+                        </MudButton>
+                    }
                 </span>
             </MudStack>
         </MudStack>
@@ -56,7 +83,25 @@
     public required int RoutineId { get; set; }
 
     bool expanded = false;
+    bool _hasInProgress = false;
+    int _progressIndex = 0;
+    int _progressTotal = 0;
     List<ExerciseDto>? exercises;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var existing = await BrowserStorage.GetAsync<WorkoutDto>($"Workout_{Name}_{RoutineId}");
+            if (existing != null)
+            {
+                _hasInProgress = true;
+                _progressIndex = existing.ExerciseIndex;
+                _progressTotal = existing.WorkoutExercises?.Count ?? 0;
+                StateHasChanged();
+            }
+        }
+    }
 
     async Task ToggleExpanded()
     {
@@ -66,4 +111,19 @@
     }
 
     void StartWorkout() => Navigation.NavigateTo($"/workout/{RoutineId}");
+
+    void ContinueWorkout() => Navigation.NavigateTo($"/workout/{RoutineId}");
+
+    async Task DiscardWorkout()
+    {
+        bool? confirmed = await DialogService.ShowMessageBoxAsync(
+            "Discard workout?",
+            "This will discard your in-progress workout.",
+            yesText: "Discard", cancelText: "Cancel");
+        if (confirmed == true)
+        {
+            await BrowserStorage.DeleteAsync($"Workout_{Name}_{RoutineId}");
+            _hasInProgress = false;
+        }
+    }
 }

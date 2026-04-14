@@ -232,7 +232,7 @@
 	[Parameter]
 	public int RoutineId { get; set; }
 
-	public WorkoutDto? WorkoutDto { get; set; }
+public WorkoutDto? WorkoutDto { get; set; }
 	public string[] ExerciseNames { get; set; } = [];
 
 	public bool Saving = false;
@@ -284,10 +284,22 @@
 
 			if (browserDto != null)
 			{
+				// Recalculate StartTime to preserve accumulated active duration.
+				// EndTime is set on every back/next save, so offset back from Now
+				// so (EndTime - StartTime) correctly reflects total active time.
+				if (browserDto.EndTime.HasValue)
+				{
+					var activeDuration = browserDto.EndTime.Value - browserDto.StartTime;
+					browserDto.StartTime = DateTimeOffset.Now - activeDuration;
+				}
+				else
+				{
+					browserDto.StartTime = DateTimeOffset.Now;
+				}
+				browserDto.EndTime = null;
 				WorkoutDto = browserDto;
 				await InvokeAsync(StateHasChanged);
 			}
-
 		}
 
 		await base.OnAfterRenderAsync(firstRender);
