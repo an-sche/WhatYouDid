@@ -42,6 +42,7 @@ public class RoutineService(
         using var db = await dbFactory.CreateDbContextAsync();
         return await db.Exercises
             .Where(x => x.RoutineId == routineId)
+            .OrderBy(e => e.Sequence)
             .Select(e => new ExerciseDto
             {
                 ExerciseId = e.ExerciseId,
@@ -65,7 +66,7 @@ public class RoutineService(
             {
                 RoutineId = r.RoutineId,
                 Name = r.Name,
-                Exercises = r.Exercises.Select(e => new ExerciseDto
+                Exercises = r.Exercises.OrderBy(e => e.Sequence).Select(e => new ExerciseDto
                 {
                     ExerciseId = e.ExerciseId,
                     Name = e.Name,

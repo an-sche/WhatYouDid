@@ -71,7 +71,7 @@ public class WorkoutService(
             WorkoutId = Guid.CreateVersion7(),
             RoutineId = routineId,
             RoutineName = routine.Name,
-            WorkoutExercises = routine.Exercises.Select(exercise =>
+            WorkoutExercises = routine.Exercises.OrderBy(e => e.Sequence).Select(exercise =>
             {
                 lastSetsByExerciseId.TryGetValue(exercise.ExerciseId, out var orderedSets);
 
