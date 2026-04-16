@@ -24,7 +24,12 @@
 
     private Timer? _timer;
     private bool _running;
-    private int _elapsedSeconds;
+    private DateTime? _startTime;
+    private DateTime? _pauseTime;
+
+    private int _elapsedSeconds => _startTime.HasValue
+        ? (int)((_pauseTime ?? DateTime.UtcNow) - _startTime.Value).TotalSeconds
+        : 0;
 
     [Parameter]
     public int Goal { get; set; } = 0;
@@ -37,12 +42,23 @@
 
         if (_timer == null)
         {
-            _timer = new Timer(1000);
+            _timer = new Timer(250);
             _timer.Elapsed += OnTick;
             _timer.AutoReset = true;
         }
 
         await JS.InvokeVoidAsync("wakeLockHelper.enable");
+
+        if (_pauseTime.HasValue && _startTime.HasValue)
+        {
+            // Shift start time forward by the duration we were paused
+            _startTime = _startTime.Value + (DateTime.UtcNow - _pauseTime.Value);
+            _pauseTime = null;
+        }
+        else
+        {
+            _startTime = DateTime.UtcNow;
+        }
 
         _timer.Start();
         _running = true;
@@ -54,6 +70,7 @@
             return;
 
         _timer.Stop();
+        _pauseTime = DateTime.UtcNow;
         _running = false;
 
         await JS.InvokeVoidAsync("wakeLockHelper.disable");
@@ -62,13 +79,13 @@
     private async Task Reset()
     {
         await Stop();
-        _elapsedSeconds = 0;
+        _startTime = null;
+        _pauseTime = null;
         await InvokeAsync(StateHasChanged);
     }
 
     private void OnTick(object? sender, ElapsedEventArgs e)
     {
-        _elapsedSeconds++;
         InvokeAsync(StateHasChanged);
     }
 
