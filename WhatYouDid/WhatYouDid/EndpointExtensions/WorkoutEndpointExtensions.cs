@@ -1,3 +1,4 @@
+using System.Text;
 using WhatYouDid.Shared;
 
 namespace WhatYouDid.EndpointExtensions;
@@ -38,6 +39,34 @@ public static class WorkoutEndpointExtensions
             return deleted ? Results.NoContent() : Results.NotFound();
         });
 
+        group.MapGet("/export/csv", async (IWorkoutService service) =>
+        {
+            var rows = await service.GetAllWorkoutsForExportAsync();
+
+            var sb = new StringBuilder();
+            sb.AppendLine("StartTime,EndTime,RoutineName,ExerciseName,SetNumber,Reps,Weight,Duration,AlternateReps,AlternateWeight,AlternateDuration,Note");
+            foreach (var row in rows)
+            {
+                sb.AppendLine(string.Join(',',
+                    row.StartTime.ToString("o"),
+                    row.EndTime?.ToString("o") ?? "",
+                    CsvField(row.RoutineName),
+                    CsvField(row.ExerciseName),
+                    row.SetNumber,
+                    row.Reps,
+                    row.Weight,
+                    row.Duration,
+                    row.AlternateReps,
+                    row.AlternateWeight,
+                    row.AlternateDuration,
+                    CsvField(row.Note)
+                ));
+            }
+
+            var bytes = Encoding.UTF8.GetBytes(sb.ToString());
+            return Results.File(bytes, "text/csv", "workouts.csv");
+        });
+
         group.MapGet("/start/{routineId}", async (
             int routineId,
             IWorkoutService service) =>
@@ -61,5 +90,13 @@ public static class WorkoutEndpointExtensions
         });
 
         return routes;
+    }
+
+    private static string CsvField(string? value)
+    {
+        if (string.IsNullOrEmpty(value)) return "";
+        if (value.Contains(',') || value.Contains('"') || value.Contains('\n'))
+            return $"\"{value.Replace("\"", "\"\"")}\"";
+        return value;
     }
 }

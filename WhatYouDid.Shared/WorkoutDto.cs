@@ -92,3 +92,18 @@ public class WorkoutExerciseDto
         || (Notes.Length > setIndex && !string.IsNullOrEmpty(Notes[setIndex]));
 
 }
+
+public record WorkoutExportRowDto(
+    DateTimeOffset StartTime,
+    DateTimeOffset? EndTime,
+    string RoutineName,
+    string ExerciseName,
+    int SetNumber,
+    int? Reps,
+    int? Weight,
+    int? Duration,
+    int? AlternateReps,
+    int? AlternateWeight,
+    int? AlternateDuration,
+    string? Note
+);

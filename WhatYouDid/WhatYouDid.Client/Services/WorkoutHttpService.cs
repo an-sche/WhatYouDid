@@ -37,4 +37,7 @@ public class WorkoutHttpService(HttpClient http) : IWorkoutService
         var response = await http.PostAsJsonAsync("/api/workouts", workout);
         return response.IsSuccessStatusCode;
     }
+
+    public Task<IEnumerable<WorkoutExportRowDto>> GetAllWorkoutsForExportAsync()
+        => throw new NotSupportedException("CSV export is not supported in the WASM client.");
 }

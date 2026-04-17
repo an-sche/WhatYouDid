@@ -183,6 +183,48 @@ public class WorkoutService(
         return true;
     }
 
+    public async Task<IEnumerable<WorkoutExportRowDto>> GetAllWorkoutsForExportAsync()
+    {
+        using var db = await dbFactory.CreateDbContextAsync();
+        var rows = await db.Workouts
+            .Where(w => w.EndTime != null)
+            .SelectMany(w => w.WorkoutExercise!, (w, we) => new { w, we })
+            .SelectMany(x => x.we.Sets, (x, s) => new
+            {
+                x.w.StartTime,
+                x.w.EndTime,
+                x.w.RoutineName,
+                x.we.ExerciseName,
+                s.SetNumber,
+                s.Reps,
+                s.Weight,
+                s.Duration,
+                s.AlternateReps,
+                s.AlternateWeight,
+                s.AlternateDuration,
+                s.Note,
+            })
+            .OrderBy(r => r.StartTime)
+            .ThenBy(r => r.ExerciseName)
+            .ThenBy(r => r.SetNumber)
+            .ToListAsync();
+
+        return rows.Select(r => new WorkoutExportRowDto(
+            r.StartTime,
+            r.EndTime,
+            r.RoutineName,
+            r.ExerciseName,
+            r.SetNumber,
+            r.Reps,
+            r.Weight,
+            r.Duration,
+            r.AlternateReps,
+            r.AlternateWeight,
+            r.AlternateDuration,
+            r.Note
+        ));
+    }
+
     public async Task<bool> DeleteWorkoutAsync(Guid workoutId)
     {
         using var db = await dbFactory.CreateDbContextAsync();
