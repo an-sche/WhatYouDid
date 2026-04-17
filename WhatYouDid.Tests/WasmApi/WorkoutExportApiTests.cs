@@ -43,7 +43,7 @@ public class WorkoutExportApiTests(ApiWebApplicationFactory factory)
         var response = await client.GetAsync("/api/workouts/export/csv");
         var csv = await response.Content.ReadAsStringAsync();
 
-        Assert.Contains("StartTime,EndTime,RoutineName,ExerciseName,SetNumber,Reps,Weight", csv);
+        Assert.Contains("StartTime,WorkoutDuration,RoutineName,ExerciseName,SetNumber,Reps,Weight", csv);
         Assert.Contains($"Set Data Routine {id}", csv);
         Assert.Contains("Full Body Exercise", csv);
         Assert.Contains("10", csv);

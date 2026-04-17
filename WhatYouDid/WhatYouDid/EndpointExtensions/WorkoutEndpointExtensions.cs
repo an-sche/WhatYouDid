@@ -44,12 +44,12 @@ public static class WorkoutEndpointExtensions
             var rows = await service.GetAllWorkoutsForExportAsync();
 
             var sb = new StringBuilder();
-            sb.AppendLine("StartTime,EndTime,RoutineName,ExerciseName,SetNumber,Reps,Weight,Duration,AlternateReps,AlternateWeight,AlternateDuration,Note");
+            sb.AppendLine("StartTime,WorkoutDuration,RoutineName,ExerciseName,SetNumber,Reps,Weight,Duration,AlternateReps,AlternateWeight,AlternateDuration,Note");
             foreach (var row in rows)
             {
                 sb.AppendLine(string.Join(',',
-                    row.StartTime.ToString("o"),
-                    row.EndTime?.ToString("o") ?? "",
+                    row.StartTime.ToString("yyyy-MM-dd HH:mm"),
+                    FormatDuration(row.StartTime, row.EndTime),
                     CsvField(row.RoutineName),
                     CsvField(row.ExerciseName),
                     row.SetNumber,
@@ -90,6 +90,14 @@ public static class WorkoutEndpointExtensions
         });
 
         return routes;
+    }
+
+    private static string FormatDuration(DateTimeOffset start, DateTimeOffset? end)
+    {
+        if (end is null) return "";
+        var total = (int)(end.Value - start).TotalMinutes;
+        if (total < 0) return "";
+        return total < 60 ? $"{total} min" : $"{total / 60}h {total % 60}m";
     }
 
     private static string CsvField(string? value)
