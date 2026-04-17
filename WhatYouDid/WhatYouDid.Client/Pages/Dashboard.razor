@@ -9,9 +9,9 @@
 <MudDialogProvider />
 <MudSnackbarProvider />
 
-<PageTitle>Dashboard</PageTitle>
+<PageTitle>Stats</PageTitle>
 
-<MudText Typo="Typo.h4">Dashboard</MudText>
+<MudText Typo="Typo.h4">Stats</MudText>
 
 <MudSelect T="int" Value="selectedYear" ValueChanged="ReloadDataAsync" Style="min-width:160px" Variant="Variant.Outlined">
     @foreach (var item in yearItems ?? [new YearItem(0, "All Years")])
