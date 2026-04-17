@@ -1,0 +1,89 @@
+@using WhatYouDid.Shared
+
+@if (Items is null || !Items.Any())
+{
+    return;
+}
+
+@{
+    var podiumEntries = BuildPodium(Items);
+    var restItems = Items.Skip(3).ToList();
+}
+
+<div style="display:flex; justify-content:center; align-items:flex-end; gap:8px; padding:0 8px; margin-bottom:24px">
+    @foreach (var entry in podiumEntries)
+    {
+        <div style="display:flex; flex-direction:column; align-items:center; flex:1; max-width:140px">
+            <MudText Typo="Typo.body2" Style="text-align:center; word-break:break-word; line-height:1.3; margin-bottom:4px">@entry.Item.RoutineName</MudText>
+            <MudText Typo="Typo.subtitle1" Style="font-weight:600; margin-bottom:4px">@entry.Item.Count</MudText>
+            <div style="width:100%; height:@(entry.BarHeight)px; background:@entry.Color; border-radius:6px 6px 0 0"></div>
+            <MudText Typo="Typo.caption" Style="font-weight:600; margin-top:4px">@Ordinal(entry.Rank)</MudText>
+        </div>
+    }
+</div>
+
+@if (restItems.Any())
+{
+    <MudDivider Class="mb-1" />
+    <MudList T="WorkoutSummaryDto" Dense="true">
+        @for (int i = 0; i < restItems.Count; i++)
+        {
+            var item = restItems[i];
+            var rank = i + 4;
+            <MudListItem>
+                <div style="display:flex; justify-content:space-between; align-items:center">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                        <MudText Color="Color.Secondary" Typo="Typo.body2" Style="min-width:18px; text-align:right">@rank</MudText>
+                        <MudText Typo="Typo.body1">@item.RoutineName</MudText>
+                    </MudStack>
+                    <MudText Typo="Typo.body1" Style="font-weight:600">@item.Count</MudText>
+                </div>
+            </MudListItem>
+        }
+    </MudList>
+}
+
+@code {
+    [Parameter]
+    public List<WorkoutSummaryDto>? Items { get; set; }
+
+    private const int MaxBarHeight = 160;
+    private const int MinBarHeight = 60;
+
+    private record PodiumEntry(WorkoutSummaryDto Item, int Rank, string Color, int BarHeight);
+
+    private static string Ordinal(int rank) => rank switch
+    {
+        1 => "1st",
+        2 => "2nd",
+        3 => "3rd",
+        _ => $"{rank}th"
+    };
+
+    private List<PodiumEntry> BuildPodium(List<WorkoutSummaryDto> items)
+    {
+        var top3 = items.Take(3).ToList();
+        var maxCount = top3[0].Count;
+
+        int GetBarHeight(int count) =>
+            maxCount == 0
+                ? MinBarHeight
+                : Math.Max(MinBarHeight, (int)Math.Round((double)count / maxCount * MaxBarHeight));
+
+        // Podium visual order: silver (2nd) left, gold (1st) center, bronze (3rd) right
+        var result = new List<PodiumEntry>();
+
+        const string gold   = "linear-gradient(145deg, #a07820 0%, #d4af37 30%, #ffe680 50%, #c49a20 70%, #8b6914 100%)";
+        const string silver = "linear-gradient(145deg, #606060 0%, #b0b0b0 30%, #e8e8e8 50%, #a0a0a0 70%, #585858 100%)";
+        const string bronze = "linear-gradient(145deg, #7a4510 0%, #b86820 30%, #e09050 50%, #a05a18 70%, #6a3808 100%)";
+
+        if (top3.Count >= 2)
+            result.Add(new PodiumEntry(top3[1], 2, silver, GetBarHeight(top3[1].Count)));
+        if (top3.Count >= 1)
+            result.Add(new PodiumEntry(top3[0], 1, gold,   GetBarHeight(top3[0].Count)));
+        if (top3.Count >= 3)
+            result.Add(new PodiumEntry(top3[2], 3, bronze, GetBarHeight(top3[2].Count)));
+
+        return result;
+    }
+}

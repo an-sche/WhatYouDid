@@ -38,20 +38,14 @@
     return;
 }
 
-<MudGrid Class="mb-6">
-    @foreach (var w in dashboard.TopWorkouts)
-    {
-        <MudItem xs="12" sm="6" md="4">
-            <MudCard Style="height:150px">
-                <MudCardContent>
-                    <MudText Typo="Typo.h6">@w.RoutineName</MudText>
-                    <MudText Typo="Typo.h3">@w.Count</MudText>
-                    <MudText Typo="Typo.caption" Color="Color.Secondary">times performed</MudText>
-                </MudCardContent>
-            </MudCard>
-        </MudItem>
-    }
+<MudCard Class="mb-6">
+    <MudCardContent>
+        <MudText Typo="Typo.h6" Class="mb-4">Most Performed Workouts</MudText>
+        <WorkoutLeaderboard Items="dashboard.TopWorkouts" />
+    </MudCardContent>
+</MudCard>
 
+<MudGrid Class="mb-6">
     <MudItem xs="12" sm="6" md="4">
         <MudCard Style="height:150px">
             <MudCardContent>

@@ -22,7 +22,7 @@ public class DashboardService(
 
     private async Task<DashboardDto> ComputeDashboardAsync(int year)
     {
-        // Compute top 3 most frequent workouts (by RoutineName) optionally filtered by year.
+        // Compute top 5 most frequent workouts (by RoutineName) optionally filtered by year.
         var workoutsQuery = db.Workouts.AsNoTracking().AsQueryable();
         var dto = new DashboardDto();
 
@@ -36,7 +36,7 @@ public class DashboardService(
             .GroupBy(w => w.RoutineName)
             .Select(g => new { RoutineName = g.Key, Count = g.Count() })
             .OrderByDescending(x => x.Count)
-            .Take(3)
+            .Take(5)
             .Select(x => new WorkoutSummaryDto { RoutineName = x.RoutineName ?? "", Count = x.Count })
             .ToListAsync();
 
