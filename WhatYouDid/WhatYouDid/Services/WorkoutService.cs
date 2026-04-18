@@ -227,6 +227,55 @@ public class WorkoutService(
         ));
     }
 
+    public async Task<List<string>> GetExerciseNamesAsync()
+    {
+        using var db = await dbFactory.CreateDbContextAsync();
+        return await db.WorkoutExercises
+            .Where(we => we.Workout.EndTime != null)
+            .Select(we => we.ExerciseName)
+            .Distinct()
+            .OrderBy(n => n)
+            .ToListAsync();
+    }
+
+    public async Task<ExerciseHistoryDto?> GetExerciseHistoryAsync(string exerciseName, string? routineName = null)
+    {
+        using var db = await dbFactory.CreateDbContextAsync();
+
+        var query = db.WorkoutExercises
+            .Where(we => we.ExerciseName == exerciseName && we.Workout.EndTime != null);
+
+        if (!string.IsNullOrEmpty(routineName))
+            query = query.Where(we => we.Workout.RoutineName == routineName);
+
+        var rows = await query
+            .OrderBy(we => we.Workout.StartTime)
+            .Select(we => new
+            {
+                Date = we.Workout.StartTime,
+                RoutineName = we.Workout.RoutineName,
+                Sets = we.Sets
+                    .OrderBy(s => s.SetNumber)
+                    .Select(s => new ExerciseSetHistoryDto(s.SetNumber, s.Reps, s.Weight, s.Duration))
+                    .ToList()
+            })
+            .ToListAsync();
+
+        if (rows.Count == 0) return null;
+
+        var allSets = rows.SelectMany(r => r.Sets).ToList();
+        var routines = rows.Select(r => r.RoutineName).Distinct().Order().ToList();
+
+        return new ExerciseHistoryDto(
+            exerciseName,
+            allSets.Any(s => s.Reps.HasValue),
+            allSets.Any(s => s.Weight.HasValue),
+            allSets.Any(s => s.Duration.HasValue),
+            routines,
+            rows.Select(r => new ExerciseSessionHistoryDto(r.Date, r.RoutineName, r.Sets)).ToList()
+        );
+    }
+
     public async Task<bool> DeleteWorkoutAsync(Guid workoutId)
     {
         using var db = await dbFactory.CreateDbContextAsync();

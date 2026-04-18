@@ -1,0 +1,226 @@
+@page "/progress"
+@using WhatYouDid.Shared
+@using MudBlazor.Charts
+@attribute [Authorize]
+@rendermode InteractiveWebAssembly
+
+@inject IWorkoutService WorkoutService
+
+<MudPopoverProvider />
+
+<PageTitle>Progress</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-4">Progress</MudText>
+
+<MudAutocomplete T="string"
+    Label="Exercise"
+    Value="selectedExercise"
+    ValueChanged="OnExerciseSelected"
+    SearchFunc="SearchExercises"
+    ResetValueOnEmptyText="true"
+    CoerceText="true"
+    Variant="Variant.Outlined"
+    Class="mb-4"
+    Placeholder="Search for an exercise..." />
+
+@if (isLoading)
+{
+    <MudProgressLinear Indeterminate="true" />
+}
+else if (history is not null)
+{
+    @if (history.Routines.Count > 1)
+    {
+        <div class="mb-4">
+            <MudChipSet T="string" SelectionMode="SelectionMode.SingleSelection"
+                        SelectedValue="selectedRoutine"
+                        SelectedValueChanged="OnRoutineSelected">
+                <MudChip T="string" Value="@((string?)null)" Variant="Variant.Filled">All</MudChip>
+                @foreach (var routine in history.Routines)
+                {
+                    <MudChip T="string" Value="@routine" Variant="Variant.Filled">@routine</MudChip>
+                }
+            </MudChipSet>
+        </div>
+    }
+
+    @if (history.HasReps)
+    {
+        <MudCard Class="mb-4">
+            <MudCardContent>
+                <MudText Typo="Typo.h6" Class="mb-2">Reps</MudText>
+                @if (repsSeries.Count > 0)
+                {
+                    <Line T="double"
+                          ChartSeries="repsSeries"
+                          ChartLabels="xLabels"
+                          ChartOptions="chartOptions"
+                          Width="100%" Height="300px" />
+                }
+            </MudCardContent>
+        </MudCard>
+    }
+
+    @if (history.HasWeight)
+    {
+        <MudCard Class="mb-4">
+            <MudCardContent>
+                <MudText Typo="Typo.h6" Class="mb-2">Weight (lbs)</MudText>
+                @if (weightSeries.Count > 0)
+                {
+                    <Line T="double"
+                          ChartSeries="weightSeries"
+                          ChartLabels="xLabels"
+                          ChartOptions="chartOptions"
+                          Width="100%" Height="300px" />
+                }
+            </MudCardContent>
+        </MudCard>
+    }
+
+    @if (history.HasDuration)
+    {
+        <MudCard Class="mb-4">
+            <MudCardContent>
+                <MudText Typo="Typo.h6" Class="mb-2">Duration (sec)</MudText>
+                @if (durationSeries.Count > 0)
+                {
+                    <Line T="double"
+                          ChartSeries="durationSeries"
+                          ChartLabels="xLabels"
+                          ChartOptions="chartOptions"
+                          Width="100%" Height="300px" />
+                }
+            </MudCardContent>
+        </MudCard>
+    }
+}
+else if (selectedExercise is not null && !isLoading)
+{
+    <MudText Color="Color.Secondary">No history found for "@selectedExercise".</MudText>
+}
+
+@code {
+    string? selectedExercise;
+    string? selectedRoutine;
+    ExerciseHistoryDto? history;
+    bool isLoading;
+    List<string> exerciseNames = [];
+
+    string[] xLabels = [];
+    List<ChartSeries<double>> repsSeries = [];
+    List<ChartSeries<double>> weightSeries = [];
+    List<ChartSeries<double>> durationSeries = [];
+
+    readonly LineChartOptions chartOptions = new()
+    {
+        LineStrokeWidth = 2,
+        YAxisTicks = 5,
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        exerciseNames = await WorkoutService.GetExerciseNamesAsync();
+    }
+
+    private Task<IEnumerable<string>> SearchExercises(string value, CancellationToken _)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return Task.FromResult<IEnumerable<string>>(exerciseNames);
+        return Task.FromResult(exerciseNames.Where(n =>
+            n.Contains(value, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private async Task OnExerciseSelected(string? name)
+    {
+        selectedExercise = name;
+        selectedRoutine = null;
+        history = null;
+        ClearChartData();
+
+        if (string.IsNullOrWhiteSpace(name)) return;
+
+        await LoadHistoryAsync(name, routineName: null);
+    }
+
+    private async Task OnRoutineSelected(string? routineName)
+    {
+        selectedRoutine = routineName;
+        ClearChartData();
+
+        if (selectedExercise is null) return;
+
+        await LoadHistoryAsync(selectedExercise, routineName);
+    }
+
+    private async Task LoadHistoryAsync(string exerciseName, string? routineName)
+    {
+        isLoading = true;
+        try
+        {
+            history = await WorkoutService.GetExerciseHistoryAsync(exerciseName, routineName);
+            if (history is not null)
+                BuildChartData(history);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ClearChartData()
+    {
+        xLabels = [];
+        repsSeries = [];
+        weightSeries = [];
+        durationSeries = [];
+    }
+
+    private void BuildChartData(ExerciseHistoryDto h)
+    {
+        var sessions = h.Sessions;
+
+        xLabels = sessions
+            .Select(s => s.Date.LocalDateTime.ToString("MMM d"))
+            .ToArray();
+
+        int maxSets = Math.Min(sessions.Max(s => s.Sets.Count), 6);
+
+        if (h.HasReps)
+            repsSeries = BuildSeries(sessions, maxSets, s => (double?)s.Reps);
+
+        if (h.HasWeight)
+            weightSeries = BuildSeries(sessions, maxSets, s => (double?)s.Weight);
+
+        if (h.HasDuration)
+            durationSeries = BuildSeries(sessions, maxSets, s => (double?)s.Duration);
+    }
+
+    private static List<ChartSeries<double>> BuildSeries(
+        List<ExerciseSessionHistoryDto> sessions,
+        int maxSets,
+        Func<ExerciseSetHistoryDto, double?> getValue)
+    {
+        var series = new List<ChartSeries<double>>();
+        for (int setNum = 1; setNum <= maxSets; setNum++)
+        {
+            var captured = setNum;
+            var data = sessions.Select(session =>
+            {
+                var set = session.Sets.FirstOrDefault(s => s.SetNumber == captured);
+                if (set is null) return double.NaN;
+                return getValue(set) ?? double.NaN;
+            }).ToArray();
+
+            if (data.Any(v => !double.IsNaN(v)))
+            {
+                series.Add(new ChartSeries<double>
+                {
+                    Name = maxSets == 1 ? "" : $"Set {captured}",
+                    Data = data,
+                });
+            }
+        }
+        return series;
+    }
+}
