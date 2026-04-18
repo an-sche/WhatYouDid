@@ -1,4 +1,5 @@
 ﻿@page "/Account/Manage/Email"
+@layout AccountLayout
 
 @using System.ComponentModel.DataAnnotations
 @using System.Text
@@ -12,9 +13,10 @@
 @inject IdentityUserAccessor UserAccessor
 @inject NavigationManager NavigationManager
 
-<PageTitle>Manage email</PageTitle>
+<PageTitle>Change Email</PageTitle>
 
-<h3>Manage email</h3>
+<a href="Account/Manage"><MudIconButton Icon="@Icons.Material.Filled.ArrowBack" /></a>
+<MudText Typo="Typo.h5" Class="mb-3">Change Email</MudText>
 
 <StatusMessage Message="@message"/>
 <div class="row">

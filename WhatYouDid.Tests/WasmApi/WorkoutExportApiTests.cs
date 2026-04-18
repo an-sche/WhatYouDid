@@ -65,4 +65,54 @@ public class WorkoutExportApiTests(ApiWebApplicationFactory factory)
 
         Assert.DoesNotContain($"UserA Private Routine {id}", csv);
     }
+
+    [Fact]
+    public async Task ExportCsv_WithYearFilter_OnlyIncludesMatchingYear()
+    {
+        var id = Guid.NewGuid().ToString("N")[..8];
+        var user = await factory.CreateUserAsync($"csv-year-{id}@test.com", "Test1234!");
+        var (routineId, exerciseId) = await factory.CreateRoutineWithAllFieldTypesAsync(user.Id, $"Year Filter Routine {id}");
+        await factory.SaveWorkoutWithSetsAsync(user.Id, routineId, $"Year Filter Routine {id}", exerciseId, "Full Body Exercise",
+            reps: 5, startTime: new DateTimeOffset(2022, 6, 1, 10, 0, 0, TimeSpan.Zero));
+        await factory.SaveWorkoutWithSetsAsync(user.Id, routineId, $"Year Filter Routine {id}", exerciseId, "Full Body Exercise",
+            reps: 8, startTime: new DateTimeOffset(2023, 6, 1, 10, 0, 0, TimeSpan.Zero));
+        var client = factory.CreateAuthenticatedClient(user.Id);
+
+        var response = await client.GetAsync("/api/workouts/export/csv?year=2022");
+        var csv = await response.Content.ReadAsStringAsync();
+
+        Assert.Contains("2022-06-01", csv);
+        Assert.DoesNotContain("2023-06-01", csv);
+    }
+
+    [Fact]
+    public async Task ExportCsv_WithYearFilter_FilenameIncludesYear()
+    {
+        var id = Guid.NewGuid().ToString("N")[..8];
+        var user = await factory.CreateUserAsync($"csv-fname-{id}@test.com", "Test1234!");
+        var client = factory.CreateAuthenticatedClient(user.Id);
+
+        var response = await client.GetAsync("/api/workouts/export/csv?year=2023");
+
+        Assert.Contains("workouts-2023.csv", response.Content.Headers.ContentDisposition?.FileName ?? "");
+    }
+
+    [Fact]
+    public async Task ExportCsv_WithNoYearFilter_IncludesAllYears()
+    {
+        var id = Guid.NewGuid().ToString("N")[..8];
+        var user = await factory.CreateUserAsync($"csv-all-{id}@test.com", "Test1234!");
+        var (routineId, exerciseId) = await factory.CreateRoutineWithAllFieldTypesAsync(user.Id, $"All Years Routine {id}");
+        await factory.SaveWorkoutWithSetsAsync(user.Id, routineId, $"All Years Routine {id}", exerciseId, "Full Body Exercise",
+            reps: 5, startTime: new DateTimeOffset(2022, 3, 1, 10, 0, 0, TimeSpan.Zero));
+        await factory.SaveWorkoutWithSetsAsync(user.Id, routineId, $"All Years Routine {id}", exerciseId, "Full Body Exercise",
+            reps: 8, startTime: new DateTimeOffset(2023, 3, 1, 10, 0, 0, TimeSpan.Zero));
+        var client = factory.CreateAuthenticatedClient(user.Id);
+
+        var response = await client.GetAsync("/api/workouts/export/csv");
+        var csv = await response.Content.ReadAsStringAsync();
+
+        Assert.Contains("2022-03-01", csv);
+        Assert.Contains("2023-03-01", csv);
+    }
 }

@@ -39,9 +39,9 @@ public static class WorkoutEndpointExtensions
             return deleted ? Results.NoContent() : Results.NotFound();
         });
 
-        group.MapGet("/export/csv", async (IWorkoutService service) =>
+        group.MapGet("/export/csv", async (IWorkoutService service, int? year = null) =>
         {
-            var rows = await service.GetAllWorkoutsForExportAsync();
+            var rows = await service.GetAllWorkoutsForExportAsync(year);
 
             var sb = new StringBuilder();
             sb.AppendLine("StartTime,WorkoutDuration,RoutineName,ExerciseName,SetNumber,Reps,Weight,Duration,AlternateReps,AlternateWeight,AlternateDuration,Note");
@@ -64,7 +64,8 @@ public static class WorkoutEndpointExtensions
             }
 
             var bytes = Encoding.UTF8.GetBytes(sb.ToString());
-            return Results.File(bytes, "text/csv", "workouts.csv");
+            var filename = year.HasValue ? $"workouts-{year}.csv" : "workouts.csv";
+            return Results.File(bytes, "text/csv", filename);
         });
 
         group.MapGet("/start/{routineId}", async (

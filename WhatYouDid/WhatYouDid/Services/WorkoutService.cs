@@ -183,11 +183,13 @@ public class WorkoutService(
         return true;
     }
 
-    public async Task<IEnumerable<WorkoutExportRowDto>> GetAllWorkoutsForExportAsync()
+    public async Task<IEnumerable<WorkoutExportRowDto>> GetAllWorkoutsForExportAsync(int? year = null)
     {
         using var db = await dbFactory.CreateDbContextAsync();
-        var rows = await db.Workouts
-            .Where(w => w.EndTime != null)
+        var query = db.Workouts.Where(w => w.EndTime != null);
+        if (year.HasValue)
+            query = query.Where(w => w.StartTime.Year == year.Value);
+        var rows = await query
             .SelectMany(w => w.WorkoutExercise!, (w, we) => new { w, we })
             .SelectMany(x => x.we.Sets, (x, s) => new
             {

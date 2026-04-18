@@ -246,7 +246,8 @@ public class ApiWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLi
     /// </summary>
     public async Task<Guid> SaveWorkoutWithSetsAsync(
         string userId, int routineId, string routineName,
-        int exerciseId, string exerciseName, int? reps = null, int? weight = null, int? duration = null)
+        int exerciseId, string exerciseName, int? reps = null, int? weight = null, int? duration = null,
+        DateTimeOffset? startTime = null)
     {
         var tenantService = new TestTenantService();
         tenantService.SetTenant(userId);
@@ -255,6 +256,7 @@ public class ApiWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLi
             .Options;
         await using var db = new ApplicationDbContext(options, tenantService);
 
+        var start = startTime ?? DateTimeOffset.Now.AddHours(-1);
         var workoutId = Guid.NewGuid();
         var workout = new Workout
         {
@@ -262,8 +264,8 @@ public class ApiWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLi
             ApplicationUserId = userId,
             RoutineId = routineId,
             RoutineName = routineName,
-            StartTime = DateTimeOffset.Now.AddHours(-1),
-            EndTime = DateTimeOffset.Now.AddMinutes(-1),
+            StartTime = start,
+            EndTime = start.AddMinutes(30),
             WorkoutExercise =
             [
                 new WorkoutExercise

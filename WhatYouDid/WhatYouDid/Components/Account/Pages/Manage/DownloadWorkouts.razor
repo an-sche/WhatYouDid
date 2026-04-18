@@ -1,0 +1,41 @@
+@page "/Account/Manage/DownloadWorkouts"
+@layout AccountLayout
+
+@using WhatYouDid.Shared
+
+@inject IDashboardService DashboardService
+
+<PageTitle>Download Workouts</PageTitle>
+
+<a href="Account/Manage"><MudIconButton Icon="@Icons.Material.Filled.ArrowBack" /></a>
+<MudText Typo="Typo.h5" Class="mb-4">Download Workouts</MudText>
+
+<MudText Class="mb-3">Export your workout history as a CSV file.</MudText>
+
+<form method="get" action="/Account/Manage/DownloadWorkouts" style="max-width:200px">
+    <select name="year" class="form-select mb-4" onchange="this.form.submit()">
+        <option value="0" selected="@(SelectedYear == 0)">All Years</option>
+        @foreach (var year in years)
+        {
+            <option value="@year" selected="@(SelectedYear == year)">@year</option>
+        }
+    </select>
+</form>
+
+<a href="@DownloadUrl" class="btn btn-primary">Download CSV</a>
+
+@code {
+    [SupplyParameterFromQuery(Name = "year")]
+    public int SelectedYear { get; set; }
+
+    private IReadOnlyList<int> years = [];
+
+    private string DownloadUrl => SelectedYear == 0
+        ? "/api/workouts/export/csv"
+        : $"/api/workouts/export/csv?year={SelectedYear}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        years = await DashboardService.GetActiveYearsAsync();
+    }
+}

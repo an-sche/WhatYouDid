@@ -1,79 +1,88 @@
-﻿@page "/Account/Manage"
+@page "/Account/Manage"
+@layout AccountLayout
 
-@using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Identity
 @using WhatYouDid.Data
 
 @inject UserManager<ApplicationUser> UserManager
-@inject SignInManager<ApplicationUser> SignInManager
 @inject IdentityUserAccessor UserAccessor
-@inject IdentityRedirectManager RedirectManager
 
-<PageTitle>Profile</PageTitle>
+<PageTitle>Settings</PageTitle>
 
-<h3>Profile</h3>
+<MudText Typo="Typo.h4" Class="mb-4">Settings</MudText>
+
 <StatusMessage />
 
-<div class="row">
-    <div class="col-md-6">
-        <EditForm Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync" method="post">
-            <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
-                <input type="text" value="@username" class="form-control" placeholder="Please choose your username." disabled />
-                <label for="username" class="form-label">Username</label>
-            </div>
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.PhoneNumber" class="form-control" placeholder="Please enter your phone number." />
-                <label for="phone-number" class="form-label">Phone number</label>
-                <ValidationMessage For="() => Input.PhoneNumber" class="text-danger" />
-            </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
-        </EditForm>
-    </div>
+<div class="d-flex flex-column gap-3" style="max-width: 400px">
+    @if (isLocalAccount)
+    {
+        <a href="Account/Manage/Email" style="text-decoration:none; color:inherit">
+            <MudCard Style="cursor:pointer">
+                <MudCardContent>
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                        <MudIcon Icon="@Icons.Material.Filled.Email" Color="Color.Primary" />
+                        <div>
+                            <MudText Typo="Typo.subtitle1" Style="font-weight:bold">Change Email</MudText>
+                            <MudText Typo="Typo.body2">Update the email address on your account.</MudText>
+                        </div>
+                    </MudStack>
+                </MudCardContent>
+            </MudCard>
+        </a>
+
+        <a href="Account/Manage/ChangePassword" style="text-decoration:none; color:inherit">
+            <MudCard Style="cursor:pointer">
+                <MudCardContent>
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                        <MudIcon Icon="@Icons.Material.Filled.Lock" Color="Color.Primary" />
+                        <div>
+                            <MudText Typo="Typo.subtitle1" Style="font-weight:bold">Change Password</MudText>
+                            <MudText Typo="Typo.body2">Update your account password.</MudText>
+                        </div>
+                    </MudStack>
+                </MudCardContent>
+            </MudCard>
+        </a>
+    }
+
+    <a href="Account/Manage/DownloadWorkouts" style="text-decoration:none; color:inherit">
+        <MudCard Style="cursor:pointer">
+            <MudCardContent>
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                    <MudIcon Icon="@Icons.Material.Filled.FileDownload" Color="Color.Primary" />
+                    <div>
+                        <MudText Typo="Typo.subtitle1" Style="font-weight:bold">Download Workouts</MudText>
+                        <MudText Typo="Typo.body2">Export your full workout history as a CSV file.</MudText>
+                    </div>
+                </MudStack>
+            </MudCardContent>
+        </MudCard>
+    </a>
+
+    <a href="Account/Manage/DeletePersonalData" style="text-decoration:none; color:inherit">
+        <MudCard Style="cursor:pointer">
+            <MudCardContent>
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                    <MudIcon Icon="@Icons.Material.Filled.DeleteForever" Color="Color.Error" />
+                    <div>
+                        <MudText Typo="Typo.subtitle1" Style="font-weight:bold">Delete Account</MudText>
+                        <MudText Typo="Typo.body2">Permanently delete your account and all your data.</MudText>
+                    </div>
+                </MudStack>
+            </MudCardContent>
+        </MudCard>
+    </a>
 </div>
 
 @code {
-    private ApplicationUser user = default!;
-    private string? username;
-    private string? phoneNumber;
+    private bool isLocalAccount;
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
-    [SupplyParameterFromForm]
-    private InputModel Input { get; set; } = default!;
-
     protected override async Task OnInitializedAsync()
     {
-        Input ??= new();
-
-        user = await UserAccessor.GetRequiredUserAsync(HttpContext);
-        username = await UserManager.GetUserNameAsync(user);
-        phoneNumber = await UserManager.GetPhoneNumberAsync(user);
-
-        Input.PhoneNumber ??= phoneNumber;
-    }
-
-    private async Task OnValidSubmitAsync()
-    {
-        if (Input.PhoneNumber != phoneNumber)
-        {
-            var setPhoneResult = await UserManager.SetPhoneNumberAsync(user, Input.PhoneNumber);
-            if (!setPhoneResult.Succeeded)
-            {
-                RedirectManager.RedirectToCurrentPageWithStatus("Error: Failed to set phone number.", HttpContext);
-            }
-        }
-
-        await SignInManager.RefreshSignInAsync(user);
-        RedirectManager.RedirectToCurrentPageWithStatus("Your profile has been updated", HttpContext);
-    }
-
-    private sealed class InputModel
-    {
-        [Phone]
-        [Display(Name = "Phone number")]
-        public string? PhoneNumber { get; set; }
+        var user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+        isLocalAccount = await UserManager.HasPasswordAsync(user);
     }
 }

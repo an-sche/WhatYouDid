@@ -38,6 +38,6 @@ public class WorkoutHttpService(HttpClient http) : IWorkoutService
         return response.IsSuccessStatusCode;
     }
 
-    public Task<IEnumerable<WorkoutExportRowDto>> GetAllWorkoutsForExportAsync()
+    public Task<IEnumerable<WorkoutExportRowDto>> GetAllWorkoutsForExportAsync(int? year = null)
         => throw new NotSupportedException("CSV export is not supported in the WASM client.");
 }
