@@ -1,0 +1,91 @@
+@using WhatYouDid.Shared
+@using MudBlazor.Charts
+
+@if (_maxSets > 1)
+{
+    <MudTabs Centered ActivePanelIndex="_selectedSet - 1" ActivePanelIndexChanged="OnSetChanged" Class="mb-2">
+        @for (int i = 1; i <= _maxSets; i++)
+        {
+            <MudTabPanel Text="@($"Set {i}")" />
+        }
+    </MudTabs>
+}
+
+<MudCard>
+    <MudCardContent>
+        @if (_series.Count > 0)
+        {
+            <Line T="double"
+                  ChartSeries="_series"
+                  ChartLabels="_xLabels"
+                  ChartOptions="_chartOptions"
+                  Width="100%" Height="300px" />
+        }
+    </MudCardContent>
+</MudCard>
+
+@code {
+    [Parameter, EditorRequired] public ExerciseHistoryDto History { get; set; } = default!;
+
+    int _selectedSet = 1;
+    int _maxSets;
+    string[] _xLabels = [];
+    List<ChartSeries<double>> _series = [];
+
+    readonly LineChartOptions _chartOptions = new()
+    {
+        LineStrokeWidth = 2,
+        YAxisTicks = 5,
+    };
+
+    protected override void OnParametersSet()
+    {
+        _selectedSet = 1;
+        _maxSets = Math.Min(History.Sessions.Max(s => s.Sets.Count), 6);
+        _xLabels = History.Sessions
+            .Select(s => s.Date.LocalDateTime.ToString("MMM d"))
+            .ToArray();
+
+        BuildSeries();
+    }
+
+    private void OnSetChanged(int index)
+    {
+        _selectedSet = index + 1;
+        BuildSeries();
+    }
+
+    private void BuildSeries()
+    {
+        _series = [];
+
+        if (History.HasReps)
+        {
+            var data = GetSetData(s => (double?)s.Reps);
+            if (data.Any(v => !double.IsNaN(v)))
+                _series.Add(new ChartSeries<double> { Name = "Reps", Data = data });
+        }
+
+        if (History.HasWeight)
+        {
+            var data = GetSetData(s => (double?)s.Weight);
+            if (data.Any(v => !double.IsNaN(v)))
+                _series.Add(new ChartSeries<double> { Name = "Weight", Data = data });
+        }
+
+        if (History.HasDuration)
+        {
+            var data = GetSetData(s => (double?)s.Duration);
+            if (data.Any(v => !double.IsNaN(v)))
+                _series.Add(new ChartSeries<double> { Name = "Duration (sec)", Data = data });
+        }
+    }
+
+    private double[] GetSetData(Func<ExerciseSetHistoryDto, double?> getValue) =>
+        History.Sessions.Select(session =>
+        {
+            var set = session.Sets.FirstOrDefault(s => s.SetNumber == _selectedSet);
+            if (set is null) return double.NaN;
+            return getValue(set) ?? double.NaN;
+        }).ToArray();
+}
