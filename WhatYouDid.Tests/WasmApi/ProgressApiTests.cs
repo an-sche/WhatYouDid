@@ -97,6 +97,69 @@ public class ProgressApiTests(ApiWebApplicationFactory factory)
         Assert.Equal(20, dtoB.Sessions[0].Sets[0].Reps);
     }
 
+    // -------------------------------------------------------------------------
+    // GET /api/workouts/history/{exerciseId}?last=N
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public async Task GetExerciseHistory_WithLast_ReturnsOnlyLastNSessions()
+    {
+        var id = Guid.NewGuid().ToString("N")[..8];
+        var user = await factory.CreateUserAsync($"prg-last-{id}@test.com", "Test1234!");
+        var (routineId, exerciseIds) = await factory.CreateRoutineWithExercisesAsync(user.Id, $"Routine {id}");
+        for (int i = 7; i >= 1; i--)
+            await factory.SaveWorkoutWithSetsAsync(user.Id, routineId, $"Routine {id}", exerciseIds[0], "Bench Press", reps: i, startTime: DateTimeOffset.UtcNow.AddDays(-i));
+        var client = factory.CreateAuthenticatedClient(user.Id);
+
+        var response = await client.GetAsync($"/api/workouts/history/{exerciseIds[0]}?last=5");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var dto = await response.Content.ReadFromJsonAsync<ExerciseHistoryDto>();
+        Assert.NotNull(dto);
+        Assert.Equal(5, dto.Sessions.Count);
+        // Should be the 5 most recent (days -5 through -1), so reps 5 down to 1
+        Assert.Equal(5, dto.Sessions[0].Sets[0].Reps);
+        Assert.Equal(1, dto.Sessions[4].Sets[0].Reps);
+    }
+
+    [Fact]
+    public async Task GetExerciseHistory_WithLast_ExceedsTotal_ReturnsAll()
+    {
+        var id = Guid.NewGuid().ToString("N")[..8];
+        var user = await factory.CreateUserAsync($"prg-last-exc-{id}@test.com", "Test1234!");
+        var (routineId, exerciseIds) = await factory.CreateRoutineWithExercisesAsync(user.Id, $"Routine {id}");
+        for (int i = 1; i <= 3; i++)
+            await factory.SaveWorkoutWithSetsAsync(user.Id, routineId, $"Routine {id}", exerciseIds[0], "Bench Press", reps: i, startTime: DateTimeOffset.UtcNow.AddDays(-i));
+        var client = factory.CreateAuthenticatedClient(user.Id);
+
+        var response = await client.GetAsync($"/api/workouts/history/{exerciseIds[0]}?last=10");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var dto = await response.Content.ReadFromJsonAsync<ExerciseHistoryDto>();
+        Assert.NotNull(dto);
+        Assert.Equal(3, dto.Sessions.Count);
+    }
+
+    [Fact]
+    public async Task GetExerciseHistory_WithLast_PreservesAscendingDateOrder()
+    {
+        var id = Guid.NewGuid().ToString("N")[..8];
+        var user = await factory.CreateUserAsync($"prg-last-ord-{id}@test.com", "Test1234!");
+        var (routineId, exerciseIds) = await factory.CreateRoutineWithExercisesAsync(user.Id, $"Routine {id}");
+        // Seed in reverse chronological order to ensure the service sorts, not just returns insertion order
+        for (int i = 5; i >= 1; i--)
+            await factory.SaveWorkoutWithSetsAsync(user.Id, routineId, $"Routine {id}", exerciseIds[0], "Bench Press", reps: i, startTime: DateTimeOffset.UtcNow.AddDays(-i));
+        var client = factory.CreateAuthenticatedClient(user.Id);
+
+        var response = await client.GetAsync($"/api/workouts/history/{exerciseIds[0]}?last=3");
+
+        var dto = await response.Content.ReadFromJsonAsync<ExerciseHistoryDto>();
+        Assert.NotNull(dto);
+        Assert.Equal(3, dto.Sessions.Count);
+        Assert.True(dto.Sessions[0].Date <= dto.Sessions[1].Date);
+        Assert.True(dto.Sessions[1].Date <= dto.Sessions[2].Date);
+    }
+
     [Fact]
     public async Task GetExerciseHistory_DoesNotInclude_OtherUsersHistory()
     {
