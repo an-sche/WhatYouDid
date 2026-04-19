@@ -1,0 +1,40 @@
+@using WhatYouDid.Shared
+
+@inject HttpClient Http
+
+<MudDialog>
+    <DialogContent>
+        @if (_loading)
+        {
+            <MudProgressLinear Indeterminate="true" />
+        }
+        else if (_history is not null)
+        {
+            <ExerciseHistoryCharts History="_history" />
+        }
+        else
+        {
+            <MudText Color="Color.Secondary">No history found for "@ExerciseName".</MudText>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => MudDialog.Close())">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter, EditorRequired] public int ExerciseId { get; set; }
+    [Parameter, EditorRequired] public string ExerciseName { get; set; } = default!;
+
+    bool _loading = true;
+    ExerciseHistoryDto? _history;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _history = await Http.GetFromJsonAsync<ExerciseHistoryDto>(
+            $"/api/workouts/history/{ExerciseId}?last=5");
+        _loading = false;
+    }
+}

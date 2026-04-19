@@ -227,7 +227,7 @@ public class WorkoutService(
         ));
     }
 
-    public async Task<ExerciseHistoryDto?> GetExerciseHistoryAsync(int exerciseId)
+    public async Task<ExerciseHistoryDto?> GetExerciseHistoryAsync(int exerciseId, int? last = null)
     {
         using var db = await dbFactory.CreateDbContextAsync();
 
@@ -246,6 +246,9 @@ public class WorkoutService(
             .ToListAsync();
 
         if (rows.Count == 0) return null;
+
+        if (last.HasValue)
+            rows = rows.TakeLast(last.Value).ToList();
 
         var allSets = rows.SelectMany(r => r.Sets).ToList();
 

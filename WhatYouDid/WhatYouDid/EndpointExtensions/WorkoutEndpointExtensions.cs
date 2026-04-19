@@ -39,9 +39,9 @@ public static class WorkoutEndpointExtensions
             return deleted ? Results.NoContent() : Results.NotFound();
         });
 
-        group.MapGet("/history/{exerciseId:int}", async (int exerciseId, IWorkoutService service) =>
+        group.MapGet("/history/{exerciseId:int}", async (int exerciseId, IWorkoutService service, int? last = null) =>
         {
-            var history = await service.GetExerciseHistoryAsync(exerciseId);
+            var history = await service.GetExerciseHistoryAsync(exerciseId, last);
             return history is null ? Results.NotFound() : Results.Ok(history);
         });
 

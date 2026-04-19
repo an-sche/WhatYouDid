@@ -38,8 +38,13 @@ public class WorkoutHttpService(HttpClient http) : IWorkoutService
         return response.IsSuccessStatusCode;
     }
 
-    public Task<ExerciseHistoryDto?> GetExerciseHistoryAsync(int exerciseId)
-        => http.GetFromJsonAsync<ExerciseHistoryDto>($"/api/workouts/history/{exerciseId}");
+    public Task<ExerciseHistoryDto?> GetExerciseHistoryAsync(int exerciseId, int? last = null)
+    {
+        var url = last.HasValue
+            ? $"/api/workouts/history/{exerciseId}?last={last.Value}"
+            : $"/api/workouts/history/{exerciseId}";
+        return http.GetFromJsonAsync<ExerciseHistoryDto>(url);
+    }
 
     public Task<IEnumerable<WorkoutExportRowDto>> GetAllWorkoutsForExportAsync(int? year = null)
         => throw new NotSupportedException("CSV export is not supported in the WASM client.");

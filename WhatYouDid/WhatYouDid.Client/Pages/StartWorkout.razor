@@ -9,6 +9,7 @@
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
 @inject HttpClient Http
+@inject IDialogService DialogService
 
 <MudPopoverProvider />
 <MudDialogProvider /> 
@@ -58,6 +59,8 @@
 				<MudIconButton Color="Color.Default" Size="Size.Small"
 					Icon="@Icons.Material.Filled.History" OnClick="OnAutofillLastTime" aria-label="Autofill from last workout" />
 			}
+			<MudIconButton Color="Color.Default" Size="Size.Small"
+				Icon="@Icons.Material.Filled.ShowChart" OnClick="@(() => OnShowHistoryAsync(workoutExercise))" aria-label="Show exercise history" />
 		</MudStack>
 
 		<MudStack @key="@workoutExercise.ExerciseName"
@@ -319,6 +322,17 @@ public WorkoutDto? WorkoutDto { get; set; }
 			: "slide-from-right";
 
 		WorkoutDto.ExerciseIndex = newIndex;
+	}
+
+	private async Task OnShowHistoryAsync(WorkoutExerciseDto exercise)
+	{
+		var parameters = new DialogParameters<ExerciseHistoryDialog>
+		{
+			{ x => x.ExerciseId, exercise.ExerciseId },
+			{ x => x.ExerciseName, exercise.ExerciseName },
+		};
+		var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
+		await DialogService.ShowAsync<ExerciseHistoryDialog>(exercise.ExerciseName, parameters, options);
 	}
 
 	private void OnAutofillLastTime()
