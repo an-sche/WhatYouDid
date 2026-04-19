@@ -81,10 +81,19 @@ public class RoutineService(
             .FirstOrDefaultAsync();
     }
 
-    public async Task<List<RoutineDto>> GetUserRoutinesAsync()
+    public async Task<List<RoutineDto>> GetUserRoutinesAsync(bool performedOnly = false)
     {
         using var db = await dbFactory.CreateDbContextAsync();
-        return await db.Routines
+        var query = db.Routines.AsQueryable();
+        if (performedOnly)
+        {
+            var performedRoutineIds = db.Workouts
+                .Where(w => w.EndTime != null && w.RoutineId != null)
+                .Select(w => w.RoutineId!.Value)
+                .Distinct();
+            query = query.Where(r => performedRoutineIds.Contains(r.RoutineId));
+        }
+        return await query
             .OrderBy(x => x.Name)
             .Select(r => new RoutineDto { RoutineId = r.RoutineId, Name = r.Name })
             .ToListAsync();

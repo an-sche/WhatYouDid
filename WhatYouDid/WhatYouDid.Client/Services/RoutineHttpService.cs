@@ -5,8 +5,11 @@ namespace WhatYouDid.Client.Services;
 
 public class RoutineHttpService(HttpClient http) : IRoutineService
 {
-    public async Task<List<RoutineDto>> GetUserRoutinesAsync()
-        => await http.GetFromJsonAsync<List<RoutineDto>>("/api/routines") ?? [];
+    public async Task<List<RoutineDto>> GetUserRoutinesAsync(bool performedOnly = false)
+    {
+        var url = performedOnly ? "/api/routines?performed=true" : "/api/routines";
+        return await http.GetFromJsonAsync<List<RoutineDto>>(url) ?? [];
+    }
 
     public async Task<List<ExerciseDto>> GetExercisesAsync(int routineId)
         => await http.GetFromJsonAsync<List<ExerciseDto>>($"/api/routines/{routineId}/exercises") ?? [];

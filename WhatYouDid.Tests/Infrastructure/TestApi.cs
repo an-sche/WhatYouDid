@@ -13,7 +13,7 @@ public class TestApi(RoutineService routineService, WorkoutService workoutServic
     public Task<bool> AddRoutineAsync(CreateRoutineDto routine) => routineService.AddRoutineAsync(routine);
     public Task<List<ExerciseDto>> GetExercisesAsync(int routineId) => routineService.GetExercisesAsync(routineId);
     public Task<RoutineDetailDto?> GetRoutineAsync(int routineId) => routineService.GetRoutineAsync(routineId);
-    public Task<List<RoutineDto>> GetUserRoutinesAsync() => routineService.GetUserRoutinesAsync();
+    public Task<List<RoutineDto>> GetUserRoutinesAsync(bool performedOnly = false) => routineService.GetUserRoutinesAsync(performedOnly);
 
     public Task<WorkoutDto?> GetStartWorkoutDtoAsync(int routineId) => workoutService.GetStartWorkoutDtoAsync(routineId);
     public Task<WorkoutDto?> GetCompletedWorkoutDtoAsync(Guid workoutId) => workoutService.GetCompletedWorkoutDtoAsync(workoutId);
@@ -22,6 +22,5 @@ public class TestApi(RoutineService routineService, WorkoutService workoutServic
     public Task<bool> DeleteWorkoutAsync(Guid workoutId) => workoutService.DeleteWorkoutAsync(workoutId);
     public Task<PagedList<WorkoutListItemDto>> GetWorkoutsAsync(int page, int pageSize, string? search = null) => workoutService.GetWorkoutsAsync(page, pageSize, search);
     public Task<IEnumerable<WorkoutExportRowDto>> GetAllWorkoutsForExportAsync(int? year = null) => workoutService.GetAllWorkoutsForExportAsync(year);
-    public Task<List<string>> GetExerciseNamesAsync() => workoutService.GetExerciseNamesAsync();
-    public Task<ExerciseHistoryDto?> GetExerciseHistoryAsync(string exerciseName, string? routineName = null) => workoutService.GetExerciseHistoryAsync(exerciseName, routineName);
+    public Task<ExerciseHistoryDto?> GetExerciseHistoryAsync(int exerciseId) => workoutService.GetExerciseHistoryAsync(exerciseId);
 }

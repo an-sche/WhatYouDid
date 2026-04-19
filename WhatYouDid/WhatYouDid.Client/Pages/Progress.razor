@@ -3,7 +3,9 @@
 @using MudBlazor.Charts
 @attribute [Authorize]
 @rendermode InteractiveWebAssembly
+@implements IDisposable
 
+@inject IRoutineService RoutineService
 @inject IWorkoutService WorkoutService
 
 <MudPopoverProvider />
@@ -12,16 +14,45 @@
 
 <MudText Typo="Typo.h4" Class="mb-4">Progress</MudText>
 
-<MudAutocomplete T="string"
-    Label="Exercise"
-    Value="selectedExercise"
-    ValueChanged="OnExerciseSelected"
-    SearchFunc="SearchExercises"
-    ResetValueOnEmptyText="true"
-    CoerceText="true"
-    Variant="Variant.Outlined"
-    Class="mb-4"
-    Placeholder="Search for an exercise..." />
+<MudGrid Class="mb-2" Spacing="2">
+    <MudItem xs="12" sm="5">
+        <MudSelect T="RoutineDto"
+            Label="Routine"
+            Value="selectedRoutine"
+            ValueChanged="OnRoutineSelected"
+            ToStringFunc="r => r?.Name ?? string.Empty"
+            Variant="Variant.Outlined"
+            Disabled="routines.Count == 0">
+            @foreach (var routine in routines)
+            {
+                <MudSelectItem Value="@routine">@routine.Name</MudSelectItem>
+            }
+        </MudSelect>
+    </MudItem>
+    <MudItem xs="12" sm="5">
+        <MudSelect T="ExerciseDto"
+            Label="Exercise"
+            Value="selectedExercise"
+            ValueChanged="OnExerciseSelected"
+            ToStringFunc="e => e is null ? string.Empty : ExerciseLabel(e)"
+            Variant="Variant.Outlined"
+            Disabled="exercises.Count == 0">
+            @foreach (var exercise in exercises)
+            {
+                <MudSelectItem Value="@exercise">@ExerciseLabel(exercise)</MudSelectItem>
+            }
+        </MudSelect>
+    </MudItem>
+    <MudItem xs="12" sm="2" Style="display:flex; align-items:center">
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   FullWidth="true"
+                   Disabled="selectedExercise is null || isLoading"
+                   OnClick="LoadHistory">
+            Load
+        </MudButton>
+    </MudItem>
+</MudGrid>
 
 @if (isLoading)
 {
@@ -29,21 +60,6 @@
 }
 else if (history is not null)
 {
-    @if (history.Routines.Count > 1)
-    {
-        <div class="mb-4">
-            <MudChipSet T="string" SelectionMode="SelectionMode.SingleSelection"
-                        SelectedValue="selectedRoutine"
-                        SelectedValueChanged="OnRoutineSelected">
-                <MudChip T="string" Value="@((string?)null)" Variant="Variant.Filled">All</MudChip>
-                @foreach (var routine in history.Routines)
-                {
-                    <MudChip T="string" Value="@routine" Variant="Variant.Filled">@routine</MudChip>
-                }
-            </MudChipSet>
-        </div>
-    }
-
     @if (history.HasReps)
     {
         <MudCard Class="mb-4">
@@ -95,17 +111,21 @@ else if (history is not null)
         </MudCard>
     }
 }
-else if (selectedExercise is not null && !isLoading)
+else if (noHistory)
 {
-    <MudText Color="Color.Secondary">No history found for "@selectedExercise".</MudText>
+    <MudText Color="Color.Secondary">No history found for "@ExerciseLabel(selectedExercise!)".</MudText>
 }
 
 @code {
-    string? selectedExercise;
-    string? selectedRoutine;
+    List<RoutineDto> routines = [];
+    List<ExerciseDto> exercises = [];
+    RoutineDto? selectedRoutine;
+    ExerciseDto? selectedExercise;
     ExerciseHistoryDto? history;
     bool isLoading;
-    List<string> exerciseNames = [];
+    bool noHistory;
+
+    CancellationTokenSource _cts = new();
 
     string[] xLabels = [];
     List<ChartSeries<double>> repsSeries = [];
@@ -120,56 +140,83 @@ else if (selectedExercise is not null && !isLoading)
 
     protected override async Task OnInitializedAsync()
     {
-        exerciseNames = await WorkoutService.GetExerciseNamesAsync();
+        routines = await RoutineService.GetUserRoutinesAsync(performedOnly: true);
     }
 
-    private Task<IEnumerable<string>> SearchExercises(string value, CancellationToken _)
+    private async Task OnRoutineSelected(RoutineDto? routine)
     {
-        if (string.IsNullOrWhiteSpace(value))
-            return Task.FromResult<IEnumerable<string>>(exerciseNames);
-        return Task.FromResult(exerciseNames.Where(n =>
-            n.Contains(value, StringComparison.OrdinalIgnoreCase)));
-    }
+        _cts.Cancel();
+        _cts = new CancellationTokenSource();
+        var token = _cts.Token;
 
-    private async Task OnExerciseSelected(string? name)
-    {
-        selectedExercise = name;
-        selectedRoutine = null;
-        history = null;
+        selectedRoutine = routine;
+        selectedExercise = null;
+        exercises = [];
         ClearChartData();
 
-        if (string.IsNullOrWhiteSpace(name)) return;
+        if (routine is null) return;
 
-        await LoadHistoryAsync(name, routineName: null);
-    }
-
-    private async Task OnRoutineSelected(string? routineName)
-    {
-        selectedRoutine = routineName;
-        ClearChartData();
-
-        if (selectedExercise is null) return;
-
-        await LoadHistoryAsync(selectedExercise, routineName);
-    }
-
-    private async Task LoadHistoryAsync(string exerciseName, string? routineName)
-    {
-        isLoading = true;
         try
         {
-            history = await WorkoutService.GetExerciseHistoryAsync(exerciseName, routineName);
+            var result = await RoutineService.GetExercisesAsync(routine.RoutineId);
+            if (!token.IsCancellationRequested)
+                exercises = result;
+        }
+        catch (OperationCanceledException) { }
+    }
+
+    private void OnExerciseSelected(ExerciseDto? exercise)
+    {
+        selectedExercise = exercise;
+        ClearChartData();
+    }
+
+    private async Task LoadHistory()
+    {
+        if (selectedExercise is null) return;
+
+        _cts.Cancel();
+        _cts = new CancellationTokenSource();
+        var token = _cts.Token;
+
+        isLoading = true;
+        noHistory = false;
+        try
+        {
+            var result = await WorkoutService.GetExerciseHistoryAsync(selectedExercise.ExerciseId);
+            if (token.IsCancellationRequested) return;
+
+            history = result;
             if (history is not null)
                 BuildChartData(history);
+            else
+                noHistory = true;
         }
+        catch (OperationCanceledException) { }
         finally
         {
-            isLoading = false;
+            if (!token.IsCancellationRequested)
+                isLoading = false;
         }
     }
+
+    public void Dispose()
+    {
+        _cts.Cancel();
+        _cts.Dispose();
+    }
+
+    // Appends sequence number only when the same exercise name appears more than once
+    // in the current routine (e.g. "Push-Ups" and "Push-Ups (#3)").
+    private string ExerciseLabel(ExerciseDto ex) =>
+        exercises.Count(e => e.Name == ex.Name) > 1
+            ? $"{ex.Name} (#{ex.Sequence})"
+            : ex.Name;
 
     private void ClearChartData()
     {
+        history = null;
+        noHistory = false;
         xLabels = [];
         repsSeries = [];
         weightSeries = [];

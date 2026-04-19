@@ -9,9 +9,9 @@ public static class RoutineEndpointExtensions
     {
         var group = routes.MapGroup("/routines");
 
-        group.MapGet("", async (IRoutineService service) =>
+        group.MapGet("", async (IRoutineService service, bool performed = false) =>
         {
-            return await service.GetUserRoutinesAsync();
+            return await service.GetUserRoutinesAsync(performed);
         });
 
         group.MapGet("/{routineId:int}", async (int routineId, IRoutineService service) =>
