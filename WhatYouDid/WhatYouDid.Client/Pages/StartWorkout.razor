@@ -331,7 +331,7 @@ public WorkoutDto? WorkoutDto { get; set; }
 			{ x => x.ExerciseId, exercise.ExerciseId },
 			{ x => x.ExerciseName, exercise.ExerciseName },
 		};
-		var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
+		var options = new DialogOptions { FullScreen = true };
 		await DialogService.ShowAsync<ExerciseHistoryDialog>(exercise.ExerciseName, parameters, options);
 	}
 

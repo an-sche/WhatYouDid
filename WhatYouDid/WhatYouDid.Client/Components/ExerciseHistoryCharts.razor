@@ -3,12 +3,13 @@
 
 @if (_maxSets > 1)
 {
-    <MudTabs Centered ActivePanelIndex="_selectedSet - 1" ActivePanelIndexChanged="OnSetChanged" Class="mb-2">
+    <MudChipSet T="int" SelectedValue="_selectedSet" SelectedValueChanged="OnSetChanged" SelectedColor="Color.Primary" Class="mb-2">
         @for (int i = 1; i <= _maxSets; i++)
         {
-            <MudTabPanel Text="@($"Set {i}")" />
+            int index = i;
+            <MudChip T="int" Value="@index" Size="Size.Medium" Variant="Variant.Outlined">Set @index</MudChip>
         }
-    </MudTabs>
+    </MudChipSet>
 }
 
 <MudCard>
@@ -34,24 +35,26 @@
 
     readonly LineChartOptions _chartOptions = new()
     {
-        LineStrokeWidth = 2,
+        LineStrokeWidth = 4,
         YAxisTicks = 5,
+        ShowDataMarkers = true,
+        XAxisLabelRotation = 45,
+        InterpolationOption = InterpolationOption.EndSlope
     };
 
     protected override void OnParametersSet()
     {
         _selectedSet = 1;
         _maxSets = Math.Min(History.Sessions.Max(s => s.Sets.Count), 6);
-        _xLabels = History.Sessions
-            .Select(s => s.Date.LocalDateTime.ToString("MMM d"))
-            .ToArray();
+        _xLabels = ThinLabels(
+            History.Sessions.Select(s => s.Date.LocalDateTime.ToString("MMM d")).ToArray());
 
         BuildSeries();
     }
 
-    private void OnSetChanged(int index)
+    private void OnSetChanged(int setNumber)
     {
-        _selectedSet = index + 1;
+        _selectedSet = setNumber;
         BuildSeries();
     }
 
@@ -79,6 +82,28 @@
             if (data.Any(v => !double.IsNaN(v)))
                 _series.Add(new ChartSeries<double> { Name = "Duration (sec)", Data = data });
         }
+    }
+
+    // Show at most 6 labels. Always keep first and last; blank everything in between
+    // that doesn't fall on a calculated step.
+    private static string[] ThinLabels(string[] labels)
+    {
+        const int maxLabels = 10;
+        if (labels.Length <= maxLabels) return labels;
+
+        var result = new string[labels.Length];
+        double step = (double)(labels.Length - 1) / (maxLabels - 1);
+
+        for (int i = 0; i < labels.Length; i++)
+            result[i] = string.Empty;
+
+        for (int i = 0; i < maxLabels; i++)
+        {
+            int index = (int)Math.Round(i * step);
+            result[index] = labels[index];
+        }
+
+        return result;
     }
 
     private double[] GetSetData(Func<ExerciseSetHistoryDto, double?> getValue) =>
