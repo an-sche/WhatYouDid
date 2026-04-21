@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -26,17 +27,26 @@ public class ApiWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLi
     {
         builder.UseEnvironment("Development");
 
-        // Override the connection string before services are registered
+        // Override the connection string and supply dummy OAuth credentials so
+        // Google's OAuthOptions.Validate() does not throw in CI (where secrets are absent).
         builder.ConfigureAppConfiguration((_, config) =>
         {
             config.AddInMemoryCollection([
                 new KeyValuePair<string, string?>(
-                    "ConnectionStrings:DevelopmentConnection", _connectionString)
+                    "ConnectionStrings:DevelopmentConnection", _connectionString),
+                new KeyValuePair<string, string?>(
+                    "Authentication:Google:ClientId", "test-client-id"),
+                new KeyValuePair<string, string?>(
+                    "Authentication:Google:ClientSecret", "test-client-secret"),
             ]);
         });
 
         builder.ConfigureTestServices(services =>
         {
+            // Use ephemeral (in-memory) Data Protection keys so CI runners with no
+            // persistent key ring don't throw when Identity's cookie handler runs.
+            services.AddDataProtection().UseEphemeralDataProtectionProvider();
+
             // Replace DbContextFactory so requests hit the container, not the User Secrets dev DB
             var dbDescriptors = services
                 .Where(d => d.ServiceType == typeof(IDbContextFactory<ApplicationDbContext>)
