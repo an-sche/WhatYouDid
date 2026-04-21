@@ -9,55 +9,79 @@ Secrets are set at: **GitHub repo → Settings → Secrets and variables → Act
 ## Secrets required now (build, test & stage)
 
 ### `DEPLOY_HOST`
-The IP address or hostname of the Windows IIS server.
+The public IP address of the Windows IIS server.
 
-- If using a static IP, paste it directly (e.g. `192.168.1.100`).
-- If using a hostname/DNS name, ensure it resolves from GitHub's runners (i.e. it must be publicly reachable or tunnelled).
-- To find the current IP on the server: open PowerShell and run `(Get-NetIPAddress -AddressFamily IPv4).IPAddress`.
+- Find your public IP at [whatismyip.com](https://whatismyip.com) from the server's network.
+- Your ISP may change this occasionally — if a deployment ever fails with a timeout, check whether the IP has changed.
+- **Important:** do not use the server's local IP (`192.168.x.x`) — that is only reachable from inside your network. GitHub's runners connect over the public internet.
 
 ---
 
 ### `DEPLOY_USER`
 The SSH username on the Windows server.
 
-- This must be a local Windows account (or domain account) with OpenSSH access configured.
-- Typically `Administrator` or a dedicated deploy user you create.
-- To create a dedicated user via PowerShell on the server:
-  ```powershell
-  New-LocalUser -Name "deploy" -NoPassword
-  Add-LocalGroupMember -Group "Administrators" -Member "deploy"
-  ```
+- You can use your existing Windows user account — no need to create a separate deploy user.
+- The account must be in the Administrators group (required for the `administrators_authorized_keys` file below).
 
 ---
 
 ### `DEPLOY_SSH_KEY`
 The **private** SSH key used to authenticate the GitHub runner with the server.
 
-1. On your local machine (or the server), generate a key pair:
-   ```bash
-   ssh-keygen -t ed25519 -C "github-actions-deploy" -f deploy_key
-   ```
-   This produces `deploy_key` (private) and `deploy_key.pub` (public). Do **not** set a passphrase.
+**1. Generate a key pair on your local machine:**
+```bash
+ssh-keygen -t ed25519 -C "github-actions-deploy" -f deploy_key
+```
+This produces `deploy_key` (private) and `deploy_key.pub` (public). Do **not** set a passphrase.
 
-2. On the Windows server, append the public key to the deploy user's `authorized_keys`:
-   - File location: `C:\Users\<DEPLOY_USER>\.ssh\authorized_keys`
-   - If the `.ssh` folder doesn't exist, create it.
-   - Paste the contents of `deploy_key.pub` into `authorized_keys`.
-   - Ensure OpenSSH Server is installed and running:
-     ```powershell
-     Get-WindowsCapability -Online -Name OpenSSH.Server*
-     Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0
-     Start-Service sshd
-     Set-Service -Name sshd -StartupType Automatic
-     ```
-   - Allow SSH through the firewall:
-     ```powershell
-     New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22
-     ```
+**2. Fix permissions on the private key (required by SSH):**
 
-3. Paste the **entire contents** of `deploy_key` (the private key file) as the secret value — including the `-----BEGIN...-----` and `-----END...-----` lines.
+On Linux/Mac:
+```bash
+chmod 600 ./deploy_key
+```
+On Windows:
+```powershell
+icacls .\deploy_key /inheritance:r /grant "<YOUR_USER>:(F)"
+```
 
-4. Delete `deploy_key` and `deploy_key.pub` from your local machine once the secret is saved.
+**3. Install and start OpenSSH Server on the Windows server:**
+```powershell
+# Check if installed (should show 'Installed', not 'NotPresent')
+Get-WindowsCapability -Online -Name OpenSSH.Server*
+
+# Install if needed
+Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0
+
+# Start and set to auto-start
+Start-Service sshd
+Set-Service -Name sshd -StartupType Automatic
+```
+
+**4. Open port 22 in the Windows firewall:**
+```powershell
+New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22
+```
+
+**5. Add the public key to `administrators_authorized_keys`:**
+
+Because your user is in the Administrators group, Windows OpenSSH ignores the regular `~\.ssh\authorized_keys` file and reads from a system-wide file instead:
+
+```powershell
+New-Item -Path "C:\ProgramData\ssh\administrators_authorized_keys" -ItemType File -Force
+Add-Content -Path "C:\ProgramData\ssh\administrators_authorized_keys" -Value "ssh-ed25519 <YOUR_PUBLIC_KEY_HERE> github-actions-deploy"
+```
+
+Then lock down the permissions on that file (OpenSSH will reject it if permissions are too broad):
+```powershell
+icacls C:\ProgramData\ssh\administrators_authorized_keys /inheritance:r /grant "SYSTEM:(F)" /grant "BUILTIN\Administrators:(F)"
+```
+
+**6. Paste the private key as the secret:**
+
+Paste the **entire contents** of `deploy_key` as the `DEPLOY_SSH_KEY` secret value — including the `-----BEGIN OPENSSH PRIVATE KEY-----` and `-----END OPENSSH PRIVATE KEY-----` lines.
+
+**7. Delete the key files from your local machine once saved.**
 
 ---
 
@@ -74,6 +98,35 @@ The absolute Windows path to the **root staging folder** on the server. Tagged b
 
 ---
 
+## Verify SSH connectivity
+
+Test from your local machine **while tethered to your phone** (not on the same WiFi as the server — most home routers don't support NAT hairpinning so the public IP won't work from inside the network):
+
+```bash
+ssh -i ./deploy_key -o StrictHostKeyChecking=no <DEPLOY_USER>@<DEPLOY_HOST> "echo connected"
+```
+
+You should see `connected` with no errors. If it prompts for a password, the key wasn't accepted — see the troubleshooting section below.
+
+---
+
+## Troubleshooting SSH key rejection
+
+If SSH keeps falling back to password auth, run with `-v` to diagnose:
+
+```bash
+ssh -v -i ./deploy_key -o StrictHostKeyChecking=no <DEPLOY_USER>@<DEPLOY_HOST>
+```
+
+Look for `Offering public key` followed by `Authentications that can continue` — that means the server rejected the key. Common causes:
+
+- **Wrong authorized_keys file** — Administrator-group users must use `C:\ProgramData\ssh\administrators_authorized_keys`, not `~\.ssh\authorized_keys`.
+- **Bad permissions on `administrators_authorized_keys`** — re-run the `icacls` command in step 5. OpenSSH silently ignores the file if permissions are too broad.
+- **Bad permissions on the private key** — re-run the `chmod 600` / `icacls` command in step 2.
+- **Key mismatch** — confirm the public key in `administrators_authorized_keys` matches `deploy_key.pub` exactly (single line, no wrapping).
+
+---
+
 ## Secrets required later (promote to live — currently commented out)
 
 These are only needed when you uncomment the IIS stop/swap/start steps in the workflow.
@@ -84,8 +137,7 @@ These are only needed when you uncomment the IIS stop/swap/start steps in the wo
 The absolute Windows path to the **live IIS site folder** — where the running app files live.
 
 - Example: `C:\inetpub\wwwroot\WhatYouDid`
-- This is the physical path configured in IIS for the site's root.
-- To find it: open IIS Manager → select the site → Basic Settings → Physical Path.
+- To find it: IIS Manager → select the site → Basic Settings → Physical Path.
 - Use a **Windows-style path with backslashes** as the secret value.
 
 ---
@@ -94,7 +146,7 @@ The absolute Windows path to the **live IIS site folder** — where the running 
 The name of the IIS website exactly as shown in IIS Manager.
 
 - Example: `WhatYouDid`
-- To list all site names via PowerShell on the server:
+- To list all site names:
   ```powershell
   Import-Module WebAdministration
   Get-Website | Select-Object Name
@@ -106,22 +158,8 @@ The name of the IIS website exactly as shown in IIS Manager.
 The name of the IIS Application Pool associated with the site.
 
 - Example: `WhatYouDidPool`
-- To find it: IIS Manager → Application Pools, or:
+- To find it:
   ```powershell
   Import-Module WebAdministration
-  Get-WebApplication | Select-Object applicationPool
-  # or check the site directly:
   (Get-Website -Name "WhatYouDid").applicationPool
   ```
-
----
-
-## Verify SSH connectivity
-
-Before running the workflow, confirm the runner can reach your server by testing from your local machine with the same key:
-
-```bash
-ssh -i deploy_key -o StrictHostKeyChecking=no <DEPLOY_USER>@<DEPLOY_HOST> "echo connected"
-```
-
-You should see `connected` printed with no errors.
