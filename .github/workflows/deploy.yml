@@ -31,7 +31,11 @@ jobs:
         run: dotnet build WhatYouDid.slnx --no-restore -c Debug
 
       # ── Integration tests (Testcontainers / SQL Server in Docker) ──
+      # The dummy connection string satisfies Program.cs's startup check (no User Secrets in CI).
+      # ApiWebApplicationFactory replaces the real DbContextFactory with a Testcontainers one anyway.
       - name: Run integration tests
+        env:
+          ConnectionStrings__DevelopmentConnection: "Server=localhost;Database=placeholder;Trusted_Connection=True;"
         run: dotnet test WhatYouDid.Tests/WhatYouDid.Tests.csproj --no-build -c Debug
 
       # ── Playwright UI tests ──
