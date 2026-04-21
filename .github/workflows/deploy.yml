@@ -7,6 +7,11 @@ on:
         description: 'Release tag (used as staging folder name, e.g. v1.0.0)'
         required: true
         type: string
+      skip_tests:
+        description: 'Skip the test job and deploy directly'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   # ────────────────────────────────────────────────────────────────
@@ -14,6 +19,7 @@ jobs:
   # ────────────────────────────────────────────────────────────────
   test:
     name: Test
+    if: ${{ !inputs.skip_tests }}
     runs-on: ubuntu-latest
 
     steps:
@@ -62,6 +68,7 @@ jobs:
     name: Publish & Stage
     runs-on: ubuntu-latest
     needs: test
+    if: always() && (needs.test.result == 'success' || needs.test.result == 'skipped')
 
     steps:
       - uses: actions/checkout@v4
@@ -106,23 +113,28 @@ jobs:
           ssh -o StrictHostKeyChecking=no \
             ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
             "powershell -Command \"
+              \$ErrorActionPreference = 'Stop';
               Stop-WebSite -Name '${{ secrets.DEPLOY_SITE_NAME }}';
-              Stop-WebAppPool -Name '${{ secrets.DEPLOY_APP_POOL }}'
-            \""
-      
+              Stop-WebAppPool -Name '${{ secrets.DEPLOY_APP_POOL }}';
+              Write-Output 'IIS stopped'
+            \"" 2>&1
+
       - name: Backup live folder
         run: |
           ssh -o StrictHostKeyChecking=no \
             ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
             "powershell -Command \"
               \$ErrorActionPreference = 'Stop';
+              \$src = '${{ secrets.DEPLOY_TARGET_PATH }}';
               \$timestamp = Get-Date -Format 'yyyy-MM-dd_HH-mm-ss';
-              \$backup = '${{ secrets.DEPLOY_TARGET_PATH }}_' + \$timestamp;
-              Write-Host Backing up to: \$backup;
-              Move-Item -Path '${{ secrets.DEPLOY_TARGET_PATH }}' -Destination \$backup;
-              New-Item -ItemType Directory -Force -Path '${{ secrets.DEPLOY_TARGET_PATH }}';
-              Write-Host Backup complete
-            \""
+              \$backup = \$src + '_' + \$timestamp;
+              Write-Output ('Source path: ' + \$src);
+              Write-Output ('Backup path: ' + \$backup);
+              if (-not (Test-Path \$src)) { throw ('Source path does not exist: ' + \$src) }
+              Move-Item -Path \$src -Destination \$backup;
+              New-Item -ItemType Directory -Force -Path \$src | Out-Null;
+              Write-Output 'Backup complete'
+            \"" 2>&1
 
       - name: Copy new build to live folder
         run: |
@@ -131,8 +143,8 @@ jobs:
             "powershell -Command \"
               \$ErrorActionPreference = 'Stop';
               Copy-Item -Recurse -Force '${{ secrets.STAGING_TARGET_PATH }}\What You Did (${{ inputs.tag }})\*' '${{ secrets.DEPLOY_TARGET_PATH }}\';
-              Write-Host Copy complete
-            \""
+              Write-Output 'Copy complete'
+            \"" 2>&1
 
       - name: Restore config backups
         run: |
@@ -141,8 +153,8 @@ jobs:
             "powershell -Command \"
               \$ErrorActionPreference = 'Stop';
               Copy-Item -Recurse -Force '${{ secrets.DEPLOY_CONFIG_BACKUP_PATH }}\*' '${{ secrets.DEPLOY_TARGET_PATH }}\';
-              Write-Host Config restore complete
-            \""
+              Write-Output 'Config restore complete'
+            \"" 2>&1
 
       - name: Start IIS
         if: always()
@@ -150,6 +162,8 @@ jobs:
           ssh -o StrictHostKeyChecking=no \
             ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
             "powershell -Command \"
+              \$ErrorActionPreference = 'Stop';
               Start-WebAppPool -Name '${{ secrets.DEPLOY_APP_POOL }}';
-              Start-WebSite -Name '${{ secrets.DEPLOY_SITE_NAME }}'
-            \""
+              Start-WebSite -Name '${{ secrets.DEPLOY_SITE_NAME }}';
+              Write-Output 'IIS started'
+            \"" 2>&1
