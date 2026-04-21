@@ -142,6 +142,20 @@ The absolute Windows path to the **live IIS site folder** — where the running 
 
 ---
 
+### `DEPLOY_CONFIG_BACKUP_PATH`
+The absolute Windows path to the folder containing your backed-up config files (e.g. `appsettings.Production.json`).
+
+- Example: `C:\inetpub\config-backups\WhatYouDid`
+- After a deploy, the live folder is fully wiped and replaced with the new publish output, then these backup files are copied in on top. This ensures production secrets are never in source control but are always restored after a deploy.
+- Create the folder and place your config files there once; they persist across deployments:
+  ```powershell
+  New-Item -ItemType Directory -Force -Path "C:\inetpub\config-backups\WhatYouDid"
+  Copy-Item appsettings.Production.json "C:\inetpub\config-backups\WhatYouDid\"
+  ```
+- Use a **Windows-style path with backslashes** as the secret value.
+
+---
+
 ### `DEPLOY_SITE_NAME`
 The name of the IIS website exactly as shown in IIS Manager.
 

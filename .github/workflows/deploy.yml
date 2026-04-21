@@ -100,31 +100,31 @@ jobs:
             ./publish/* \
             "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.STAGING_TARGET_PATH }}/What You Did (${{ inputs.tag }})/"
 
-      # ── Promote to live (commented out until ready to deploy) ──────
-      #
-      # - name: Stop IIS
-      #   run: |
-      #     ssh -o StrictHostKeyChecking=no \
-      #       ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
-      #       "powershell -Command \"
-      #         Stop-WebSite -Name '${{ secrets.DEPLOY_SITE_NAME }}';
-      #         Stop-WebAppPool -Name '${{ secrets.DEPLOY_APP_POOL }}'
-      #       \""
-      #
-      # - name: Swap files to live
-      #   run: |
-      #     ssh -o StrictHostKeyChecking=no \
-      #       ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
-      #       "powershell -Command \"
-      #         Remove-Item -Recurse -Force '${{ secrets.DEPLOY_TARGET_PATH }}\*' -Exclude 'appsettings.Production.json';
-      #         Copy-Item -Recurse -Force '${{ secrets.STAGING_TARGET_PATH }}\What You Did (${{ inputs.tag }})\*' '${{ secrets.DEPLOY_TARGET_PATH }}\'
-      #       \""
-      #
-      # - name: Start IIS
-      #   run: |
-      #     ssh -o StrictHostKeyChecking=no \
-      #       ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
-      #       "powershell -Command \"
-      #         Start-WebAppPool -Name '${{ secrets.DEPLOY_APP_POOL }}';
-      #         Start-WebSite -Name '${{ secrets.DEPLOY_SITE_NAME }}'
-      #       \""
+      # ────── Promote to live ──────
+      - name: Stop IIS
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
+            "powershell -Command \"
+              Stop-WebSite -Name '${{ secrets.DEPLOY_SITE_NAME }}';
+              Stop-WebAppPool -Name '${{ secrets.DEPLOY_APP_POOL }}'
+            \""
+      
+      - name: Swap files to live
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
+            "powershell -Command \"
+              Remove-Item -Recurse -Force '${{ secrets.DEPLOY_TARGET_PATH }}\*';
+              Copy-Item -Recurse -Force '${{ secrets.STAGING_TARGET_PATH }}\What You Did (${{ inputs.tag }})\*' '${{ secrets.DEPLOY_TARGET_PATH }}\';
+              Copy-Item -Recurse -Force '${{ secrets.DEPLOY_CONFIG_BACKUP_PATH }}\*' '${{ secrets.DEPLOY_TARGET_PATH }}\'
+            \""
+      
+      - name: Start IIS
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
+            "powershell -Command \"
+              Start-WebAppPool -Name '${{ secrets.DEPLOY_APP_POOL }}';
+              Start-WebSite -Name '${{ secrets.DEPLOY_SITE_NAME }}'
+            \""
