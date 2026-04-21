@@ -80,26 +80,23 @@ jobs:
             -c Release -r win-x64 --self-contained \
             -o ./publish
 
-      # Write the SSH private key to a temp file
-      - name: Configure SSH key
-        run: |
-          install -m 600 /dev/null /tmp/deploy_key
-          echo "${{ secrets.DEPLOY_SSH_KEY }}" > /tmp/deploy_key
+      - name: Load SSH key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
 
       # Staging folder: <STAGING_TARGET_PATH>\What You Did (<tag>)
       # The path uses Windows backslashes on the remote side; SCP target
       # uses forward slashes so the Linux scp client handles it correctly.
       - name: Create staging directory on server
         run: |
-          ssh -i /tmp/deploy_key \
-            -o StrictHostKeyChecking=no \
+          ssh -o StrictHostKeyChecking=no \
             ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
             "powershell -Command \"New-Item -ItemType Directory -Force -Path '${{ secrets.STAGING_TARGET_PATH }}\\What You Did (${{ inputs.tag }})'\""
 
       - name: Copy published files to staging folder
         run: |
-          scp -r -i /tmp/deploy_key \
-            -o StrictHostKeyChecking=no \
+          scp -r -o StrictHostKeyChecking=no \
             ./publish/* \
             "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.STAGING_TARGET_PATH }}/What You Did (${{ inputs.tag }})/"
 
@@ -107,8 +104,7 @@ jobs:
       #
       # - name: Stop IIS
       #   run: |
-      #     ssh -i /tmp/deploy_key \
-      #       -o StrictHostKeyChecking=no \
+      #     ssh -o StrictHostKeyChecking=no \
       #       ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
       #       "powershell -Command \"
       #         Stop-WebSite -Name '${{ secrets.DEPLOY_SITE_NAME }}';
@@ -117,24 +113,18 @@ jobs:
       #
       # - name: Swap files to live
       #   run: |
-      #     ssh -i /tmp/deploy_key \
-      #       -o StrictHostKeyChecking=no \
+      #     ssh -o StrictHostKeyChecking=no \
       #       ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
       #       "powershell -Command \"
-      #         Remove-Item -Recurse -Force '${{ secrets.DEPLOY_TARGET_PATH }}\*' -Exclude 'appsettings.json';
+      #         Remove-Item -Recurse -Force '${{ secrets.DEPLOY_TARGET_PATH }}\*' -Exclude 'appsettings.Production.json';
       #         Copy-Item -Recurse -Force '${{ secrets.STAGING_TARGET_PATH }}\What You Did (${{ inputs.tag }})\*' '${{ secrets.DEPLOY_TARGET_PATH }}\'
       #       \""
       #
       # - name: Start IIS
       #   run: |
-      #     ssh -i /tmp/deploy_key \
-      #       -o StrictHostKeyChecking=no \
+      #     ssh -o StrictHostKeyChecking=no \
       #       ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
       #       "powershell -Command \"
       #         Start-WebAppPool -Name '${{ secrets.DEPLOY_APP_POOL }}';
       #         Start-WebSite -Name '${{ secrets.DEPLOY_SITE_NAME }}'
       #       \""
-
-      - name: Remove SSH key
-        if: always()
-        run: rm -f /tmp/deploy_key
