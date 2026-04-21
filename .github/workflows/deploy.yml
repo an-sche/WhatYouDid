@@ -110,16 +110,38 @@ jobs:
               Stop-WebAppPool -Name '${{ secrets.DEPLOY_APP_POOL }}'
             \""
       
-      - name: Backup existing live folder and deploy new build
+      - name: Backup live folder
         run: |
           ssh -o StrictHostKeyChecking=no \
             ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
             "powershell -Command \"
+              \$ErrorActionPreference = 'Stop';
               \$timestamp = Get-Date -Format 'yyyy-MM-dd_HH-mm-ss';
-              Move-Item '${{ secrets.DEPLOY_TARGET_PATH }}' ('${{ secrets.DEPLOY_TARGET_PATH }}_' + \$timestamp);
+              \$backup = '${{ secrets.DEPLOY_TARGET_PATH }}_' + \$timestamp;
+              Write-Host Backing up to: \$backup;
+              Move-Item -Path '${{ secrets.DEPLOY_TARGET_PATH }}' -Destination \$backup;
               New-Item -ItemType Directory -Force -Path '${{ secrets.DEPLOY_TARGET_PATH }}';
+              Write-Host Backup complete
+            \""
+
+      - name: Copy new build to live folder
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
+            "powershell -Command \"
+              \$ErrorActionPreference = 'Stop';
               Copy-Item -Recurse -Force '${{ secrets.STAGING_TARGET_PATH }}\What You Did (${{ inputs.tag }})\*' '${{ secrets.DEPLOY_TARGET_PATH }}\';
-              Copy-Item -Recurse -Force '${{ secrets.DEPLOY_CONFIG_BACKUP_PATH }}\*' '${{ secrets.DEPLOY_TARGET_PATH }}\'
+              Write-Host Copy complete
+            \""
+
+      - name: Restore config backups
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
+            "powershell -Command \"
+              \$ErrorActionPreference = 'Stop';
+              Copy-Item -Recurse -Force '${{ secrets.DEPLOY_CONFIG_BACKUP_PATH }}\*' '${{ secrets.DEPLOY_TARGET_PATH }}\';
+              Write-Host Config restore complete
             \""
 
       - name: Start IIS
