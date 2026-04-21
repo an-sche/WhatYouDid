@@ -110,17 +110,20 @@ jobs:
               Stop-WebAppPool -Name '${{ secrets.DEPLOY_APP_POOL }}'
             \""
       
-      - name: Swap files to live
+      - name: Backup existing live folder and deploy new build
         run: |
           ssh -o StrictHostKeyChecking=no \
             ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
             "powershell -Command \"
-              Remove-Item -Recurse -Force '${{ secrets.DEPLOY_TARGET_PATH }}\*';
+              \$timestamp = Get-Date -Format 'yyyy-MM-dd_HH-mm-ss';
+              Move-Item '${{ secrets.DEPLOY_TARGET_PATH }}' ('${{ secrets.DEPLOY_TARGET_PATH }}_' + \$timestamp);
+              New-Item -ItemType Directory -Force -Path '${{ secrets.DEPLOY_TARGET_PATH }}';
               Copy-Item -Recurse -Force '${{ secrets.STAGING_TARGET_PATH }}\What You Did (${{ inputs.tag }})\*' '${{ secrets.DEPLOY_TARGET_PATH }}\';
               Copy-Item -Recurse -Force '${{ secrets.DEPLOY_CONFIG_BACKUP_PATH }}\*' '${{ secrets.DEPLOY_TARGET_PATH }}\'
             \""
-      
+
       - name: Start IIS
+        if: always()
         run: |
           ssh -o StrictHostKeyChecking=no \
             ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
