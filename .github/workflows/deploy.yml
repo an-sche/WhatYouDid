@@ -81,10 +81,10 @@ jobs:
       - name: Restore
         run: dotnet restore WhatYouDid.slnx
 
-      - name: Publish (win-x64 self-contained)
+      - name: Publish (win-x64 framework-dependent)
         run: |
           dotnet publish WhatYouDid/WhatYouDid/WhatYouDid.csproj \
-            -c Release -r win-x64 --self-contained \
+            -c Release -r win-x64 \
             -o ./publish
 
       - name: Load SSH key
@@ -92,20 +92,20 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
 
-      # Staging folder: <STAGING_TARGET_PATH>\What You Did (<tag>)
-      # The path uses Windows backslashes on the remote side; SCP target
-      # uses forward slashes so the Linux scp client handles it correctly.
-      - name: Create staging directory on server
+      - name: Compress publish output
+        run: cd ./publish && zip -r ../publish.zip .
+
+      - name: Upload build to server
+        run: |
+          scp -o StrictHostKeyChecking=no \
+            publish.zip \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.STAGING_TARGET_PATH }}/publish.zip"
+
+      - name: Extract build on server
         run: |
           ssh -o StrictHostKeyChecking=no \
             ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
-            "powershell -Command \"New-Item -ItemType Directory -Force -Path '${{ secrets.STAGING_TARGET_PATH }}\\What You Did (${{ inputs.tag }})'\""
-
-      - name: Copy published files to staging folder
-        run: |
-          scp -r -o StrictHostKeyChecking=no \
-            ./publish/* \
-            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.STAGING_TARGET_PATH }}/What You Did (${{ inputs.tag }})/"
+            "powershell -Command \"Expand-Archive -Path '${{ secrets.STAGING_TARGET_PATH }}\\publish.zip' -DestinationPath '${{ secrets.STAGING_TARGET_PATH }}\\What You Did (${{ inputs.tag }})' -Force\""
 
       # ────── Promote to live ──────
       - name: Run deploy script
