@@ -112,7 +112,7 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no \
             ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
-            "powershell -File \"${{ secrets.DEPLOY_SCRIPT_PATH }}\" \
+            "powershell -ExecutionPolicy Bypass -File \"${{ secrets.DEPLOY_SCRIPT_PATH }}\" \
               -SiteName \"${{ secrets.DEPLOY_SITE_NAME }}\" \
               -AppPool \"${{ secrets.DEPLOY_APP_POOL }}\" \
               -LivePath \"${{ secrets.DEPLOY_TARGET_PATH }}\" \
