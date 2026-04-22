@@ -4,15 +4,16 @@ param(
     [Parameter(Mandatory)] [string] $LivePath,
     [Parameter(Mandatory)] [string] $StagingPath,
     [Parameter(Mandatory)] [string] $Tag,
-    [Parameter(Mandatory)] [string] $ConfigBackupPath
+    [Parameter(Mandatory)] [string] $ConfigBackupPath,
+    [Parameter(Mandatory)] [string] $BackupPath
 )
 
 $ErrorActionPreference = 'Stop'
 Import-Module WebAdministration
 
-$stagingFolder = Join-Path $StagingPath "What You Did ($Tag)"
-$timestamp     = Get-Date -Format 'yyyy-MM-dd_HH-mm-ss'
-$backupPath    = "${LivePath}_${timestamp}"
+$stagingFolder  = Join-Path $StagingPath "What You Did ($Tag)"
+$timestamp      = Get-Date -Format 'yyyy-MM-dd_HH-mm-ss'
+$backupDest     = Join-Path $BackupPath "Production_$timestamp"
 
 # ── Validate up front so we fail before touching anything ───────────────────
 if (-not (Test-Path $LivePath))         { throw "Live path not found: $LivePath" }
@@ -40,8 +41,8 @@ try {
     Write-Output 'IIS stopped.'
 
     # ── Backup live folder ───────────────────────────────────────────────────
-    Write-Output "Backing up '$LivePath' -> '$backupPath'..."
-    Move-Item -Path $LivePath -Destination $backupPath
+    Write-Output "Backing up '$LivePath' -> '$backupDest'..."
+    Move-Item -Path $LivePath -Destination $backupDest
     New-Item -ItemType Directory -Force -Path $LivePath | Out-Null
     Write-Output 'Backup complete.'
 

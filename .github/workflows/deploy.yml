@@ -118,4 +118,5 @@ jobs:
               -LivePath '${{ secrets.DEPLOY_TARGET_PATH }}' \
               -StagingPath '${{ secrets.STAGING_TARGET_PATH }}' \
               -Tag '${{ inputs.tag }}' \
-              -ConfigBackupPath '${{ secrets.DEPLOY_CONFIG_BACKUP_PATH }}'" 2>&1
+              -ConfigBackupPath '${{ secrets.DEPLOY_CONFIG_BACKUP_PATH }}' \
+              -BackupPath '${{ secrets.DEPLOY_BACKUP_PATH }}'" 2>&1
