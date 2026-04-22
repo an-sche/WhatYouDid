@@ -127,9 +127,21 @@ Look for `Offering public key` followed by `Authentications that can continue` �
 
 ---
 
-## Secrets required later (promote to live — currently commented out)
+## Secrets required for promote to live
 
-These are only needed when you uncomment the IIS stop/swap/start steps in the workflow.
+---
+
+### `DEPLOY_SCRIPT_PATH`
+The absolute Windows path to `deploy.ps1` on the server. The script is **not uploaded by the workflow** — you place it manually once and it stays there permanently. This prevents a malicious PR from modifying what runs on your server.
+
+- Copy `scripts/deploy.ps1` from the repo to the server over RDP or SCP, then set this secret to its location.
+- Example: `C:\deploy\deploy.ps1`
+- To set it up:
+  ```powershell
+  New-Item -ItemType Directory -Force -Path "C:\deploy"
+  # then copy deploy.ps1 into C:\deploy\ manually
+  ```
+- To update the script in future, copy the new version to the server manually — do not wire it into the workflow.
 
 ---
 

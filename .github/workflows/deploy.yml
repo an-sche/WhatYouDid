@@ -108,33 +108,14 @@ jobs:
             "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.STAGING_TARGET_PATH }}/What You Did (${{ inputs.tag }})/"
 
       # ────── Promote to live ──────
-      - name: Stop IIS
+      - name: Run deploy script
         run: |
           ssh -o StrictHostKeyChecking=no \
             ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
-            "powershell -Command \"\$ErrorActionPreference='Stop'; Stop-WebSite -Name '${{ secrets.DEPLOY_SITE_NAME }}'; Stop-WebAppPool -Name '${{ secrets.DEPLOY_APP_POOL }}'; Write-Output 'IIS stopped'\"" 2>&1
-
-      - name: Backup live folder
-        run: |
-          ssh -o StrictHostKeyChecking=no \
-            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
-            "powershell -Command \"\$ErrorActionPreference='Stop'; \$src='${{ secrets.DEPLOY_TARGET_PATH }}'; \$backup=\$src+'_'+(Get-Date -Format 'yyyy-MM-dd_HH-mm-ss'); Write-Output ('Source: '+\$src); Write-Output ('Backup: '+\$backup); if(-not(Test-Path \$src)){throw('Source path does not exist: '+\$src)}; Move-Item -Path \$src -Destination \$backup; New-Item -ItemType Directory -Force -Path \$src | Out-Null; Write-Output 'Backup complete'\"" 2>&1
-
-      - name: Copy new build to live folder
-        run: |
-          ssh -o StrictHostKeyChecking=no \
-            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
-            "powershell -Command \"\$ErrorActionPreference='Stop'; Copy-Item -Recurse -Force '${{ secrets.STAGING_TARGET_PATH }}\\What You Did (${{ inputs.tag }})\\*' '${{ secrets.DEPLOY_TARGET_PATH }}\\'; Write-Output 'Copy complete'\"" 2>&1
-
-      - name: Restore config backups
-        run: |
-          ssh -o StrictHostKeyChecking=no \
-            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
-            "powershell -Command \"\$ErrorActionPreference='Stop'; Copy-Item -Recurse -Force '${{ secrets.DEPLOY_CONFIG_BACKUP_PATH }}\\*' '${{ secrets.DEPLOY_TARGET_PATH }}\\'; Write-Output 'Config restore complete'\"" 2>&1
-
-      - name: Start IIS
-        if: always()
-        run: |
-          ssh -o StrictHostKeyChecking=no \
-            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
-            "powershell -Command \"\$ErrorActionPreference='Stop'; Start-WebAppPool -Name '${{ secrets.DEPLOY_APP_POOL }}'; Start-WebSite -Name '${{ secrets.DEPLOY_SITE_NAME }}'; Write-Output 'IIS started'\"" 2>&1
+            "powershell -File '${{ secrets.DEPLOY_SCRIPT_PATH }}' \
+              -SiteName '${{ secrets.DEPLOY_SITE_NAME }}' \
+              -AppPool '${{ secrets.DEPLOY_APP_POOL }}' \
+              -LivePath '${{ secrets.DEPLOY_TARGET_PATH }}' \
+              -StagingPath '${{ secrets.STAGING_TARGET_PATH }}' \
+              -Tag '${{ inputs.tag }}' \
+              -ConfigBackupPath '${{ secrets.DEPLOY_CONFIG_BACKUP_PATH }}'" 2>&1
