@@ -112,11 +112,11 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no \
             ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
-            "powershell -File '${{ secrets.DEPLOY_SCRIPT_PATH }}' \
-              -SiteName '${{ secrets.DEPLOY_SITE_NAME }}' \
-              -AppPool '${{ secrets.DEPLOY_APP_POOL }}' \
-              -LivePath '${{ secrets.DEPLOY_TARGET_PATH }}' \
-              -StagingPath '${{ secrets.STAGING_TARGET_PATH }}' \
-              -Tag '${{ inputs.tag }}' \
-              -ConfigBackupPath '${{ secrets.DEPLOY_CONFIG_BACKUP_PATH }}' \
-              -BackupPath '${{ secrets.DEPLOY_BACKUP_PATH }}'" 2>&1
+            "powershell -File \"${{ secrets.DEPLOY_SCRIPT_PATH }}\" \
+              -SiteName \"${{ secrets.DEPLOY_SITE_NAME }}\" \
+              -AppPool \"${{ secrets.DEPLOY_APP_POOL }}\" \
+              -LivePath \"${{ secrets.DEPLOY_TARGET_PATH }}\" \
+              -StagingPath \"${{ secrets.STAGING_TARGET_PATH }}\" \
+              -Tag \"${{ inputs.tag }}\" \
+              -ConfigBackupPath \"${{ secrets.DEPLOY_CONFIG_BACKUP_PATH }}\" \
+              -BackupPath \"${{ secrets.DEPLOY_BACKUP_PATH }}\"" 2>&1
