@@ -3,7 +3,7 @@
 
 @if (_maxSets > 1)
 {
-    <MudChipSet T="int" SelectedValue="_selectedSet" SelectedValueChanged="OnSetChanged" SelectedColor="Color.Primary" Class="mb-2">
+    <MudChipSet T="int" SelectedValue="_selectedSet" SelectedValueChanged="OnSetChanged" SelectedColor="Color.Primary" Class="mb-2 d-flex justify-center">
         @for (int i = 1; i <= _maxSets; i++)
         {
             int index = i;
@@ -35,10 +35,12 @@
 
     readonly LineChartOptions _chartOptions = new()
     {
-        LineStrokeWidth = 4,
+        LineStrokeWidth = 6,
         YAxisTicks = 5,
+        MaxNumYAxisTicks = 5,
         ShowDataMarkers = true,
-        XAxisLabelRotation = 45,
+        XAxisLabelRotation = 60,
+        YAxisFormat = "0",
         InterpolationOption = InterpolationOption.EndSlope
     };
 
