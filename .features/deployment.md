@@ -24,6 +24,35 @@ Use only if the pipeline is unavailable:
    correct `ProductionConnection` string — do not overwrite it with a repo copy
 7. Restart the IIS website and Application Pool
 
+## IIS: WebDAV must stay disabled (DELETE endpoints)
+
+IIS ships with WebDAV enabled. Its module and handler claim `DELETE` and `PUT` and answer them
+with **405 Method Not Allowed** before the ASP.NET Core Module ever runs. That silently breaks
+every DELETE endpoint in the app — `DELETE /api/workouts/{id}` and `DELETE /api/weight/{id}`.
+
+This bit production and was diagnosed on 2026-08-20. The fix is committed in
+`WhatYouDid/WhatYouDid/web.config`, which removes **both** registrations:
+
+```xml
+<modules><remove name="WebDAVModule" /></modules>
+<handlers><remove name="WebDAV" /><add name="aspNetCore" ... /></handlers>
+```
+
+Removing only one is not enough — WebDAV registers a module and a handler separately.
+
+Two ways this can silently regress:
+
+- **A `web.config` in `C:\WhatYouDid\AppSettings\`.** `deploy.ps1` overlays that folder on top of
+  the build, so a stale copy there overwrites the published one. That folder should contain only
+  `appsettings.Production.json`.
+- **Hand-editing `web.config` on the server.** The live folder is replaced wholesale on every
+  deploy; the committed file is the only durable home for this.
+
+**No automated test catches this.** Both `WhatYouDid.Tests` and `WhatYouDid.UITests` run the app
+on Kestrel/TestServer via `ApiWebApplicationFactory` and never traverse IIS, so a green suite says
+nothing about whether IIS is rejecting verbs. Verify DELETE by hand against the real site after a
+deploy that touches `web.config` or after any server rebuild.
+
 ## Configuration (appsettings.json)
 The following keys must be present in the production `appsettings.json` (not committed to source control):
 
