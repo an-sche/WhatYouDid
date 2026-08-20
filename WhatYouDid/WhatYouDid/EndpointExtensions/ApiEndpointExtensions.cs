@@ -9,6 +9,7 @@ public static class ApiEndpointExtensions
         api.MapRoutineApiEndpoints();
         api.MapWorkoutEndpoints();
         api.MapDashboardEndpoints();
+        api.MapWeightEndpoints();
         api.MapAdminEndpoints();
 
         return app;

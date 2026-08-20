@@ -289,6 +289,32 @@ namespace WhatYouDid.Migrations
                     b.ToTable("Routines");
                 });
 
+            modelBuilder.Entity("WhatYouDid.Data.WeightEntry", b =>
+                {
+                    b.Property<Guid>("WeightEntryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ApplicationUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset>("LoggedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<decimal>("Pounds")
+                        .HasPrecision(6, 2)
+                        .HasColumnType("decimal(6,2)");
+
+                    b.HasKey("WeightEntryId");
+
+                    b.HasIndex("ApplicationUserId", "LoggedAt")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("IX_WeightEntries_User_LoggedAt");
+
+                    b.ToTable("WeightEntries");
+                });
+
             modelBuilder.Entity("WhatYouDid.Data.Workout", b =>
                 {
                     b.Property<Guid>("WorkoutId")
@@ -470,6 +496,17 @@ namespace WhatYouDid.Migrations
                         .HasForeignKey("CreateUserId");
 
                     b.Navigation("CreateUser");
+                });
+
+            modelBuilder.Entity("WhatYouDid.Data.WeightEntry", b =>
+                {
+                    b.HasOne("WhatYouDid.Data.ApplicationUser", "ApplicationUser")
+                        .WithMany()
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ApplicationUser");
                 });
 
             modelBuilder.Entity("WhatYouDid.Data.Workout", b =>

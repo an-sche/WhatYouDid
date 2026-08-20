@@ -107,6 +107,7 @@ builder.Services.AddAccountRateLimiting();
 
 builder.Services.AddTransient<IRoutineService, RoutineService>();
 builder.Services.AddTransient<IWorkoutService, WorkoutService>();
+builder.Services.AddTransient<IWeightService, WeightService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IBrowserStorage, ServerBrowserStorage>();
 builder.Services.AddHostedService<AdminRoleSeeder>();

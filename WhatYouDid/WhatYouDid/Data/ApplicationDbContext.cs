@@ -31,6 +31,16 @@ public class ApplicationDbContext(
         builder.Entity<WorkoutExerciseSet>()
             .HasQueryFilter(wes => wes.WorkoutExercise.Workout.ApplicationUserId == Tenant && !wes.WorkoutExercise.Workout.IsDeleted);
 
+        builder.Entity<WeightEntry>()
+            .HasQueryFilter(we => we.ApplicationUserId == Tenant)
+            .HasIndex(we => new { we.ApplicationUserId, we.LoggedAt })
+            .IsDescending(false, true)
+            .HasDatabaseName("IX_WeightEntries_User_LoggedAt");
+
+        builder.Entity<WeightEntry>()
+            .Property(we => we.Pounds)
+            .HasPrecision(6, 2);
+
         base.OnModelCreating(builder);
     }
 
@@ -43,4 +53,6 @@ public class ApplicationDbContext(
     public DbSet<WorkoutExercise> WorkoutExercises { get; set; }
 
     public DbSet<WorkoutExerciseSet> WorkoutExerciseSets { get; set; }
+
+    public DbSet<WeightEntry> WeightEntries { get; set; }
 }
