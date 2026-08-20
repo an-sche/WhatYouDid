@@ -1,0 +1,168 @@
+@page "/weight"
+@using WhatYouDid.Shared
+@attribute [Authorize]
+@rendermode InteractiveWebAssembly
+
+@inject IWeightService WeightService
+@inject IDialogService DialogService
+
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<PageTitle>Weight</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-4">Weight</MudText>
+
+<MudCard Class="mb-4">
+    <MudCardContent>
+        <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+            <MudTextFieldExtended T="decimal?"
+                                  Label="Log weight"
+                                  aria-label="Log weight"
+                                  @bind-Value="newPounds"
+                                  Variant="Variant.Outlined"
+                                  InputMode="DecimalInputMode"
+                                  Style="width: 100%"
+                                  OnKeyDown="OnQuickLogKeyDown">
+                <AdornmentStart>
+                    <MudIcon Icon="@Icons.Material.Filled.MonitorWeight" Size="Size.Medium" Class="mr-1" />
+                </AdornmentStart>
+                <AdornmentEnd>
+                    <MudText Typo="Typo.body2" Class="mr-1">lb</MudText>
+                </AdornmentEnd>
+            </MudTextFieldExtended>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       Disabled="!CanSave"
+                       OnClick="SaveEntry">
+                Save
+            </MudButton>
+        </MudStack>
+        @if (errorMessage is not null)
+        {
+            <MudText Color="Color.Error" Typo="Typo.body2" Class="mt-2">@errorMessage</MudText>
+        }
+    </MudCardContent>
+</MudCard>
+
+@if (isLoading)
+{
+    <MudProgressLinear Indeterminate="true" />
+}
+else if (entries.Count == 0)
+{
+    <MudText Color="Color.Secondary">No weigh-ins logged yet.</MudText>
+}
+else
+{
+    foreach (var day in entries.GroupBy(e => e.LoggedAt.LocalDateTime.Date).OrderByDescending(g => g.Key))
+    {
+        <MudText Typo="Typo.subtitle2" Color="Color.Secondary" Class="mt-3">@DayHeader(day.Key)</MudText>
+        <MudPaper Class="mt-1" Elevation="1">
+            @foreach (var entry in day.OrderByDescending(e => e.LoggedAt))
+            {
+                <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="px-3 py-2">
+                    <MudStack Row="true" Spacing="3" AlignItems="AlignItems.Center">
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            @entry.LoggedAt.LocalDateTime.ToString("HH:mm")
+                        </MudText>
+                        <MudText Typo="Typo.body1">@entry.Pounds.ToString("0.##") lb</MudText>
+                    </MudStack>
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                   Color="Color.Error"
+                                   Size="Size.Small"
+                                   aria-label="Delete weigh-in"
+                                   OnClick="@(() => DeleteEntry(entry))" />
+                </MudStack>
+            }
+        </MudPaper>
+    }
+}
+
+@code {
+    List<WeightEntryDto> entries = [];
+    decimal? newPounds;
+    bool isLoading = true;
+    bool isSaving;
+    string? errorMessage;
+
+    const int RecentDays = 30;
+
+    // Named here because `decimal` is a C# keyword and needs escaping inline.
+    // Gives mobile keyboards a decimal point, which numeric alone does not.
+    const InputMode DecimalInputMode = InputMode.@decimal;
+
+    bool CanSave => newPounds is > 0 && !isSaving;
+
+    protected override async Task OnInitializedAsync() => await LoadEntries();
+
+    private async Task LoadEntries()
+    {
+        isLoading = true;
+        try
+        {
+            entries = await WeightService.GetRecentEntriesAsync(RecentDays);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task OnQuickLogKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key is "Enter" or "NumpadEnter" && CanSave)
+            await SaveEntry();
+    }
+
+    private async Task SaveEntry()
+    {
+        if (newPounds is not { } pounds || pounds <= 0) return;
+
+        errorMessage = null;
+        isSaving = true;
+        try
+        {
+            var created = await WeightService.AddEntryAsync(new CreateWeightEntryDto
+            {
+                Pounds = pounds,
+                // Sent from the browser so the entry carries the user's local time.
+                LoggedAt = DateTimeOffset.Now,
+            });
+
+            if (created is null)
+            {
+                errorMessage = "Could not save that weight. Enter a value between 1 and 1500 lb.";
+                return;
+            }
+
+            newPounds = null;
+            await LoadEntries();
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task DeleteEntry(WeightEntryDto entry)
+    {
+        var confirmed = await DialogService.ShowMessageBoxAsync(
+            "Delete Weigh-In",
+            $"Delete the {entry.Pounds:0.##} lb entry from {entry.LoggedAt.LocalDateTime:MMM d, HH:mm}?",
+            yesText: "Delete", cancelText: "Cancel");
+        if (confirmed != true) return;
+
+        if (await WeightService.DeleteEntryAsync(entry.WeightEntryId))
+            await LoadEntries();
+    }
+
+    private static string DayHeader(DateTime date)
+    {
+        var today = DateTime.Now.Date;
+        if (date == today) return "Today";
+        if (date == today.AddDays(-1)) return "Yesterday";
+        return date.ToString("dddd, MMM d");
+    }
+}

@@ -24,6 +24,7 @@ builder.Services.AddScoped<IBrowserStorage, ClientBrowserStorage>();
 builder.Services.AddScoped<IDashboardService, DashboardHttpService>();
 builder.Services.AddScoped<IRoutineService, RoutineHttpService>();
 builder.Services.AddScoped<IWorkoutService, WorkoutHttpService>();
+builder.Services.AddScoped<IWeightService, WeightHttpService>();
 
 builder.Services.AddValidation();
 

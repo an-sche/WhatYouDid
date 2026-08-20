@@ -1,0 +1,115 @@
+@using WhatYouDid.Shared
+@using MudBlazor.Charts
+
+@inject IWeightService WeightService
+
+<MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center" Class="mb-2">
+    <MudSelect T="int"
+               Label="Range"
+               Value="_days"
+               ValueChanged="OnRangeChanged"
+               Variant="Variant.Outlined"
+               Style="max-width: 200px">
+        <MudSelectItem Value="30">Last 30 days</MudSelectItem>
+        <MudSelectItem Value="90">Last 90 days</MudSelectItem>
+        <MudSelectItem Value="365">Last year</MudSelectItem>
+    </MudSelect>
+</MudStack>
+
+@if (_isLoading)
+{
+    <MudProgressLinear Indeterminate="true" />
+}
+else if (_points.Count == 0)
+{
+    <MudText Color="Color.Secondary">No weigh-ins logged in this range.</MudText>
+}
+else
+{
+    <MudCard>
+        <MudCardContent>
+            <Line T="double"
+                  ChartSeries="_series"
+                  ChartLabels="_xLabels"
+                  ChartOptions="_chartOptions"
+                  Width="100%" Height="300px" />
+        </MudCardContent>
+    </MudCard>
+}
+
+@code {
+    int _days = 90;
+    bool _isLoading = true;
+    List<WeightAveragePointDto> _points = [];
+    string[] _xLabels = [];
+    List<ChartSeries<double>> _series = [];
+
+    readonly LineChartOptions _chartOptions = new()
+    {
+        LineStrokeWidth = 6,
+        YAxisTicks = 5,
+        MaxNumYAxisTicks = 5,
+        ShowDataMarkers = true,
+        XAxisLabelRotation = 60,
+        YAxisFormat = "0.#",
+        InterpolationOption = InterpolationOption.Straight
+    };
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task OnRangeChanged(int days)
+    {
+        _days = days;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _isLoading = true;
+        try
+        {
+            _points = await WeightService.GetDailyAveragesAsync(_days);
+            BuildSeries();
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void BuildSeries()
+    {
+        _xLabels = ThinLabels(
+            _points.Select(p => p.Date.ToString("MMM d")).ToArray());
+
+        _series = _points.Count == 0
+            ? []
+            : [new ChartSeries<double>
+               {
+                   Name = "Weight (lb)",
+                   Data = _points.Select(p => (double)p.AveragePounds).ToArray()
+               }];
+    }
+
+    // Show at most 10 labels. Always keep first and last; blank everything in between
+    // that doesn't fall on a calculated step. Mirrors ExerciseHistoryCharts.
+    private static string[] ThinLabels(string[] labels)
+    {
+        const int maxLabels = 10;
+        if (labels.Length <= maxLabels) return labels;
+
+        var result = new string[labels.Length];
+        double step = (double)(labels.Length - 1) / (maxLabels - 1);
+
+        for (int i = 0; i < labels.Length; i++)
+            result[i] = string.Empty;
+
+        for (int i = 0; i < maxLabels; i++)
+        {
+            int index = (int)Math.Round(i * step);
+            result[index] = labels[index];
+        }
+
+        return result;
+    }
+}

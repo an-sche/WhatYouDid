@@ -297,6 +297,32 @@ public class ApiWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLi
     }
 
     /// <summary>
+    /// Inserts a weight entry directly into the DB, scoped to <paramref name="userId"/>.
+    /// Returns the new WeightEntryId.
+    /// </summary>
+    public async Task<Guid> AddWeightEntryAsync(
+        string userId, DateTimeOffset loggedAt, decimal pounds)
+    {
+        var tenantService = new TestTenantService();
+        tenantService.SetTenant(userId);
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseSqlServer(_connectionString)
+            .Options;
+        await using var db = new ApplicationDbContext(options, tenantService);
+
+        var entry = new WeightEntry
+        {
+            WeightEntryId = Guid.CreateVersion7(),
+            ApplicationUserId = userId,
+            LoggedAt = loggedAt,
+            Pounds = pounds,
+        };
+        db.WeightEntries.Add(entry);
+        await db.SaveChangesAsync();
+        return entry.WeightEntryId;
+    }
+
+    /// <summary>
     /// Creates an HttpClient pre-loaded with the X-Test-UserId header so every
     /// request is authenticated as <paramref name="userId"/>.
     /// </summary>

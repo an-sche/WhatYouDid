@@ -1,15 +1,27 @@
 # Deployment
 
 ## Overview
-The app is deployed manually to a self-hosted Windows IIS server. There is no automated CI/CD — the GitHub Actions workflow (`.github/workflows/main_whatyoudid-app.yml`) targets Azure App Service and is **no longer used**.
+The app runs on a self-hosted Windows IIS server, exposed via a Cloudflare Tunnel.
 
-## Deploy Steps
-1. Publish the server project in Visual Studio: **Release / net10.0 / Self-contained / win-x64**
+Deploys are **automated** through the `Build, Test & Stage` GitHub Actions workflow
+(`.github/workflows/deploy.yml`), run manually with a release tag. See
+[`cicd-pipeline.md`](cicd-pipeline.md) for how to trigger it, the server folder layout,
+prerequisites, secrets, and rollback.
+
+This page covers what the *application* needs at runtime — configuration keys and the
+migration-time backup behaviour.
+
+## Manual Deploy (fallback only)
+Use only if the pipeline is unavailable:
+
+1. Publish the server project: **Release / net10.0 / win-x64** (framework-dependent — the server
+   has the .NET 10 Hosting Bundle installed, so a self-contained publish is not needed)
 2. RDP into the production server
 3. Copy the published files to a staging folder on the server
 4. Stop the IIS website and its Application Pool
 5. Copy and overwrite the production files from the staging folder
-6. Verify `appsettings.json` has the correct `ProductionConnection` string (do not overwrite it)
+6. Verify `appsettings.Production.json` (kept in `C:\WhatYouDid\AppSettings\`) is overlaid with the
+   correct `ProductionConnection` string — do not overwrite it with a repo copy
 7. Restart the IIS website and Application Pool
 
 ## Configuration (appsettings.json)

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet test:*)",
+      "Bash(docker info:*)",
+      "Bash(dotnet build *)"
+    ]
+  }
+}
