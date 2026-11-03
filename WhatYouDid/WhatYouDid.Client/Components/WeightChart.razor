@@ -52,7 +52,8 @@ else
         ShowDataMarkers = true,
         XAxisLabelRotation = 60,
         YAxisFormat = "0.#",
-        InterpolationOption = InterpolationOption.Straight
+        InterpolationOption = InterpolationOption.Straight,
+        ConnectNullPoints = true
     };
 
     protected override async Task OnInitializedAsync() => await LoadAsync();
@@ -79,16 +80,36 @@ else
 
     private void BuildSeries()
     {
-        _xLabels = ThinLabels(
-            _points.Select(p => p.Date.ToString("MMM d")).ToArray());
+        if (_points.Count == 0)
+        {
+            _xLabels = [];
+            _series = [];
+            return;
+        }
 
-        _series = _points.Count == 0
-            ? []
-            : [new ChartSeries<double>
-               {
-                   Name = "Weight (lb)",
-                   Data = _points.Select(p => (double)p.AveragePounds).ToArray()
-               }];
+        // One x slot per calendar day across the whole selected range, so the spacing
+        // between readings reflects real time. Days with no weigh-in are null, which
+        // MudBlazor renders without a marker. The server cutoff is Now - days, so a
+        // reading can land one day before the nominal start; widen to keep it.
+        var today = DateOnly.FromDateTime(DateTime.Now);
+        var start = today.AddDays(-(_days - 1));
+        if (_points[0].Date < start) start = _points[0].Date;
+
+        var byDate = _points.ToDictionary(p => p.Date, p => (double)p.AveragePounds);
+        var dayCount = today.DayNumber - start.DayNumber + 1;
+        var days = Enumerable.Range(0, dayCount).Select(start.AddDays).ToArray();
+
+        _xLabels = ThinLabels(days.Select(d => d.ToString("MMM d")).ToArray());
+
+        _series =
+        [
+            new ChartSeries<double>
+            {
+                Name = "Weight (lb)",
+                Data = new ChartData<double>(
+                    days.Select(d => byDate.TryGetValue(d, out var lb) ? lb : (double?)null).ToArray())
+            }
+        ];
     }
 
     // Show at most 10 labels. Always keep first and last; blank everything in between
