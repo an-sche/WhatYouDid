@@ -11,6 +11,7 @@
     <PackageReference Include="MudBlazor" Version="9.12.0" />
     <PackageReference Include="Resend" Version="0.24.0" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.18.7" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
     <ProjectReference Include="..\..\WhatYouDid.Shared\WhatYouDid.Shared.csproj" />
     <ProjectReference Include="..\WhatYouDid.Client\WhatYouDid.Client.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.14" />
